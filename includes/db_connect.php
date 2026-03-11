@@ -2,11 +2,12 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-// Database Configuration
-$host = 'localhost';
-$dbname = 'ontomeel_bookshop';
-$username = 'root';
-$password = ''; // Default XAMPP password is empty
+
+// Database Configuration - Use environment variables for production
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'ontomeel_bookshop';
+$username = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASS') ?: '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
@@ -14,6 +15,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Database Connection Failed: " . $e->getMessage());
+    error_log("Database Connection Failed: " . $e->getMessage());
+    die("Database connection failed. Please try again later.");
 }
 ?>

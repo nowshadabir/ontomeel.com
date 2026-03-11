@@ -201,14 +201,26 @@ include 'includes/header.php';
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-6">
                         <button
-                            onclick="addToCart({id: <?php echo $book['id']; ?>, title: '<?php echo addslashes($book['title']); ?>', price: <?php echo $book['sell_price'] ?? 0; ?>, img: '<?php echo getBookImage($book['cover_image']); ?>', author: '<?php echo addslashes($book['author']); ?>'})"
+                            onclick="addToCart(<?php echo htmlspecialchars(json_encode([
+                                'id' => $book['id'], 
+                                'title' => $book['title'],
+                                'price' => (float)($book['sell_price'] ?? 0),
+                                'img' => getBookImage($book['cover_image']),
+                                'author' => $book['author']
+                            ]), ENT_QUOTES, 'UTF-8'); ?>)"
                             class="flex-1 px-10 py-5 bg-brand-gold text-brand-900 font-bold text-lg rounded-xl shadow-xl shadow-brand-gold/20 hover:bg-brand-900 hover:text-white transition-all duration-500 transform hover:-translate-y-1">
                             কার্টে যোগ করুন
                         </button>
 
                         <?php if ($book['is_borrowable']): ?>
                             <button
-                                onclick="borrowBook({id: <?php echo $book['id']; ?>, title: '<?php echo addslashes($book['title']); ?>', price: 0, img: '<?php echo getBookImage($book['cover_image']); ?>', author: '<?php echo addslashes($book['author']); ?>'})"
+                                onclick="borrowBook(<?php echo htmlspecialchars(json_encode([
+                                    'id' => $book['id'], 
+                                    'title' => $book['title'],
+                                    'price' => 0,
+                                    'img' => getBookImage($book['cover_image']),
+                                    'author' => $book['author']
+                                ]), ENT_QUOTES, 'UTF-8'); ?>)"
                                 class="flex-1 px-10 py-5 bg-white border-2 border-brand-900 text-brand-900 font-bold text-lg rounded-xl hover:bg-brand-900 hover:text-white transition-all duration-500 transform hover:-translate-y-1 flex items-center justify-center gap-3">
                                 <span class="borrow-icon-main">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

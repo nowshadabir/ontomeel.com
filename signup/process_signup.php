@@ -10,7 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Basic validation
     if (empty($full_name) || empty($email) || empty($phone) || empty($password)) {
-        die("Please fill all required fields.");
+        header("Location: index.php?error=empty");
+        exit();
+    }
+
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: index.php?error=invalid_email");
+        exit();
+    }
+
+    // Validate password length
+    if (strlen($password) < 6) {
+        header("Location: index.php?error=weak_password");
+        exit();
     }
 
     // Determine initial balance and expiry based on plan
@@ -36,10 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: ../login/index.php?signup=success");
         exit();
     } catch (PDOException $e) {
+        error_log("Signup Error: " . $e->getMessage());
         if ($e->getCode() == 23000) {
             die("Error: Email or Phone already registered.");
         } else {
-            die("Error: " . $e->getMessage());
+            die("An error occurred. Please try again later.");
         }
     }
 } else {

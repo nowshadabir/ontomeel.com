@@ -55,30 +55,70 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $purchased_books = $stmt->fetchAll();
 
-// 5. All Orders grouped (newest first)
-$stmt = $pdo->prepare("SELECT * FROM orders WHERE member_id = ? ORDER BY order_date DESC");
+// 5. All Orders grouped (newest first) with items - Fixed N+1 query
+$stmt = $pdo->prepare("
+    SELECT 
+        o.*,
+        oi.id as item_id,
+        oi.book_id,
+        oi.preorder_id,
+        oi.quantity,
+        oi.unit_price,
+        oi.total_price,
+        COALESCE(bk.title, po.title) as item_title,
+        COALESCE(bk.author, po.author) as item_author,
+        COALESCE(bk.cover_image, po.cover_image) as item_cover_image,
+        CASE WHEN oi.preorder_id IS NOT NULL THEN 'Pre-order' ELSE 'Book' END as item_type,
+        po.release_date
+    FROM orders o
+    LEFT JOIN order_items oi ON o.id = oi.order_id
+    LEFT JOIN books bk ON oi.book_id = bk.id
+    LEFT JOIN pre_orders po ON oi.preorder_id = po.id
+    WHERE o.member_id = ?
+    ORDER BY o.order_date DESC
+");
 $stmt->execute([$user_id]);
-$all_orders = $stmt->fetchAll();
+$order_items_raw = $stmt->fetchAll();
 
-// Attach items to each order
-foreach ($all_orders as &$ord) {
-    $iStmt = $pdo->prepare("
-        SELECT 
-            oi.*, 
-            COALESCE(bk.title, po.title) as title,
-            COALESCE(bk.author, po.author) as author,
-            COALESCE(bk.cover_image, po.cover_image) as cover_image,
-            CASE WHEN oi.preorder_id IS NOT NULL THEN 'Pre-order' ELSE 'Book' END as item_type,
-            po.release_date
-        FROM order_items oi
-        LEFT JOIN books bk ON oi.book_id = bk.id
-        LEFT JOIN pre_orders po ON oi.preorder_id = po.id
-        WHERE oi.order_id = ?
-    ");
-    $iStmt->execute([$ord['id']]);
-    $ord['items'] = $iStmt->fetchAll();
+// Group items by order
+$all_orders = [];
+foreach ($order_items_raw as $row) {
+    $order_id = $row['id'];
+    if (!isset($all_orders[$order_id])) {
+        $all_orders[$order_id] = [
+            'id' => $row['id'],
+            'invoice_no' => $row['invoice_no'],
+            'member_id' => $row['member_id'],
+            'order_date' => $row['order_date'],
+            'subtotal' => $row['subtotal'],
+            'discount' => $row['discount'],
+            'shipping_cost' => $row['shipping_cost'],
+            'total_amount' => $row['total_amount'],
+            'payment_status' => $row['payment_status'],
+            'payment_method' => $row['payment_method'],
+            'order_status' => $row['order_status'],
+            'shipping_address' => $row['shipping_address'],
+            'notes' => $row['notes'],
+            'items' => []
+        ];
+    }
+    if ($row['item_id']) {
+        $all_orders[$order_id]['items'][] = [
+            'id' => $row['item_id'],
+            'book_id' => $row['book_id'],
+            'preorder_id' => $row['preorder_id'],
+            'quantity' => $row['quantity'],
+            'unit_price' => $row['unit_price'],
+            'total_price' => $row['total_price'],
+            'title' => $row['item_title'],
+            'author' => $row['item_author'],
+            'cover_image' => $row['item_cover_image'],
+            'item_type' => $row['item_type'],
+            'release_date' => $row['release_date']
+        ];
+    }
 }
-unset($ord);
+$all_orders = array_values($all_orders);
 
 // Keep legacy $order_history for existing HTML compatibility
 $order_history = $all_orders;
