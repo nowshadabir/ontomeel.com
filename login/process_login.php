@@ -33,7 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
     } catch (PDOException $e) {
-        die("Error: " . $e->getMessage());
+        error_log("Login Error: " . $e->getMessage());
+        header("Location: index.php?error=db");
+        exit();
     }
 } else {
     header("Location: index.php");

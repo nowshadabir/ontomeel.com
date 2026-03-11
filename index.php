@@ -284,16 +284,26 @@ function bn_num($num)
                                 স্টকে নেই
                             </button>
                         <?php else: ?>
-                            <button
-                                onclick="addToCart({id: <?php echo $book['id']; ?>, title: '<?php echo addslashes($book['title']); ?>', price: <?php echo $book['sell_price'] ?? 0; ?>, img: '<?php echo $img; ?>', author: '<?php echo addslashes($book['author']); ?>'})"
+                            <button onclick="addToCart(<?php echo htmlspecialchars(json_encode([
+                                'id' => (int) $book['id'],
+                                'title' => $book['title'],
+                                'price' => (float) ($book['sell_price'] ?? 0),
+                                'img' => $img,
+                                'author' => $book['author']
+                            ]), ENT_QUOTES, 'UTF-8'); ?>)"
                                 class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-lg font-sans">
                                 <span class="md:hidden">কিনুন</span>
                                 <span class="hidden md:block">কিনুন
                                     ৳<?php echo bn_num($book['sell_price'] ?? 0); ?></span>
                             </button>
                             <?php if ($is_borrowable): ?>
-                                <button
-                                    onclick="borrowBook({id: <?php echo $book['id']; ?>, title: '<?php echo addslashes($book['title']); ?>', price: 0, img: '<?php echo $img; ?>', author: '<?php echo addslashes($book['author']); ?>'})"
+                                <button onclick="borrowBook(<?php echo htmlspecialchars(json_encode([
+                                    'id' => (int) $book['id'],
+                                    'title' => $book['title'],
+                                    'price' => 0,
+                                    'img' => $img,
+                                    'author' => $book['author']
+                                ]), ENT_QUOTES, 'UTF-8'); ?>)"
                                     class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1">
                                     <span class="borrow-icon">
                                         <svg class="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor"
@@ -531,7 +541,7 @@ function bn_num($num)
     // Populate allBooks from DB
     allBooks = [
         <?php foreach ($all_books_db as $book): ?>
-                                                                    {
+                                                                        {
                 id: <?php echo $book['id']; ?>,
                 title: "<?php echo addslashes($book['title']); ?>",
                 author: "<?php echo addslashes($book['author']); ?>",

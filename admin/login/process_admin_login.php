@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         }
     } catch (PDOException $e) {
+        error_log("Admin Login Error: " . $e->getMessage());
         header("Location: index.php?error=db");
         exit();
     }

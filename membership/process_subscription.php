@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
         header("Location: index.php?subscription=success");
         exit();
     } catch (PDOException $e) {
-        die("Error: " . $e->getMessage());
+        error_log("Subscription Error: " . $e->getMessage());
+        die("An error occurred. Please try again later.");
     }
 } else {
     header("Location: index.php");
