@@ -254,92 +254,20 @@ function bn_num($num)
 
     <!-- Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10" id="book-grid">
-        <?php foreach ($suggested_books as $index => $book):
-            $delay = ($index % 4) * 100;
-            $img = getBookImage($book['cover_image']);
-            $is_out_of_stock = (int) ($book['stock_qty'] ?? 0) <= 0;
-            $is_borrowable = (int) $book['is_borrowable'] === 1 && !$is_out_of_stock;
-            ?>
-            <div class="book-card group reveal active <?php echo $is_out_of_stock ? 'opacity-80' : ''; ?>"
-                style="transition-delay: <?php echo $delay; ?>ms;">
-                <!-- Cover -->
-                <div
-                    class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-200 mb-4 shadow-sm border border-gray-100">
-                    <img src="<?php echo $img; ?>" alt="<?php echo $book['title']; ?>" loading="lazy"
-                        class="object-cover w-full h-full <?php echo $is_out_of_stock ? 'grayscale' : ''; ?>">
-
-                    <?php if ($is_out_of_stock): ?>
-                        <div
-                            class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20">
-                            স্টক আউট
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Overlay Actions -->
-                    <div
-                        class="absolute inset-x-0 bottom-0 md:inset-0 bg-brand-900/90 md:bg-brand-900/70 md:opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-row md:flex-col justify-center items-center gap-2 md:gap-3 backdrop-blur-md md:backdrop-blur-sm p-2 md:p-0">
-                        <?php if ($is_out_of_stock): ?>
-                            <button disabled
-                                class="flex-1 md:flex-none md:w-3/4 bg-gray-600 text-gray-300 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed">
-                                স্টকে নেই
-                            </button>
-                        <?php else: ?>
-                            <button onclick="addToCart(<?php echo htmlspecialchars(json_encode([
-                                'id' => (int) $book['id'],
-                                'title' => $book['title'],
-                                'price' => (float) ($book['sell_price'] ?? 0),
-                                'img' => $img,
-                                'author' => $book['author']
-                            ]), ENT_QUOTES, 'UTF-8'); ?>)"
-                                class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-lg font-sans">
-                                <span class="md:hidden">কিনুন</span>
-                                <span class="hidden md:block">কিনুন
-                                    ৳<?php echo bn_num($book['sell_price'] ?? 0); ?></span>
-                            </button>
-                            <?php if ($is_borrowable): ?>
-                                <button onclick="borrowBook(<?php echo htmlspecialchars(json_encode([
-                                    'id' => (int) $book['id'],
-                                    'title' => $book['title'],
-                                    'price' => 0,
-                                    'img' => $img,
-                                    'author' => $book['author']
-                                ]), ENT_QUOTES, 'UTF-8'); ?>)"
-                                    class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1">
-                                    <span class="borrow-icon">
-                                        <svg class="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                                            </path>
-                                        </svg>
-                                    </span>
-                                    <span class="md:hidden">ধার</span>
-                                    <span class="hidden md:block">ধার নিন</span>
-                                </button>
-                            <?php endif; ?>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Premium Shine Effect on hover -->
-                    <div
-                        class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-in-out">
-                    </div>
-                </div>
-
-                <!-- Details -->
-                <div class="text-center px-1">
-                    <span
-                        class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider"><?php echo $book['category_name']; ?></span>
-                    <a href="book-details.php?id=<?php echo $book['id']; ?>" class="block hover:text-brand-gold">
-                        <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold">
-                            <?php echo $book['title']; ?>
-                        </h3>
-                    </a>
-                    <p class="text-gray-500 text-xs md:text-sm font-light mt-1"><?php echo $book['author']; ?></p>
+        <!-- Skeletons shown initially, then JS replaces them -->
+        <?php for($i=0; $i<8; $i++): ?>
+            <div class="book-card reveal active">
+                <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
+                <div class="px-1 flex flex-col items-center">
+                    <div class="skeleton skeleton-text w-1/4 mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-title mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-author"></div>
                 </div>
             </div>
-        <?php endforeach; ?>
+        <?php endfor; ?>
     </div>
+    </div>
+</section>
 </section>
 
 <!-- The Library Experience (Split Section) -->

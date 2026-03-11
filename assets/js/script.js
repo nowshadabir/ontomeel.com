@@ -31,6 +31,26 @@ const convertToBengaliNumber = (num) => {
 
 // DOM Elements will be queried inside functions for robustness
 
+// Show Skeletons
+function showSkeletons() {
+    const bookGrid = document.getElementById('book-grid') || document.getElementById('library-book-grid');
+    if (!bookGrid) return;
+
+    bookGrid.innerHTML = '';
+    for (let i = 0; i < 8; i++) {
+        bookGrid.innerHTML += `
+            <div class="book-card reveal active">
+                <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
+                <div class="px-1 flex flex-col items-center">
+                    <div class="skeleton skeleton-text w-1/4 mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-title mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-author"></div>
+                </div>
+            </div>
+        `;
+    }
+}
+
 // Render Books
 function renderBooks(booksToRender) {
     const bookGrid = document.getElementById('book-grid');
@@ -128,15 +148,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryFilter = urlParams.get('category');
     const libGrid = document.getElementById('library-book-grid');
+    const bookGrid = document.getElementById('book-grid');
     const isLibraryPage = window.location.pathname.includes('library') || libGrid;
 
-    if (categoryFilter && (libGrid || document.getElementById('book-grid'))) {
-        filterByCategory(categoryFilter);
+    if (categoryFilter && (libGrid || bookGrid)) {
+        showSkeletons();
+        setTimeout(() => filterByCategory(categoryFilter), 300);
     } else if (isLibraryPage && libGrid) {
-        renderBooks(allBooks);
+        showSkeletons();
+        setTimeout(() => renderBooks(allBooks), 300);
+    } else if (bookGrid) {
+        // If homepage has suggested books pre-rendered by PHP, we might still want to "refresh" 
+        // them or just let them stay. The user asked for skeleton loading animation.
+        // Let's hide the PHP rendered ones, show skeletons, then show them again.
+        
+        // Check if we have suggested books in the data
+        const suggestedBooks = allBooks.filter(book => parseInt(book.is_suggested) === 1);
+        if (suggestedBooks.length > 0) {
+            showSkeletons();
+            setTimeout(() => renderBooks(suggestedBooks), 300);
+        }
     }
-    // On homepage, we don't call renderBooks(allBooks) on load anymore
-    // because PHP already rendered the suggested books.
 });
 
 // --- 4. Search and Filter Logic ---

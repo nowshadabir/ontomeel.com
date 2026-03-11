@@ -95,7 +95,17 @@ function getBookImage($image)
 
     <!-- Library Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12" id="library-book-grid">
-        <!-- Books will be injected here -->
+        <!-- Skeletons shown initially, then JS replaces them -->
+        <?php for($i=0; $i<12; $i++): ?>
+            <div class="book-card reveal active">
+                <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
+                <div class="px-1 flex flex-col items-center">
+                    <div class="skeleton skeleton-text w-1/4 mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-title mb-2"></div>
+                    <div class="skeleton skeleton-text skeleton-author"></div>
+                </div>
+            </div>
+        <?php endfor; ?>
     </div>
 </section>
 
