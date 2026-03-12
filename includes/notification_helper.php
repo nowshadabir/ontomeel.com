@@ -4,13 +4,30 @@ require_once __DIR__ . '/smtp_client.php';
 /**
  * Original instant send function - now renamed to avoided conflict with queue
  */
-function send_notification_instantly($to, $type, $data) {
-    if (empty($to)) return ['success' => false, 'message' => 'No recipient email'];
+function send_notification_instantly($to, $type, $data)
+{
+    if (empty($to))
+        return ['success' => false, 'message' => 'No recipient email'];
+
+    // Check if user has unsubscribed from emails
+    global $pdo;
+    try {
+        $stmt = $pdo->prepare("SELECT email_unsubscribed FROM members WHERE email = ?");
+        $stmt->execute([$to]);
+        $member = $stmt->fetch();
+        if ($member && $member['email_unsubscribed']) {
+            return ['success' => false, 'message' => 'User has unsubscribed from emails'];
+        }
+    } catch (Exception $e) {
+        // Continue if check fails
+    }
+
+    // Use single SMTP account for all purposes as requested
+    $user = getenv('SMTP_USER') ?: 'info@ontomeel.com';
+    $pass = getenv('SMTP_PASS');
 
     $host = getenv('SMTP_HOST') ?: 'ontomeel.com';
     $port = getenv('SMTP_PORT') ?: 465;
-    $user = getenv('SMTP_AUTH_USER') ?: getenv('SMTP_USER');
-    $pass = getenv('SMTP_PASS');
 
     $config = [
         'host' => $host,
@@ -103,64 +120,69 @@ function send_notification_instantly($to, $type, $data) {
             break;
     }
 
-    $template = "
+    // Determine professional From Name based on type
+    if (strpos($type, 'order') !== false) {
+        $from_name = "Antyamil Billing";
+    } elseif (strpos($type, 'otp') !== false || strpos($type, 'auth') !== false) {
+        $from_name = "Antyamil Auth";
+    } else {
+        $from_name = "Antyamil";
+    }
+
+    // Pass custom from_name to config
+    $config['from_name'] = $from_name;
+    $config['reply_to'] = $user; // Reply to the account that sent it
+
+    // Wrap in professional HTML template
+    $html_message = "
     <!DOCTYPE html>
     <html>
     <head>
-        <meta charset='utf-8'>
+        <meta charset='UTF-8'>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f1f5f9; }
-            .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-            .header { background: {$color}; padding: 40px 20px; text-align: center; color: white; }
-            .body { padding: 40px; }
-            .footer { background: #f8fafc; padding: 30px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
-            .brand { font-size: 24px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 5px; display: block; text-decoration: none; color: white !important; }
-            .btn { display: inline-block; padding: 12px 25px; background: #0f172a; color: white !important; text-decoration: none; border-radius: 10px; font-weight: 600; margin-top: 20px; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+            .header { background: {$color}; color: white; padding: 30px; text-align: center; }
+            .content { padding: 30px; background: #ffffff; }
+            .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+            .btn { display: inline-block; padding: 12px 24px; background: {$color}; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
         </style>
     </head>
     <body>
-        <div class='wrapper'>
+        <div class='container'>
             <div class='header'>
-                <a href='https://ontomeel.com' class='brand'>Antyamil</a>
-                <h1 style='margin: 10px 0 0; font-size: 20px; font-weight: 600;'>{$title}</h1>
+                <h1 style='margin: 0; font-size: 24px;'>{$title}</h1>
             </div>
-            <div class='body'>
+            <div class='content'>
                 {$content}
-                <a href='https://ontomeel.com/dashboard' class='btn'>আমার একাউন্ট</a>
+                <div style='text-align: center;'>
+                    <a href='https://ontomeel.com/dashboard' class='btn'>ড্যাশবোর্ড দেখুন</a>
+                </div>
             </div>
             <div class='footer'>
-                <p>&copy; " . date('Y') . " Antyamil Bookshop. All Rights Reserved.</p>
-                <p>House #00, Road #00, Dhaka, Bangladesh</p>
+                <p style='margin: 5px 0;'>&copy; " . date('Y') . " Antyamil Bookshop. All rights reserved.</p>
+                <p style='margin: 5px 0;'>এটি একটি অটোমেটিক জেনারেটেড ইমেইল। কোনো সাহায্যের প্রয়োজন হলে আমাদের <a href='mailto:support@ontomeel.com' style='color: #3b82f6;'>সাপোর্ট টিমের</a> সাথে যোগাযোগ করুন।</p>
+                <p style='margin: 5px 0; font-size: 10px;'>Antomeel | Online Book Shop | Bangladesh</p>
+                <div style='margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;'>
+                    <a href='https://ontomeel.com/unsubscribe' style='color: #64748b; font-size: 11px; text-decoration: underline;'>Unsubscribe</a>
+                </div>
             </div>
         </div>
     </body>
     </html>
     ";
 
-    return send_smtp_email($to, $subject, $template, $config, true);
+    return send_smtp_email($to, $subject, $html_message, $config, true);
 }
 
 /**
  * Public function to queue an email and trigger worker
  */
-function send_notification($to, $type, $data) {
+function send_notification($to, $type, $data)
+{
     global $pdo;
-    
-    // 1. Ensure queue table exists (one-time check)
-    try {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS email_queue (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            recipient VARCHAR(255) NOT NULL,
-            type VARCHAR(50) NOT NULL,
-            payload TEXT NOT NULL,
-            status ENUM('pending', 'processing', 'sent', 'failed') DEFAULT 'pending',
-            attempts INT DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            sent_at TIMESTAMP NULL
-        )");
-    } catch (Exception $e) {}
 
-    // 2. Add to queue
+    // Add to queue
     try {
         $stmt = $pdo->prepare("INSERT INTO email_queue (recipient, type, payload) VALUES (?, ?, ?)");
         $stmt->execute([$to, $type, json_encode($data)]);
@@ -176,10 +198,11 @@ function send_notification($to, $type, $data) {
     return ['success' => true, 'message' => 'Email queued'];
 }
 
-function trigger_worker() {
+function trigger_worker()
+{
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
-    
+
     // Construct a absolute path regardless of where we are
     // We assume the project is in /bookshop/ relative to document root
     $url = $protocol . "://" . $host . "/bookshop/includes/email_worker.php";
@@ -188,7 +211,7 @@ function trigger_worker() {
     $parts = parse_url($url);
     $port = isset($parts['port']) ? $parts['port'] : ($parts['scheme'] === 'https' ? 443 : 80);
     $host_conn = ($parts['scheme'] === 'https' ? "ssl://" : "") . $parts['host'];
-    
+
     $fp = @fsockopen($host_conn, $port, $errno, $errstr, 2);
     if ($fp) {
         $out = "GET " . $parts['path'] . " HTTP/1.1\r\n";

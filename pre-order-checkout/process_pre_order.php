@@ -6,23 +6,6 @@ require_once '../includes/notification_helper.php';
 header('Content-Type: application/json');
 
 try {
-    // One-time check/migration for guest columns if they don't exist
-    // This is a safe way to ensure the DB is ready without separate access
-    $pdo->exec("ALTER TABLE orders MODIFY member_id INT(11) NULL");
-    
-    // Check if guest_name exists, if not add it
-    $check = $pdo->query("SHOW COLUMNS FROM orders LIKE 'guest_name'");
-    if (!$check->fetch()) {
-        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_name VARCHAR(150) DEFAULT NULL");
-        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_phone VARCHAR(20) DEFAULT NULL");
-    }
-
-    // Check for guest_email
-    $check = $pdo->query("SHOW COLUMNS FROM orders LIKE 'guest_email'");
-    if (!$check->fetch()) {
-        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_email VARCHAR(150) DEFAULT NULL");
-    }
-
     $user_id = $_SESSION['user_id'] ?? null;
     $preorder_id = $_POST['preorder_id'] ?? 0;
     $name = $_POST['name'] ?? '';

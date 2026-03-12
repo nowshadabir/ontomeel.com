@@ -44,39 +44,8 @@ if (isset($_SESSION['user_id'])) {
 $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
 
 // Fetch Active Payment Methods
-try {
-    $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
-    $active_payment_methods = $payments_stmt->fetchAll();
-} catch (PDOException $e) {
-    if ($e->getCode() == '42S02') {
-        // Table doesn't exist, Create it
-        $pdo->exec("CREATE TABLE IF NOT EXISTS payment_methods (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            method_key VARCHAR(50) UNIQUE,
-            method_name VARCHAR(100),
-            is_active TINYINT DEFAULT 1,
-            config_json TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )");
-        
-        $methods = [
-            ['bkash', 'bKash Payment', 1],
-            ['nagad', 'Nagad Payment', 1],
-            ['cod', 'Cash on Delivery', 1],
-            ['fund', 'Account Fund', 1]
-        ];
-        
-        foreach ($methods as $method) {
-            $stmt = $pdo->prepare("INSERT IGNORE INTO payment_methods (method_key, method_name, is_active) VALUES (?, ?, ?)");
-            $stmt->execute($method);
-        }
-        
-        $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
-        $active_payment_methods = $payments_stmt->fetchAll();
-    } else {
-        throw $e;
-    }
-}
+$payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
+$active_payment_methods = $payments_stmt->fetchAll();
 ?>
 
 <main class="max-w-7xl mx-auto px-6 py-12">
