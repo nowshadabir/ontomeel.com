@@ -1231,9 +1231,11 @@ function bn_num($num)
                                 </div>
                                 <div>
                                     <h3 class="font-anek font-bold text-brand-900">
-                                        <?php echo htmlspecialchars($method['method_name']); ?></h3>
+                                        <?php echo htmlspecialchars($method['method_name']); ?>
+                                    </h3>
                                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                        <?php echo strtoupper($method['method_key']); ?></p>
+                                        <?php echo strtoupper($method['method_key']); ?>
+                                    </p>
                                 </div>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
