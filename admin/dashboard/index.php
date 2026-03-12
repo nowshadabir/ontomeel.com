@@ -1923,7 +1923,7 @@ function bn_num($num)
             // Update URL Hash to preserve tab on reload
             window.location.hash = tabId;
 
-            if (window.innerWidth < 1024) tog gleSidebar();
+            if (window.innerWidth < 1024) toggleSidebar();
         }
 
         // On Page Load, check hash and switch tab
