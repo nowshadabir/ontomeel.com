@@ -20,6 +20,28 @@ $additional_head = '
         .book-shadow {
             filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
         }
+
+        .desc-clamped {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .desc-expanded {
+            display: block;
+        }
+
+        .desc-fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, #1a1a1a, transparent);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
     </style>';
 include '../includes/db_connect.php';
 include '../includes/header.php';
@@ -221,13 +243,21 @@ function bn_num($num)
                             </svg>
                             সীমিত সময়ের হট ডিল!
                         </div>
-                        <h2 class="text-3xl md:text-5xl font-serif text-white mb-6 leading-tight">
+                        <h2 class="text-3xl md:text-4xl font-serif text-white mb-6 leading-tight">
                             <?php echo $hot_deal['title']; ?> <br>
-                            <span class="text-brand-gold">কম্বো প্যাকে বিশেষ ছাড়!</span>
+                            <span class="text-brand-gold"> <?php echo $hot_deal['sub_title']; ?></span>
                         </h2>
-                        <p class="text-gray-400 text-base md:text-lg mb-8 font-anek max-w-lg">
-                            <?php echo $hot_deal['description']; ?>
-                        </p>
+                        <div class="relative mb-8 group/desc max-w-lg">
+                            <p id="hot-deal-desc"
+                                class="text-gray-400 text-base md:text-lg font-anek leading-relaxed desc-clamped transition-all duration-500">
+                                <?php echo $hot_deal['description']; ?>
+                            </p>
+                            <div id="desc-mask" class="desc-fade opacity-100"></div>
+                            <button onclick="toggleHotDealDesc()" id="desc-toggle-btn"
+                                class="hidden mt-4 text-brand-gold text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors relative z-10">
+                                বিস্তারিত পড়ুন
+                            </button>
+                        </div>
 
                         <div class="flex items-center gap-6 mb-10">
                             <div class="flex flex-col">
@@ -254,17 +284,24 @@ function bn_num($num)
                 <?php endif; ?>
 
                 <!-- Book Visuals -->
-                <div class="relative reveal h-[300px] md:h-[450px] flex items-center justify-center lg:justify-end"
+                <div class="relative reveal min-h-[300px] lg:min-h-[450px] flex items-center justify-center lg:justify-end"
                     style="transition-delay: 200ms;">
                     <?php if ($hot_deal): ?>
                         <!-- Main Book -->
                         <div
-                            class="relative w-[150px] md:w-[220px] book-shadow transform rotate-6 z-20 transition-all hover:rotate-0 hover:scale-105 duration-500 cursor-pointer">
+                            class="relative w-[180px] md:w-[260px] lg:w-[320px] book-shadow transform rotate-6 z-20 transition-all hover:rotate-0 hover:scale-105 duration-500 cursor-pointer">
                             <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                class="rounded-r-lg shadow-2xl border-l-[6px] border-brand-900/10"
+                                class="rounded-r-lg shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border-l-[8px] border-brand-900/20"
                                 alt="<?php echo $hot_deal['title']; ?>">
-                            <span
-                                class="absolute -top-3 -right-3 bg-brand-gold text-brand-900 text-[10px] font-bold px-3 py-1 rounded shadow-lg"><?php echo $hot_deal['status'] == 'Upcoming' ? 'আসন্ন' : 'চলছে'; ?></span>
+                            <div
+                                class="absolute -top-4 -right-4 bg-brand-gold text-brand-900 text-xs font-bold px-4 py-2 rounded shadow-2xl animate-bounce">
+                                <?php echo $hot_deal['status'] == 'Upcoming' ? 'আসন্ন' : 'চলছে'; ?>
+                            </div>
+                        </div>
+
+                        <!-- Decorative circle background -->
+                        <div
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px] bg-brand-gold/5 rounded-full blur-[100px] -z-10">
                         </div>
                     <?php endif; ?>
                 </div>
@@ -398,4 +435,33 @@ function bn_num($num)
     </div>
 </section>
 
+<script>
+    function toggleHotDealDesc() {
+        const desc = document.getElementById('hot-deal-desc');
+        const mask = document.getElementById('desc-mask');
+        const btn = document.getElementById('desc-toggle-btn');
+
+        if (desc.classList.contains('desc-clamped')) {
+            desc.classList.remove('desc-clamped');
+            desc.classList.add('desc-expanded');
+            mask.classList.add('opacity-0');
+            btn.innerText = 'সংক্ষেপ করুন';
+        } else {
+            desc.classList.add('desc-clamped');
+            desc.classList.remove('desc-expanded');
+            mask.classList.remove('opacity-0');
+            btn.innerText = 'বিস্তারিত পড়ুন';
+        }
+    }
+
+    // Check if description needs a toggle
+    document.addEventListener('DOMContentLoaded', () => {
+        const desc = document.getElementById('hot-deal-desc');
+        const btn = document.getElementById('desc-toggle-btn');
+
+        if (desc && desc.scrollHeight > desc.clientHeight) {
+            btn.classList.remove('hidden');
+        }
+    });
+</script>
 <?php include '../includes/footer.php'; ?>

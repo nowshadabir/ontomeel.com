@@ -39,6 +39,25 @@ if (empty($cart)) {
     sendResponse(false, 'কার্ট খালি।');
 }
 
+// Check if payment method is active (only for 'buy' or pre-order)
+if ($checkout_type === 'buy') {
+    try {
+        $pay_stmt = $pdo->prepare("SELECT is_active FROM payment_methods WHERE method_key = ?");
+        $pay_stmt->execute([$payment_method]);
+        $is_pay_active = $pay_stmt->fetchColumn();
+
+        if ($is_pay_active === false || (int) $is_pay_active !== 1) {
+            sendResponse(false, 'দুঃখিত, এই পেমেন্ট পদ্ধতিটি বর্তমানে নিষ্ক্রিয় আছে।');
+        }
+    } catch (PDOException $e) {
+        if ($e->getCode() == '42S02') {
+             // If table is missing, we assume failure to protect the system
+             sendResponse(false, 'পেমেন্ট সিস্টেম কনফিগারেশন ত্রুটি।');
+        }
+        throw $e;
+    }
+}
+
 // Membership check
 if ($checkout_type === 'borrow') {
     $stmt = $pdo->prepare("SELECT membership_plan, plan_expire_date FROM members WHERE id = ?");

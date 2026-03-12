@@ -12,6 +12,7 @@ if (!isset($_SESSION['admin_id'])) {
 try {
     $id = $_POST['po_id'] ?? '';
     $title = $_POST['title'] ?? '';
+    $sub_title = $_POST['sub_title'] ?? '';
     $author = $_POST['author'] ?? '';
     $description = $_POST['description'] ?? '';
     $price = $_POST['price'] ?? 0;
@@ -39,18 +40,18 @@ try {
 
     if (empty($id)) {
         // Insert
-        $stmt = $pdo->prepare("INSERT INTO pre_orders (title, author, description, price, discount_price, release_date, cover_image, status, is_hot_deal) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$title, $author, $description, $price, $discount_price, $release_date, $cover_image, $status, $is_hot_deal]);
+        $stmt = $pdo->prepare("INSERT INTO pre_orders (title, sub_title, author, description, price, discount_price, release_date, cover_image, status, is_hot_deal) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $sub_title, $author, $description, $price, $discount_price, $release_date, $cover_image, $status, $is_hot_deal]);
         echo json_encode(['success' => true, 'message' => 'প্রি-অর্ডার সফলভাবে যোগ করা হয়েছে।']);
     } else {
         // Update
         if ($cover_image) {
-            $stmt = $pdo->prepare("UPDATE pre_orders SET title = ?, author = ?, description = ?, price = ?, discount_price = ?, release_date = ?, cover_image = ?, status = ?, is_hot_deal = ? WHERE id = ?");
-            $stmt->execute([$title, $author, $description, $price, $discount_price, $release_date, $cover_image, $status, $is_hot_deal, $id]);
+            $stmt = $pdo->prepare("UPDATE pre_orders SET title = ?, sub_title = ?, author = ?, description = ?, price = ?, discount_price = ?, release_date = ?, cover_image = ?, status = ?, is_hot_deal = ? WHERE id = ?");
+            $stmt->execute([$title, $sub_title, $author, $description, $price, $discount_price, $release_date, $cover_image, $status, $is_hot_deal, $id]);
         } else {
-            $stmt = $pdo->prepare("UPDATE pre_orders SET title = ?, author = ?, description = ?, price = ?, discount_price = ?, release_date = ?, status = ?, is_hot_deal = ? WHERE id = ?");
-            $stmt->execute([$title, $author, $description, $price, $discount_price, $release_date, $status, $is_hot_deal, $id]);
+            $stmt = $pdo->prepare("UPDATE pre_orders SET title = ?, sub_title = ?, author = ?, description = ?, price = ?, discount_price = ?, release_date = ?, status = ?, is_hot_deal = ? WHERE id = ?");
+            $stmt->execute([$title, $sub_title, $author, $description, $price, $discount_price, $release_date, $status, $is_hot_deal, $id]);
         }
         echo json_encode(['success' => true, 'message' => 'প্রি-অর্ডার আপডেট করা হয়েছে।']);
     }
