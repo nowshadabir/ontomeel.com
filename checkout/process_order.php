@@ -3,6 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 require_once '../includes/db_connect.php';
+require_once '../includes/notification_helper.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -202,6 +203,26 @@ try {
     }
 
     $pdo->commit();
+
+    // Send Notification Email
+    try {
+        $emailStmt = $pdo->prepare("SELECT email FROM members WHERE id = ?");
+        $emailStmt->execute([$user_id]);
+        $user_email = $emailStmt->fetchColumn();
+
+        if ($user_email) {
+            $notif_data = [
+                'name' => $name,
+                'invoice_no' => $invoice_no,
+                'amount' => $total_amount,
+                'address' => $shipping_addr
+            ];
+            send_notification($user_email, 'order_placed', $notif_data);
+        }
+    } catch (Exception $e) {
+        error_log("Mail Error in Checkout: " . $e->getMessage());
+    }
+
     sendResponse(true, 'অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।', ['order_id' => $invoice_no]);
 
 } catch (Exception $e) {

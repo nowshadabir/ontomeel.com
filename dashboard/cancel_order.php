@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/db_connect.php';
+require_once '../includes/notification_helper.php';
 
 header('Content-Type: application/json');
 
@@ -100,6 +101,24 @@ try {
         ->execute([$order_id]);
 
     $pdo->commit();
+
+    // Send Notification Email
+    try {
+        $userStmt = $pdo->prepare("SELECT full_name, email FROM members WHERE id = ?");
+        $userStmt->execute([$user_id]);
+        $user_meta = $userStmt->fetch();
+
+        if ($user_meta && !empty($user_meta['email'])) {
+            $notif_data = [
+                'name' => $user_meta['full_name'],
+                'invoice_no' => $order['invoice_no']
+            ];
+            send_notification($user_meta['email'], 'order_cancelled', $notif_data);
+        }
+    } catch (Exception $e) {
+        error_log("Mail Error in Customer Cancel: " . $e->getMessage());
+    }
+
     echo json_encode(['success' => true, 'message' => 'অর্ডারটি সফলভাবে বাতিল করা হয়েছে।']);
 
 } catch (Exception $e) {

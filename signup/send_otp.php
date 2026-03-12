@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $smtp_config = [
         'host' => getenv('SMTP_HOST'),
         'port' => getenv('SMTP_PORT'),
-        'user' => getenv('SMTP_USER'),
+        'user' => getenv('SMTP_AUTH_USER') ?: getenv('SMTP_USER'),
         'pass' => getenv('SMTP_PASS')
     ];
 
