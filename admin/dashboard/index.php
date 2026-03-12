@@ -40,10 +40,11 @@ $orders_stmt = $pdo->query("SELECT o.*, m.full_name, m.phone
 $admin_orders = $orders_stmt->fetchAll();
 
 // Fetch Active Borrows for Borrows Tab
-$borrows_stmt = $pdo->query("SELECT br.*, m.full_name, m.phone, b.title, b.cover_image
+$borrows_stmt = $pdo->query("SELECT br.*, m.full_name, m.phone, b.title, b.cover_image, o.order_status
                              FROM borrows br
                              JOIN members m ON br.member_id = m.id
                              JOIN books b ON br.book_id = b.id
+                             LEFT JOIN orders o ON br.order_id = o.id
                              WHERE br.status IN ('Active', 'Overdue', 'Processing')
                              ORDER BY br.due_date ASC");
 $active_borrows = $borrows_stmt->fetchAll();
@@ -934,7 +935,16 @@ function bn_num($num)
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($active_borrows as $borrow):
-                                    $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date']) < time();
+                                    // 1. Sync Service: If order is Shipped/Delivered, Borrow MUST be Active
+                                    if ($borrow['status'] === 'Processing' && in_array($borrow['order_status'], ['Shipped', 'Delivered'])) {
+                                        $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP WHERE id = ?")
+                                            ->execute([$borrow['id']]);
+                                        $borrow['status'] = 'Active';
+                                        $borrow['borrow_date'] = date('Y-m-d H:i:s');
+                                    }
+
+                                    // 2. Overdue Check
+                                    $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date'] . ' 23:59:59') < time();
                                     if ($is_overdue) {
                                         $pdo->prepare("UPDATE borrows SET status = 'Overdue' WHERE id = ?")->execute([$borrow['id']]);
                                         $borrow['status'] = 'Overdue';
