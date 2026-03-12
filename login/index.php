@@ -41,7 +41,7 @@
         <!-- Branding Side -->
         <div class="hidden md:block w-1/2">
             <a href="../index.php" class="flex items-center gap-3 mb-10 reveal">
-                <img src="../assets/img/logo.png" alt="logo" class="w-16 h-auto">
+                <img src="../assets/img/logo.webp" alt="logo" class="w-16 h-auto">
                 <span class="font-serif text-4xl font-bold tracking-wide text-brand-900 mt-1">অন্ত্যমিল<span
                         class="text-brand-gold">.</span></span>
             </a>
@@ -57,7 +57,7 @@
                 class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-white/20 md:border-gray-100 backdrop-blur-3xl">
                 <!-- Mobile Logo -->
                 <div class="md:hidden flex flex-col items-center mb-10">
-                    <img src="../assets/img/logo.png" alt="logo" class="w-12 h-auto mb-4">
+                    <img src="../assets/img/logo.webp" alt="logo" class="w-12 h-auto mb-4">
                     <h2 class="text-3xl font-anek font-bold text-white">লগইন করুন</h2>
                 </div>
 

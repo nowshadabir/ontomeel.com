@@ -253,7 +253,7 @@ function getDaysRemaining($due_date)
         class="fixed inset-y-0 left-0 w-72 bg-brand-900 z-50 transform -translate-x-full transition-transform lg:translate-x-0 overflow-y-auto">
         <div class="p-8 border-b border-white/5">
             <a href="../index.php" class="flex items-center gap-2 group">
-                <img src="../assets/img/logo.png" alt="logo" class="w-10 h-auto">
+                <img src="../assets/img/logo.webp" alt="logo" class="w-10 h-auto">
                 <span class="font-serif text-2xl font-bold tracking-wide text-white mt-1">অন্ত্যমিল<span
                         class="text-brand-gold">.</span></span>
             </a>
@@ -748,19 +748,19 @@ function getDaysRemaining($due_date)
                                     <?php endif; ?>
 
                                     <?php if ($order['order_status'] === 'Processing'): ?>
-                                        <?php 
-                                            // Calculate time left for cancellation using proper timezone
-                                            $order_tz = new DateTimeZone('Asia/Dhaka');
-                                            $order_dt = new DateTime($order['order_date'], $order_tz);
-                                            $now_dt = new DateTime('now', $order_tz);
-                                            $time_left = 180 - ($now_dt->getTimestamp() - $order_dt->getTimestamp());
+                                        <?php
+                                        // Calculate time left for cancellation using proper timezone
+                                        $order_tz = new DateTimeZone('Asia/Dhaka');
+                                        $order_dt = new DateTime($order['order_date'], $order_tz);
+                                        $now_dt = new DateTime('now', $order_tz);
+                                        $time_left = 180 - ($now_dt->getTimestamp() - $order_dt->getTimestamp());
                                         ?>
                                         <?php if ($time_left > 0): ?>
                                             <button onclick="cancelOrder(<?php echo $order['id']; ?>)"
-                                                id="cancel-btn-<?php echo $order['id']; ?>"
-                                                data-timeleft="<?php echo $time_left; ?>"
+                                                id="cancel-btn-<?php echo $order['id']; ?>" data-timeleft="<?php echo $time_left; ?>"
                                                 class="cancel-order-btn flex-1 sm:flex-none px-6 py-3 bg-red-50 text-red-500 rounded-xl font-bold font-anek text-xs hover:bg-red-500 hover:text-white transition-all border border-red-100">
-                                                অর্ডার বাতিল করুন (<span class="timer-text"><?php echo gmdate("i:s", $time_left); ?></span>)
+                                                অর্ডার বাতিল করুন (<span
+                                                    class="timer-text"><?php echo gmdate("i:s", $time_left); ?></span>)
                                             </button>
                                         <?php endif; ?>
                                     <?php endif; ?>
@@ -992,14 +992,14 @@ function getDaysRemaining($due_date)
                 if (timeLeft > 0) {
                     timeLeft--;
                     btn.setAttribute('data-timeleft', timeLeft);
-                    
+
                     const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
                     const seconds = (timeLeft % 60).toString().padStart(2, '0');
                     const timerSpan = btn.querySelector('.timer-text');
                     if (timerSpan) {
                         timerSpan.innerText = `${minutes}:${seconds}`;
                     }
-                    
+
                     if (timeLeft <= 0) {
                         btn.remove();
                     }

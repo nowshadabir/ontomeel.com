@@ -38,7 +38,7 @@
     <div class="max-w-xl w-full px-6 relative z-10">
         <!-- Logo -->
         <div class="flex flex-col items-center mb-12 reveal">
-            <img src="../../assets/img/logo.png" alt="logo" class="w-16 h-auto mb-4 drop-shadow-2xl">
+            <img src="../../assets/img/logo.webp" alt="logo" class="w-16 h-auto mb-4 drop-shadow-2xl">
             <h1 class="font-serif text-3xl font-bold tracking-wide text-white">অন্ত্যমিল<span
                     class="text-brand-gold">.</span></h1>
             <p class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.4em] mt-2">অ্যাডমিন এনরোলমেন্ট</p>
