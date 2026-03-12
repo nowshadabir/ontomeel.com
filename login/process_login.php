@@ -20,28 +20,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($user) {
             $password_valid = false;
 
-            // Check if password is properly hashed (bcrypt format starts with $2y$ or $2a$)
-            if (preg_match('/^\$2[ayb]\$.{56}$/', $user['password'])) {
-                // Use password_verify for hashed passwords
-                $password_valid = password_verify($password, $user['password']);
+            // Try password_verify first (handles bcrypt, argon2, etc.)
+            if (password_verify($password, $user['password'])) {
+                $password_valid = true;
 
-                // If login successful, upgrade to new hash on next successful login
-                if ($password_valid && password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+                // If login successful, upgrade to new hash on next successful login if needed
+                if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
                     $new_hash = password_hash($password, PASSWORD_DEFAULT);
                     $update_stmt = $pdo->prepare("UPDATE members SET password = ? WHERE id = ?");
                     $update_stmt->execute([$new_hash, $user['id']]);
                 }
-            } else {
-                // Fallback: Check plain text password (legacy support)
-                // This handles cases where password was directly stored in database
-                if ($password === $user['password']) {
-                    $password_valid = true;
+            } 
+            // Fallback: Check plain text password (legacy support or if manually updated in DB as plain text)
+            elseif ($password === $user['password']) {
+                $password_valid = true;
 
-                    // Upgrade to hashed password
-                    $new_hash = password_hash($password, PASSWORD_DEFAULT);
-                    $update_stmt = $pdo->prepare("UPDATE members SET password = ? WHERE id = ?");
-                    $update_stmt->execute([$new_hash, $user['id']]);
-                }
+                // Upgrade to hashed password immediately
+                $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                $update_stmt = $pdo->prepare("UPDATE members SET password = ? WHERE id = ?");
+                $update_stmt->execute([$new_hash, $user['id']]);
             }
 
             if ($password_valid) {
