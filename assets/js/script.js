@@ -12,11 +12,25 @@ window.addEventListener('scroll', () => {
 
 // --- 2. Mobile Menu Toggle ---
 const mobileMenu = document.getElementById('mobile-menu');
+const mobileOverlay = document.getElementById('mobile-menu-overlay');
+
 function toggleMobileMenu() {
     if (mobileMenu.classList.contains('translate-x-full')) {
         mobileMenu.classList.remove('translate-x-full');
+        if (mobileOverlay) {
+            mobileOverlay.classList.remove('hidden');
+            setTimeout(() => mobileOverlay.classList.remove('opacity-0'), 10);
+        }
+        document.body.style.overflow = 'hidden';
     } else {
         mobileMenu.classList.add('translate-x-full');
+        if (mobileOverlay) {
+            mobileOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                mobileOverlay.classList.add('hidden');
+            }, 500);
+        }
+        document.body.style.overflow = '';
     }
 }
 
