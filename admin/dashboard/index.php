@@ -35,7 +35,8 @@ $inventory_books = $inv_stmt->fetchAll();
 // Fetch Real Orders Logic
 $orders_stmt = $pdo->query("SELECT o.*, 
                                    COALESCE(m.full_name, o.guest_name) as full_name, 
-                                   COALESCE(m.phone, o.guest_phone) as phone 
+                                   COALESCE(m.phone, o.guest_phone) as phone,
+                                   COALESCE(m.email, o.guest_email) as email
                             FROM orders o 
                             LEFT JOIN members m ON o.member_id = m.id 
                             ORDER BY o.order_date DESC");
@@ -58,7 +59,8 @@ $admin_preorders = $preorders_stmt->fetchAll();
 $po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, 
                                           COALESCE(m.full_name, o.guest_name) as full_name, 
                                           COALESCE(m.phone, o.guest_phone) as phone, 
-                                          m.email, po.title as po_title, po.release_date as po_release, po.is_hot_deal
+                                          COALESCE(m.email, o.guest_email) as email,
+                                          po.title as po_title, po.release_date as po_release, po.is_hot_deal
                                    FROM order_items oi
                                    JOIN orders o ON oi.order_id = o.id
                                    LEFT JOIN members m ON o.member_id = m.id
@@ -2245,6 +2247,21 @@ function bn_num($num)
                         <div class="text-right">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">অর্ডার তারিখ</p>
                             <p class="font-bold text-brand-900">${new Date(order.order_date).toLocaleDateString('bn-BD')}</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-2xl flex flex-wrap gap-8 border border-gray-100">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ক্রেতার নাম</p>
+                            <p class="text-sm font-bold text-brand-900">${order.full_name}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ফোন নম্বর</p>
+                            <p class="text-sm font-bold text-brand-900 tracking-wider">${order.phone}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ইমেইল</p>
+                            <p class="text-sm font-bold text-brand-900">${order.email || '(Guest Order)'}</p>
                         </div>
                     </div>
 

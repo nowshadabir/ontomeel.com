@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/db_connect.php';
+require_once '../includes/notification_helper.php';
 
 header('Content-Type: application/json');
 
@@ -58,6 +59,31 @@ try {
     }
 
     $pdo->commit();
+
+    // Send Notification Email
+    try {
+        $inv_no = 'N/A';
+        if ($borrow['order_id']) {
+            $inv_stmt = $pdo->prepare("SELECT invoice_no FROM orders WHERE id = ?");
+            $inv_stmt->execute([$borrow['order_id']]);
+            $inv_no = $inv_stmt->fetchColumn();
+        }
+
+        $userStmt = $pdo->prepare("SELECT full_name, email FROM members WHERE id = ?");
+        $userStmt->execute([$user_id]);
+        $user_meta = $userStmt->fetch();
+
+        if ($user_meta && !empty($user_meta['email'])) {
+            $notif_data = [
+                'name' => $user_meta['full_name'],
+                'invoice_no' => $inv_no
+            ];
+            send_notification($user_meta['email'], 'order_cancelled', $notif_data);
+        }
+    } catch (Exception $e) {
+        error_log("Mail Error in Borrow Cancel: " . $e->getMessage());
+    }
+
     echo json_encode(['success' => true, 'message' => 'ধার অর্ডারটি বাতিল করা হয়েছে।']);
 
 } catch (PDOException $e) {

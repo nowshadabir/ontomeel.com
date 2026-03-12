@@ -86,6 +86,13 @@ $total_amount = $price + $delivery_charge;
                         class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold tracking-wider focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার ইমেইল (ঐচ্ছিক)</label>
+                    <input type="email" id="po-email" <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
+                        value="<?php echo htmlspecialchars($user_data['email'] ?? ''); ?>"
+                        placeholder="আপনার ইমেইল এড্রেস লিখুন (যদি থাকে)"
+                        class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold focus:outline-none focus:border-brand-gold transition-all">
+                </div>
+                <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি ঠিকানা
                         (বিস্তারিত) *</label>
                     <textarea id="po-address" rows="3"
@@ -274,6 +281,7 @@ $total_amount = $price + $delivery_charge;
         formData.append('preorder_id', preOrderId);
         formData.append('name', document.getElementById('po-name').value.trim());
         formData.append('phone', document.getElementById('po-phone').value.trim());
+        formData.append('email', document.getElementById('po-email').value.trim());
         formData.append('address', addr);
         formData.append('sender_number', senderNum);
         formData.append('total_amount', totalAmount);

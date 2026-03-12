@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/db_connect.php';
+require_once '../includes/notification_helper.php';
 
 header('Content-Type: application/json');
 
@@ -16,10 +17,17 @@ try {
         $pdo->exec("ALTER TABLE orders ADD COLUMN guest_phone VARCHAR(20) DEFAULT NULL");
     }
 
+    // Check for guest_email
+    $check = $pdo->query("SHOW COLUMNS FROM orders LIKE 'guest_email'");
+    if (!$check->fetch()) {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_email VARCHAR(150) DEFAULT NULL");
+    }
+
     $user_id = $_SESSION['user_id'] ?? null;
     $preorder_id = $_POST['preorder_id'] ?? 0;
     $name = $_POST['name'] ?? '';
     $phone = $_POST['phone'] ?? '';
+    $email = $_POST['email'] ?? '';
     $address = $_POST['address'] ?? '';
     $sender_number = $_POST['sender_number'] ?? '';
     $total_amount = $_POST['total_amount'] ?? 0;
@@ -49,9 +57,9 @@ try {
     // Insert Order
     $stmt = $pdo->prepare("
         INSERT INTO orders (
-            invoice_no, member_id, guest_name, guest_phone, subtotal, shipping_cost, total_amount, 
+            invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, 
             payment_status, payment_method, trx_id, order_status, shipping_address
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
     ");
     
     // Notice subtotal assumes $total_amount - shipping ($50)
@@ -59,7 +67,7 @@ try {
     $subtotal = $total_amount - $shipping_cost;
 
     $stmt->execute([
-        $invoice_no, $user_id, $name, $phone, $subtotal, $shipping_cost, $total_amount,
+        $invoice_no, $user_id, $name, $phone, $email, $subtotal, $shipping_cost, $total_amount,
         $sender_number, $address
     ]);
 
@@ -79,6 +87,21 @@ try {
     }
 
     $pdo->commit();
+
+    // Send Notification Email
+    try {
+        $notif_data = [
+            'name' => $name,
+            'invoice_no' => $invoice_no,
+            'amount' => $total_amount,
+            'address' => $address,
+            'guest' => !$user_id
+        ];
+        send_notification($email, 'order_placed', $notif_data);
+    } catch (Exception $e) {
+        // Log mail error but don't fail the order
+        error_log("Mail Error in Pre-order: " . $e->getMessage());
+    }
 
     echo json_encode(['success' => true, 'order_id' => $invoice_no]);
 

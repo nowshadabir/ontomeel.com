@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../../includes/db_connect.php';
+require_once '../../includes/notification_helper.php';
 
 header('Content-Type: application/json');
 
@@ -162,6 +163,50 @@ try {
     }
 
     $pdo->commit();
+
+    // Send Notification Email
+    try {
+        // Fetch customer details for the notification
+        $custStmt = $pdo->prepare("SELECT o.invoice_no, o.guest_name, o.guest_email, o.guest_phone, o.member_id, o.notes,
+                                          m.full_name, m.email as member_email
+                                   FROM orders o
+                                   LEFT JOIN members m ON o.member_id = m.id
+                                   WHERE o.id = ?");
+        $custStmt->execute([$order_id]);
+        $details = $custStmt->fetch();
+
+        if ($details) {
+            $cust_name = $details['member_id'] ? $details['full_name'] : $details['guest_name'];
+            $cust_email = $details['member_id'] ? $details['member_email'] : $details['guest_email'];
+
+            if ($cust_email) {
+                $type = 'order_status_update';
+                $notif_data = [
+                    'name' => $cust_name,
+                    'invoice_no' => $details['invoice_no'],
+                    'status' => $status
+                ];
+
+                if ($status === 'Cancelled') {
+                    $type = 'order_cancelled';
+                } elseif ($status === 'Shipped' && $details['notes'] === 'Borrow Order') {
+                    // Fetch book title for borrow
+                    $bookStmt = $pdo->prepare("SELECT b.title FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ? LIMIT 1");
+                    $bookStmt->execute([$order_id]);
+                    $book_title = $bookStmt->fetchColumn();
+                    
+                    $type = 'borrow_active';
+                    $notif_data['book_title'] = $book_title;
+                    $notif_data['due_date'] = date('Y-m-d', strtotime('+30 days'));
+                }
+
+                send_notification($cust_email, $type, $notif_data);
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Mail Error in Status Update: " . $e->getMessage());
+    }
+
     echo json_encode(['success' => true]);
 
 } catch (PDOException $e) {
