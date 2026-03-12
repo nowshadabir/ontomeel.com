@@ -42,6 +42,16 @@ try {
         exit;
     }
 
+    $order_tz = new DateTimeZone('Asia/Dhaka');
+    $order_dt = new DateTime($order['order_date'], $order_tz);
+    $now_dt = new DateTime('now', $order_tz);
+    
+    if (($now_dt->getTimestamp() - $order_dt->getTimestamp()) > 180) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => 'অর্ডার করার ৩ মিনিট পর আর বাতিল করা সম্ভব নয়']);
+        exit;
+    }
+
     // 2. Fetch items for this order
     $itemStmt = $pdo->prepare("SELECT book_id, quantity FROM order_items WHERE order_id = ?");
     $itemStmt->execute([$order_id]);
