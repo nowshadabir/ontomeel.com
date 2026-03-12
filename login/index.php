@@ -64,7 +64,8 @@
                 <div class="hidden md:block mb-10 text-center">
                     <h2 class="text-3xl font-anek font-bold text-brand-900">লগইন</h2>
                     <?php if (isset($_GET['signup']) && $_GET['signup'] == 'success'): ?>
-                        <p class="text-green-600 text-sm font-bold mt-2 bg-green-50 py-2 rounded-xl">নিবন্ধন সফল হয়েছে! এখন লগইন করুন।</p>
+                        <p class="text-green-600 text-sm font-bold mt-2 bg-green-50 py-2 rounded-xl">নিবন্ধন সফল হয়েছে! এখন
+                            লগইন করুন।</p>
                     <?php elseif (isset($_GET['error'])): ?>
                         <?php if ($_GET['error'] == 'invalid'): ?>
                             <p class="text-red-600 text-sm font-bold mt-2 bg-red-50 py-2 rounded-xl">ভুল ইমেইল বা পাসওয়ার্ড!</p>
@@ -131,8 +132,8 @@
                     </button>
 
                     <div class="pt-6 text-center border-t border-gray-50 mt-6 font-anek">
-                        <p class="text-gray-400 text-sm">নতুন ইউজার? <a href="../membership/"
-                                class="text-brand-gold font-bold hover:underline">মেম্বারশিপ নিন</a></p>
+                        <p class="text-gray-400 text-sm">নতুন ইউজার? <a href="../signup/"
+                                class="text-brand-gold font-bold hover:underline">রেজিস্ট্রেশন করুন</a></p>
                     </div>
                 </form>
             </div>

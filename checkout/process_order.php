@@ -69,8 +69,8 @@ if ($checkout_type === 'borrow') {
         $is_expired = strtotime($m_user['plan_expire_date']) < time();
     }
 
-    if (!$m_user || in_array($m_user['membership_plan'], ['General', 'None']) || $is_expired) {
-        sendResponse(false, 'বই ধার নিতে একটি সক্রিয় প্রিমিয়াম মেম্বারশিপ প্রয়োজন।');
+    if (!$m_user || $m_user['membership_plan'] === 'None' || $is_expired) {
+        sendResponse(false, 'বই ধার নিতে একটি সক্রিয় মেম্বারশিপ প্রয়োজন।');
     }
 }
 

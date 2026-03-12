@@ -52,7 +52,7 @@ $preorders_stmt = $pdo->query("SELECT * FROM pre_orders ORDER BY release_date AS
 $admin_preorders = $preorders_stmt->fetchAll();
 
 // Fetch Pre-order Bookings (New)
-$po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, m.full_name, m.phone, po.title as po_title, po.release_date as po_release
+$po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, m.full_name, m.phone, m.email, po.title as po_title, po.release_date as po_release, po.is_hot_deal
                                   FROM order_items oi
                                   JOIN orders o ON oi.order_id = o.id
                                   JOIN members m ON o.member_id = m.id
@@ -1250,7 +1250,7 @@ function bn_num($num)
                                                 </span>
                                             </td>
                                             <td class="px-8 py-5 text-right">
-                                                <button onclick="alert('অর্ডার ডিটেইলস শীঘ্রই আসছে')"
+                                                <button onclick='viewPreOrderDetails(<?php echo json_encode($booking); ?>)'
                                                     class="p-2 text-brand-900 hover:bg-brand-gold/10 rounded-lg transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2266,6 +2266,94 @@ function bn_num($num)
                             <span class="font-anek font-bold text-brand-900">সর্বমোট</span>
                             <span class="font-anek font-extrabold text-brand-gold">৳${bn_num(order.total_amount)}</span>
                         </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function viewPreOrderDetails(booking) {
+            const modal = document.getElementById('order-details-modal');
+            const content = document.getElementById('order-details-content');
+
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-3">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ইনভয়েস নং</p>
+                                ${parseInt(booking.is_hot_deal) === 1 
+                                    ? '<span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">🔥 Hot Deal</span>' 
+                                    : '<span class="bg-brand-gold/10 text-brand-900 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">Pre-Order</span>'}
+                            </div>
+                            <h4 class="text-xl font-bold text-brand-900">#${booking.invoice_no}</h4>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">অর্ডার তারিখ</p>
+                            <p class="font-bold text-brand-900">${new Date(booking.order_date).toLocaleDateString('bn-BD')}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-brand-light/20 p-6 rounded-3xl border border-brand-gold/10">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ক্রেতার তথ্য</p>
+                                <p class="text-sm font-bold text-brand-900">${booking.full_name}</p>
+                                <p class="text-xs text-gray-500">${booking.phone}</p>
+                                <p class="text-xs text-gray-500">${booking.email}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ডেলিভারি ঠিকানা</p>
+                                <p class="text-sm text-brand-900 leading-relaxed">${booking.shipping_address || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">বইয়ের তথ্য</p>
+                                <p class="text-sm font-bold text-brand-900">${booking.po_title}</p>
+                                <p class="text-xs text-gray-500">পরিমাণ: ${bn_num(booking.quantity)}টি</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ট্রানজেকশন আইডি</p>
+                                <p class="text-sm font-bold text-[#D12053] tracking-widest">${booking.trx_id || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">বর্তমান স্ট্যাটাস</p>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                ${booking.order_status}
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">মোট পরিশোধযোগ্য</p>
+                            <p class="text-2xl font-anek font-extrabold text-brand-900">৳${bn_num(Math.round(booking.total_amount))}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-6">
+                        ${booking.order_status === 'Processing' ? `
+                            <button onclick="updateOrderStatus(${booking.order_id}, 'Confirmed')" 
+                                class="py-4 bg-brand-gold text-brand-900 font-bold rounded-2xl hover:bg-brand-900 hover:text-white transition-all">
+                                কনফার্ম করুন
+                            </button>
+                        ` : ''}
+                        ${['Processing', 'Confirmed'].includes(booking.order_status) ? `
+                            <button onclick="updateOrderStatus(${booking.order_id}, 'Delivered')" 
+                                class="py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all ${booking.order_status === 'Processing' ? 'col-span-1' : 'col-span-2'}">
+                                ডেলিভারড মার্ক করুন
+                            </button>
+                        ` : ''}
+                        
+                        <button onclick="updateOrderStatus(${booking.order_id}, 'Cancelled')" 
+                            class="py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-600 hover:text-white transition-all col-span-2 mt-2">
+                            অর্ডার বাতিল করুন
+                        </button>
                     </div>
                 </div>
             `;

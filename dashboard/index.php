@@ -36,9 +36,10 @@ $completed_count = $stmt->fetchColumn();
 
 // 3. Borrowed Books (Active/Processing)
 $stmt = $pdo->prepare("
-    SELECT br.*, bk.title, bk.author, bk.cover_image
+    SELECT br.*, bk.title, bk.author, bk.cover_image, o.order_status
     FROM borrows br
     JOIN books bk ON br.book_id = bk.id
+    JOIN orders o ON br.order_id = o.id
     WHERE br.member_id = ? AND br.status IN ('Active', 'Processing')
 ");
 $stmt->execute([$user_id]);
@@ -46,11 +47,17 @@ $borrowed_books = $stmt->fetchAll();
 
 // 4. Purchased Books (from Delivered purchase orders)
 $stmt = $pdo->prepare("
-    SELECT oi.*, bk.title, bk.author, bk.cover_image
+    SELECT oi.*, 
+           COALESCE(bk.title, po.title) as title, 
+           COALESCE(bk.author, po.author) as author, 
+           COALESCE(bk.cover_image, po.cover_image) as cover_image
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
-    JOIN books bk ON oi.book_id = bk.id
-    WHERE o.member_id = ? AND o.order_status = 'Delivered' AND o.notes = 'Purchase Order'
+    LEFT JOIN books bk ON oi.book_id = bk.id
+    LEFT JOIN pre_orders po ON oi.preorder_id = po.id
+    WHERE o.member_id = ? 
+      AND o.order_status = 'Delivered' 
+      AND o.notes IN ('Purchase Order', 'Pre-order Booking')
 ");
 $stmt->execute([$user_id]);
 $purchased_books = $stmt->fetchAll();
@@ -220,6 +227,12 @@ function getDaysRemaining($due_date)
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <script>
+        const user_id = <?php echo (int) $user['id']; ?>;
+        const membership_plan = '<?php echo htmlspecialchars($user['membership_plan'], ENT_QUOTES, 'UTF-8'); ?>';
+        localStorage.setItem('membership_plan', membership_plan);
+    </script>
 
     <style>
         .sidebar-link.active {
@@ -564,7 +577,7 @@ function getDaysRemaining($due_date)
                                             সেভ
                                         </button>
                                     </div>
-                                    <?php if ($book['status'] === 'Processing'): ?>
+                                    <?php if ($book['status'] === 'Processing' && $book['order_status'] === 'Processing'): ?>
                                         <button onclick="cancelBorrow(<?php echo $book['id']; ?>)"
                                             class="w-full py-2 bg-red-50 text-red-500 rounded-xl text-xs font-bold font-anek hover:bg-red-500 hover:text-white transition-colors uppercase tracking-widest shadow-sm border border-red-100">
                                             অর্ডার বাতিল করুন
