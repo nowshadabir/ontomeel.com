@@ -60,6 +60,41 @@ $po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.orde
                                   ORDER BY o.order_date DESC");
 $admin_preorder_bookings = $po_bookings_stmt->fetchAll();
 
+// Fetch Payment Methods
+try {
+    $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
+    $payment_methods = $payments_stmt->fetchAll();
+} catch (PDOException $e) {
+    if ($e->getCode() == '42S02') {
+        // Table doesn't exist, Create it
+        $pdo->exec("CREATE TABLE IF NOT EXISTS payment_methods (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            method_key VARCHAR(50) UNIQUE,
+            method_name VARCHAR(100),
+            is_active TINYINT DEFAULT 1,
+            config_json TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        $methods = [
+            ['bkash', 'bKash Payment', 1],
+            ['nagad', 'Nagad Payment', 1],
+            ['cod', 'Cash on Delivery', 1],
+            ['fund', 'Account Fund', 1]
+        ];
+        
+        foreach ($methods as $method) {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO payment_methods (method_key, method_name, is_active) VALUES (?, ?, ?)");
+            $stmt->execute($method);
+        }
+        
+        $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
+        $payment_methods = $payments_stmt->fetchAll();
+    } else {
+        throw $e;
+    }
+}
+
 // Function to get items for an order
 function getOrderItems($pdo, $order_id)
 {
@@ -185,6 +220,13 @@ function bn_num($num)
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 প্রি-অর্ডার
+            </button>
+            <button onclick="switchTab('payments')" id="nav-payments"
+                class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                পেমেন্ট সেটিংস
             </button>
             <a href="../logout.php"
                 class="sidebar-link text-red-400 hover:text-white hover:bg-red-500/20 flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300 mt-20">
@@ -1140,6 +1182,59 @@ function bn_num($num)
                 </div>
             </div>
         </div>
+        <!-- Tab: Payments -->
+        <div id="tab-payments" class="p-8 lg:p-12 tab-content hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div>
+                    <h1 class="text-3xl font-anek font-bold text-brand-900 mb-2">পেমেন্ট সেটিংস</h1>
+                    <p class="text-gray-500 font-light">আপনার বুকশপের পেমেন্ট মেথডগুলো এখান থেকে কন্ট্রোল করুন।</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php foreach ($payment_methods as $method): 
+                    $config = json_decode($method['config_json'], true) ?: [];
+                ?>
+                <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
+                                <?php if($method['method_key'] == 'bkash'): ?>
+                                    <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto" onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
+                                <?php elseif($method['method_key'] == 'nagad'): ?>
+                                    <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
+                                <?php elseif($method['method_key'] == 'cod'): ?>
+                                    <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                <?php else: ?>
+                                    <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <h3 class="font-anek font-bold text-brand-900"><?php echo htmlspecialchars($method['method_name']); ?></h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest"><?php echo strtoupper($method['method_key']); ?></p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" onchange="togglePaymentMethod('<?php echo $method['method_key']; ?>', this.checked)" class="sr-only peer" <?php echo $method['is_active'] ? 'checked' : ''; ?>>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold"></div>
+                        </label>
+                    </div>
+
+                    <div class="space-y-4">
+                        <?php if($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad'): ?>
+                            <button onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)' class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API কনফিগারেশন আপডেট করুন</button>
+                        <?php else: ?>
+                            <p class="text-xs text-gray-400 font-anek leading-relaxed">এই মেথডটির জন্য কোনো বিশেষ API কনফিগারেশন প্রয়োজন নেই। এটি সরাসরি কাস্টমার চেকআউট পেজে প্রদর্শিত হবে।</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
     </main>
 
     <!-- Add Book Modal -->
@@ -1615,6 +1710,12 @@ function bn_num($num)
                         </div>
                         <div class="space-y-2">
                             <label
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">সাব-টাইটেল (Sub-title)</label>
+                            <input type="text" name="sub_title" placeholder="যেমন: কম্বো প্যাকে বিশেষ ছাড়!"
+                                class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
+                        </div>
+                        <div class="space-y-2">
+                            <label
                                 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">লেখক</label>
                             <input type="text" name="author" required placeholder="লেখকের নাম লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
@@ -1730,6 +1831,34 @@ function bn_num($num)
             class="bg-brand-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-brand-gold/20">
             <div class="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></div>
             <p id="toast-msg" class="font-anek font-bold"></p>
+        </div>
+    </div>
+
+    <!-- Payment Config Modal -->
+    <div id="payment-config-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closePaymentConfigModal()"></div>
+        <div class="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20">
+            <div class="bg-brand-900 p-8 flex justify-between items-center">
+                <div>
+                    <h3 id="payment-modal-title" class="text-2xl font-anek font-bold text-white">API কনফিগারেশন</h3>
+                    <p class="text-brand-gold text-[10px] font-bold uppercase tracking-widest mt-1">পেমেন্ট গেটওয়ে সেটিংস</p>
+                </div>
+                <button onclick="closePaymentConfigModal()" class="text-white/50 hover:text-white transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="payment-config-form" class="p-10 space-y-6" onsubmit="savePaymentConfig(event)">
+                <input type="hidden" name="method_key" id="config_method_key">
+                <div id="config-fields" class="space-y-6">
+                    <!-- Dynamic fields based on method -->
+                </div>
+                <div class="pt-6 border-t border-gray-100 flex gap-4">
+                    <button type="button" onclick="closePaymentConfigModal()" class="flex-1 py-4 bg-gray-100 text-gray-500 font-anek font-bold rounded-2xl hover:bg-gray-200 transition-all">বাতিল</button>
+                    <button type="submit" class="flex-[2] py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">সেভ করুন</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2109,6 +2238,7 @@ function bn_num($num)
             document.getElementById('po_id').value = po.id;
             const form = document.getElementById('preorder-form');
             form.title.value = po.title;
+            form.sub_title.value = po.sub_title || "";
             form.author.value = po.author;
             form.description.value = po.description || "";
             form.price.value = po.price;
@@ -2198,6 +2328,109 @@ function bn_num($num)
                     tr[i].style.display = "none";
                 }
             }
+        }
+        function togglePaymentMethod(methodKey, isActive) {
+            fetch('update_payment_method.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `method_key=${methodKey}&is_active=${isActive ? 1 : 0}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`${methodKey.toUpperCase()} স্ট্যাটাস আপডেট করা হয়েছে।`);
+                } else {
+                    alert("ত্রুটি: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("আপডেট করতে সমস্যা হয়েছে।");
+            });
+        }
+
+        function openPaymentConfigModal(methodKey, config) {
+            const modal = document.getElementById('payment-config-modal');
+            const fieldsContainer = document.getElementById('config-fields');
+            document.getElementById('config_method_key').value = methodKey;
+            document.getElementById('payment-modal-title').innerText = `${methodKey.toUpperCase()} কনফিগারেশন`;
+            
+            let fieldsHtml = '';
+            if (methodKey === 'bkash') {
+                fieldsHtml = `
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">App Key</label>
+                        <input type="text" name="app_key" value="${config.app_key || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">App Secret</label>
+                        <input type="password" name="app_secret" value="${config.app_secret || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Username</label>
+                        <input type="text" name="username" value="${config.username || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Password</label>
+                        <input type="password" name="password" value="${config.password || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Base URL</label>
+                        <select name="base_url" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                            <option value="https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout" ${config.base_url?.includes('sandbox') ? 'selected' : ''}>Sandbox (Test)</option>
+                            <option value="https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout" ${!config.base_url?.includes('sandbox') ? 'selected' : ''}>Live (Production)</option>
+                        </select>
+                    </div>
+                `;
+            } else if (methodKey === 'nagad') {
+                fieldsHtml = `
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Merchant ID</label>
+                        <input type="text" name="merchant_id" value="${config.merchant_id || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Merchant Phone</label>
+                        <input type="text" name="merchant_phone" value="${config.merchant_phone || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                `;
+            }
+
+            fieldsContainer.innerHTML = fieldsHtml;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePaymentConfigModal() {
+            const modal = document.getElementById('payment-config-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function savePaymentConfig(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch('update_payment_method.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("কনফিগারেশন সেভ করা হয়েছে।");
+                    closePaymentConfigModal();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert("ত্রুটি: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("সেভ করতে সমস্যা হয়েছে।");
+            });
         }
     </script>
 </body>

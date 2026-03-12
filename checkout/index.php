@@ -42,6 +42,41 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
+
+// Fetch Active Payment Methods
+try {
+    $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
+    $active_payment_methods = $payments_stmt->fetchAll();
+} catch (PDOException $e) {
+    if ($e->getCode() == '42S02') {
+        // Table doesn't exist, Create it
+        $pdo->exec("CREATE TABLE IF NOT EXISTS payment_methods (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            method_key VARCHAR(50) UNIQUE,
+            method_name VARCHAR(100),
+            is_active TINYINT DEFAULT 1,
+            config_json TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        $methods = [
+            ['bkash', 'bKash Payment', 1],
+            ['nagad', 'Nagad Payment', 1],
+            ['cod', 'Cash on Delivery', 1],
+            ['fund', 'Account Fund', 1]
+        ];
+        
+        foreach ($methods as $method) {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO payment_methods (method_key, method_name, is_active) VALUES (?, ?, ?)");
+            $stmt->execute($method);
+        }
+        
+        $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
+        $active_payment_methods = $payments_stmt->fetchAll();
+    } else {
+        throw $e;
+    }
+}
 ?>
 
 <main class="max-w-7xl mx-auto px-6 py-12">
@@ -105,78 +140,70 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
                     </h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Option 1: bKash -->
-                        <div onclick="selectPayment('bkash')" id="pay-bkash"
-                            class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#D12053]/50 transition-all flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
-                                    <div id="dot-bkash" class="w-2.5 h-2.5 bg-[#D12053] rounded-full hidden"></div>
+                        <?php foreach ($active_payment_methods as $method): ?>
+                            <?php if ($method['method_key'] == 'bkash'): ?>
+                                <!-- Option: bKash -->
+                                <div onclick="selectPayment('bkash')" id="pay-bkash"
+                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#D12053]/50 transition-all flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                            <div id="dot-bkash" class="w-2.5 h-2.5 bg-[#D12053] rounded-full hidden"></div>
+                                        </div>
+                                        <span class="font-anek font-bold text-brand-900 group-hover:text-[#D12053] transition-colors">বিকাশ পেমেন্ট</span>
+                                    </div>
+                                    <img src="../assets/img/bkash-logo.jpg" alt="bkash" class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100" onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
                                 </div>
-                                <span
-                                    class="font-anek font-bold text-brand-900 group-hover:text-[#D12053] transition-colors">বিকাশ
-                                    পেমেন্ট</span>
+<?php elseif ($method['method_key'] == 'nagad'): ?>
+                                <!-- Option: Nagad -->
+                                <div onclick="selectPayment('nagad')" id="pay-nagad"
+                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#EF1F23]/50 transition-all flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                            <div id="dot-nagad" class="w-2.5 h-2.5 bg-[#EF1F23] rounded-full hidden"></div>
+                                        </div>
+                                        <span class="font-anek font-bold text-brand-900 group-hover:text-[#EF1F23] transition-colors">নগদ পেমেন্ট</span>
+                                    </div>
+                                    <img src="../assets/img/nagad-logo.jpg" alt="nagad" class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
+                                </div>
+                            <?php elseif ($method['method_key'] == 'cod'): ?>
+                                <!-- Option: COD -->
+                                <div onclick="selectPayment('cod')" id="pay-cod"
+                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-900/50 transition-all flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                            <div id="dot-cod" class="w-2.5 h-2.5 bg-brand-900 rounded-full hidden"></div>
+                                        </div>
+                                        <span class="font-anek font-bold text-brand-900">ক্যাশ অন ডেলিভারি</span>
+                                    </div>
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                            <?php elseif ($method['method_key'] == 'fund'): ?>
+                                <!-- Option: Account Fund -->
+                                <div onclick="selectPayment('fund')" id="pay-fund"
+                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                            <div id="dot-fund" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors">অ্যাকাউন্ট ফান্ড</span>
+                                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">৳<?php echo number_format($user_balance); ?> available</span>
+                                        </div>
+                                    </div>
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                        
+                        <?php if (empty($active_payment_methods)): ?>
+                            <div class="p-6 bg-red-50 border border-red-100 rounded-3xl col-span-2">
+                                <p class="text-sm text-red-600 font-anek text-center">আপাতত পেমেন্ট গেটওয়ে বন্ধ আছে। অনুগ্রহ করে পরে চেষ্টা করুন।</p>
                             </div>
-                            <img src="../assets/img/bkash_logo.png" alt="bkash"
-                                class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
-                                onerror="this.style.display='none'">
-                        </div>
-
-                        <!-- Option 2: Nagad -->
-                        <div onclick="selectPayment('nagad')" id="pay-nagad"
-                            class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#EF1F23]/50 transition-all flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
-                                    <div id="dot-nagad" class="w-2.5 h-2.5 bg-[#EF1F23] rounded-full hidden"></div>
-                                </div>
-                                <span
-                                    class="font-anek font-bold text-brand-900 group-hover:text-[#EF1F23] transition-colors">নগদ
-                                    পেমেন্ট</span>
-                            </div>
-                            <img src="../assets/img/nagad_logo.png" alt="nagad"
-                                class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
-                                onerror="this.style.display='none'">
-                        </div>
-
-                        <!-- Option 3: COD -->
-                        <div onclick="selectPayment('cod')" id="pay-cod"
-                            class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-900/50 transition-all flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
-                                    <div id="dot-cod" class="w-2.5 h-2.5 bg-brand-900 rounded-full hidden"></div>
-                                </div>
-                                <span class="font-anek font-bold text-brand-900">ক্যাশ অন ডেলিভারি</span>
-                            </div>
-                            <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-900 transition-colors" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
-                                </path>
-                            </svg>
-                        </div>
-
-                        <!-- Option 4: Account Fund -->
-                        <div onclick="selectPayment('fund')" id="pay-fund"
-                            class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
-                                    <div id="dot-fund" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
-                                </div>
-                                <div class="flex flex-col">
-                                    <span
-                                        class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors">অ্যাকাউন্ট
-                                        ফান্ড</span>
-                                    <span
-                                        class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">৳<?php echo number_format($user_balance); ?>
-                                        available</span>
-                                </div>
-                            </div>
-                            <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                </path>
-                            </svg>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </section>
             <?php else: ?>
@@ -282,11 +309,31 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
 <script src="https://scripts.sandbox.bka.sh/versions/1.2.0-beta/checkout/bKash-checkout-sandbox.js"></script>
 <script src="../bkash/bkash-helper.js"></script>
 
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 bg-brand-900 text-white px-8 py-4 rounded-2xl shadow-2xl transition-all duration-500 translate-y-20 opacity-0 invisible">
+    <div class="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_10px_#cda873]"></div>
+    <span id="toast-message" class="font-anek font-bold text-sm tracking-wide"></span>
+</div>
+
 <script>
-    const checkoutType = "<?php echo $checkout_type; ?>"; // 'buy' or 'borrow'
-    const currentUserFund = <?php echo (float) $user_balance; ?>;
-    let cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
+    const checkoutType = "<?php echo $checkout_type; ?>";
+    const currentUserFund = <?php echo (int) $user_balance; ?>;
+    const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-message');
+        toastMsg.innerText = message;
+        toast.classList.remove('translate-y-20', 'opacity-0', 'invisible');
+        toast.classList.add('translate-y-0', 'opacity-100', 'visible');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0', 'invisible');
+            toast.classList.remove('translate-y-0', 'opacity-100', 'visible');
+        }, 5000);
+    }
+
 
     function selectPayment(method) {
         selectedPayMethod = method;
@@ -316,7 +363,10 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
     }
 
     // Initialize default selection
-    if (checkoutType !== 'borrow') selectPayment('cod');
+    if (checkoutType !== 'borrow') {
+        const firstActive = "<?php echo !empty($active_payment_methods) ? $active_payment_methods[0]['method_key'] : 'cod'; ?>";
+        selectPayment(firstActive);
+    }
 
     function convertToBengaliNumber(n) {
         const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -377,7 +427,7 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
         const city = document.getElementById('cust-city').value;
 
         if (!name || !phone || !addr) {
-            alert('দয়া করে সব তথ্য পূরণ করুন।');
+            showToast('দয়া করে সব তথ্য পূরণ করুন।');
             return;
         }
 
@@ -388,7 +438,7 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
 
         // Check if account fund is sufficient
         if (selectedPayMethod === 'fund' && finalAmount > currentUserFund) {
-            alert('আপনার অ্যাকাউন্ট ফান্ডে পর্যাপ্ত ব্যালেন্স নেই। বর্তমান ব্যালেন্স: ৳' + currentUserFund);
+            showToast('আপনার অ্যাকাউন্ট ফান্ডে পর্যাপ্ত ব্যালেন্স নেই। বর্তমান ব্যালেন্স: ৳' + currentUserFund);
             return;
         }
 
@@ -440,12 +490,12 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
                         createConfetti();
                     }, 100);
                 } else {
-                    alert('অর্ডার প্রসেস করতে ত্রুটি হয়েছে: ' + data.message);
+                    showToast('অর্ডার প্রসেস করতে ত্রুটি হয়েছে: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('অর্ডার প্রসেস করতে একটি নেটওয়ার্ক ত্রুটি হয়েছে।');
+                showToast('অর্ডার প্রসেস করতে একটি নেটওয়ার্ক ত্রুটি হয়েছে।');
             });
     }
 
