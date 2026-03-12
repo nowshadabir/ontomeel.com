@@ -60,6 +60,10 @@ $po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.orde
                                   ORDER BY o.order_date DESC");
 $admin_preorder_bookings = $po_bookings_stmt->fetchAll();
 
+// Fetch Members for Members Tab
+$members_stmt = $pdo->query("SELECT * FROM members ORDER BY created_at DESC");
+$admin_members = $members_stmt->fetchAll();
+
 // Fetch Payment Methods
 try {
     $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
@@ -754,33 +758,62 @@ function bn_num($num)
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
-                            <tr>
-                                <td class="px-10 py-6">
-                                    <div class="flex items-center gap-4">
-                                        <div
-                                            class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">
-                                            সা</div>
-                                        <div>
-                                            <div class="text-sm font-bold text-brand-900">সায়েম আহমেদ</div>
-                                            <div class="text-[10px] text-gray-400">sayem@mail.com</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-10 py-6 text-xs text-gray-500 font-mono">OM-25-BH81</td>
-                                <td class="px-10 py-6">
-                                    <span
-                                        class="px-3 py-1 bg-brand-gold text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">বইপ্রেমী</span>
-                                </td>
-                                <td class="px-10 py-6 text-sm text-gray-500">০১ জানুয়ারি, ২০২৬</td>
-                                <td class="px-10 py-6 text-right">
-                                    <button class="text-gray-400 hover:text-brand-900 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
+                            <?php if (empty($admin_members)): ?>
+                                <tr>
+                                    <td colspan="5" class="px-10 py-20 text-center text-gray-400 font-anek">আপাতত কোনো মেম্বার পাওয়া যায়নি।</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($admin_members as $member): 
+                                    $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
+                                    $join_date = date('d F, Y', strtotime($member['created_at']));
+                                    // Translate month to Bengali if needed, but standard date is fine for now
+                                    ?>
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="px-10 py-6">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">
+                                                    <?php echo $first_char; ?>
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-bold text-brand-900"><?php echo htmlspecialchars($member['full_name']); ?></div>
+                                                    <div class="text-[10px] text-gray-400"><?php echo htmlspecialchars($member['email']); ?></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-10 py-6 text-xs text-gray-500 font-mono">
+                                            <?php echo !empty($member['membership_id']) ? $member['membership_id'] : 'N/A'; ?>
+                                        </td>
+                                        <td class="px-10 py-6">
+                                            <span class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                <?php 
+                                                $plan = $member['membership_plan'] ?? 'None';
+                                                if ($plan == 'General') echo 'সাধারণ';
+                                                else if ($plan == 'BookLover') echo 'বইপ্রেমী';
+                                                else if ($plan == 'Collector') echo 'সংগ্রাহক';
+                                                else echo 'বেসিক';
+                                                ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-10 py-6 text-sm text-gray-500">
+                                            <?php echo $join_date; ?>
+                                        </td>
+                                        <td class="px-10 py-6 text-center">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <div class="text-right mr-4">
+                                                    <div class="text-xs font-bold text-brand-900">৳<?php echo bn_num($member['acc_balance']); ?></div>
+                                                    <div class="text-[8px] text-gray-400 uppercase tracking-widest">ওয়ালেট ব্যালেন্স</div>
+                                                </div>
+                                                <button class="text-gray-400 hover:text-brand-900 transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
