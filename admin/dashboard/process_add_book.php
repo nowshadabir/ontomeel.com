@@ -1,4 +1,5 @@
 <?php
+error_reporting(0);
 require '../../includes/db_connect.php';
 
 header('Content-Type: application/json');
@@ -48,18 +49,49 @@ try {
             return null;
         }
 
-        $file_name = time() . '_' . basename($_FILES[$file_key]["name"]);
-        $target_file = $target_dir . $file_name;
-        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+        $tmp_name = $_FILES[$file_key]["tmp_name"];
+        $file_info = getimagesize($tmp_name);
+        if (!$file_info) return null;
 
-        // Allow certain file formats
-        if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
-            return null;
+        $mime = $file_info['mime'];
+        $file_name = time() . '_' . $file_key . '_' . uniqid() . '.webp';
+        $target_file = $target_dir . $file_name;
+
+        // Create image from source and compress ONLY if GD is enabled
+        if (function_exists('imagewebp')) {
+            switch ($mime) {
+                case 'image/jpeg':
+                    $image = imagecreatefromjpeg($tmp_name);
+                    break;
+                case 'image/png':
+                    $image = imagecreatefrompng($tmp_name);
+                    imagepalettetotruecolor($image);
+                    imagealphablending($image, true);
+                    imagesavealpha($image, true);
+                    break;
+                case 'image/webp':
+                    $image = imagecreatefromwebp($tmp_name);
+                    break;
+                case 'image/gif':
+                    $image = imagecreatefromgif($tmp_name);
+                    break;
+                default:
+                    $image = null;
+            }
+
+            if ($image && imagewebp($image, $target_file, 80)) {
+                imagedestroy($image);
+                return $file_name;
+            }
+            if ($image) imagedestroy($image);
         }
 
-        if (move_uploaded_file($_FILES[$file_key]["tmp_name"], $target_file)) {
+        // Fallback: Standard upload if GD is missing or conversion fails
+        $file_name = time() . '_' . $file_key . '_' . basename($_FILES[$file_key]["name"]);
+        if (move_uploaded_file($tmp_name, $target_dir . $file_name)) {
             return $file_name;
         }
+
         return null;
     }
 

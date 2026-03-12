@@ -404,6 +404,9 @@ function bn_num($num)
                                     মূল্য</th>
                                 <th
                                     class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    পেমেন্ট</th>
+                                <th
+                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                                     স্ট্যাটাস</th>
                                 <th
                                     class="px-10 py-5 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -417,6 +420,8 @@ function bn_num($num)
                                 $status_color = 'bg-gray-100 text-gray-600';
                                 if ($order['order_status'] == 'Processing')
                                     $status_color = 'bg-orange-100 text-orange-600';
+                                if ($order['order_status'] == 'Confirmed')
+                                    $status_color = 'bg-amber-100 text-amber-600';
                                 if ($order['order_status'] == 'Shipped')
                                     $status_color = 'bg-blue-100 text-blue-600';
                                 if ($order['order_status'] == 'Delivered')
@@ -447,28 +452,62 @@ function bn_num($num)
                                     <td class="px-10 py-6 text-sm font-bold text-brand-900">
                                         ৳<?php echo bn_num(number_format($order['total_amount'])); ?></td>
                                     <td class="px-10 py-6">
-                                        <span
-                                            class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                            <?php
-                                            $st = $order['order_status'];
-                                            if ($st == 'Processing')
-                                                echo 'পেন্ডিং';
-                                            else if ($st == 'Shipped')
-                                                echo 'শিপড';
-                                            else if ($st == 'Delivered')
-                                                echo 'ডেলিভারড';
-                                            else if ($st == 'Cancelled')
-                                                echo 'বাতিল';
-                                            else
-                                                echo $st;
-                                            ?>
-                                        </span>
+                                        <div class="flex flex-col gap-1 relative">
+                                            <span class="text-[10px] text-gray-400 font-bold tracking-wider uppercase"><?php echo $order['payment_method']; ?></span>
+                                            <button 
+                                                onclick="toggleActionMenu('pay-menu-<?php echo $order['id']; ?>', event)"
+                                                class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest w-fit transition-all hover:ring-2 hover:ring-offset-2 <?php echo $order['payment_status'] == 'Paid' ? 'bg-green-100 text-green-600 hover:ring-green-200' : 'bg-red-100 text-red-600 hover:ring-red-200'; ?>">
+                                                <?php echo $order['payment_status'] == 'Paid' ? 'Paid' : 'Pending'; ?>
+                                            </button>
+                                            
+                                            <!-- Payment Status Dropdown -->
+                                            <div id="pay-menu-<?php echo $order['id']; ?>" class="action-menu w-32 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
+                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')" class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">Paid</button>
+                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Pending')" class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">Pending</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-10 py-6 relative">
+                                        <?php if (in_array($order['order_status'], ['Delivered', 'Cancelled'])): ?>
+                                            <span class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
+                                                <?php
+                                                $st = $order['order_status'];
+                                                if ($st == 'Delivered') echo 'ডেলিভারড';
+                                                else if ($st == 'Cancelled') echo 'বাতিল';
+                                                ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <button 
+                                                onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
+                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php 
+                                                    if ($order['order_status'] == 'Processing') echo 'hover:ring-orange-200';
+                                                    else if ($order['order_status'] == 'Confirmed') echo 'hover:ring-amber-200';
+                                                    else if ($order['order_status'] == 'Shipped') echo 'hover:ring-blue-200';
+                                                ?>">
+                                                <?php
+                                                $st = $order['order_status'];
+                                                if ($st == 'Processing') echo 'পেন্ডিং';
+                                                else if ($st == 'Confirmed') echo 'কনফার্মড';
+                                                else if ($st == 'Shipped') echo 'শিপড';
+                                                else echo $st;
+                                                ?>
+                                            </button>
+
+                                            <!-- Order Status Dropdown -->
+                                            <div id="status-menu-<?php echo $order['id']; ?>" class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Processing')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-orange-600 hover:bg-orange-50 border-b border-gray-50">পেন্ডিং</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-amber-600 hover:bg-amber-50 border-b border-gray-50">কনফার্মড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-blue-600 hover:bg-blue-50 border-b border-gray-50">শিপড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">ডেলিভারড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-10 py-6 text-right">
-                                        <div class="flex justify-end gap-2">
+                                        <div class="flex justify-end items-center gap-2">
                                             <button
                                                 onclick="viewOrderDetails(<?php echo htmlspecialchars(json_encode($order), ENT_QUOTES); ?>, <?php echo htmlspecialchars(json_encode($items), ENT_QUOTES); ?>)"
-                                                class="p-2 text-brand-gold hover:text-brand-900 transition-colors">
+                                                class="w-10 h-10 flex items-center justify-center rounded-full bg-brand-light/50 text-brand-gold hover:bg-brand-gold hover:text-white transition-all">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -476,18 +515,27 @@ function bn_num($num)
                                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                             </button>
-                                            <div class="relative group">
-                                                <button class="p-2 text-gray-400 hover:text-brand-900 transition-colors">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                            <div class="relative">
+                                                <button onclick="toggleActionMenu('action-menu-<?php echo $order['id']; ?>', event)" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:bg-gray-200 hover:text-brand-900 transition-all">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                                     </svg>
                                                 </button>
-                                                <div
-                                                    class="absolute right-0 bottom-full mb-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 hidden group-hover:block z-50 overflow-hidden">
+                                                <div id="action-menu-<?php echo $order['id']; ?>"
+                                                    class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
+                                                    <?php if ($order['payment_status'] == 'Pending'): ?>
+                                                        <button
+                                                            onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
+                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট 
+                                                            পেড</button>
+                                                    <?php endif; ?>
                                                     <?php if ($order['order_status'] == 'Processing'): ?>
+                                                        <button
+                                                            onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
+                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম 
+                                                            করুন</button>
+                                                    <?php endif; ?>
+                                                    <?php if (in_array($order['order_status'], ['Processing', 'Confirmed'])): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:bg-blue-50">শিপড
@@ -2091,12 +2139,12 @@ function bn_num($num)
                         document.getElementById('new_category_div').classList.add('hidden');
                         setTimeout(() => location.reload(), 1500);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("বই যোগ করতে সমস্যা হয়েছে।");
+                    showToast("বই যোগ করতে সমস্যা হয়েছে।");
                 })
                 .finally(() => {
                     submitBtn.innerText = originalText;
@@ -2215,12 +2263,12 @@ function bn_num($num)
                         showToast("অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("আপডেট করতে সমস্যা হয়েছে।");
+                    showToast("আপডেট করতে সমস্যা হয়েছে।");
                 });
         }
 
@@ -2238,12 +2286,12 @@ function bn_num($num)
                         showToast("বইটি সফলভাবে মুছে ফেলা হয়েছে।");
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("মুছে ফেলতে সমস্যা হয়েছে।");
+                    showToast("মুছে ফেলতে সমস্যা হয়েছে।");
                 });
         }
 
@@ -2261,12 +2309,12 @@ function bn_num($num)
                         showToast('বই ফেরত নেওয়া হয়েছে এবং ইনভেন্টরি আপডেট হয়েছে।');
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert('ত্রুটি: ' + data.message);
+                        showToast('ত্রুটি: ' + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('ফেরত নিতে সমস্যা হয়েছে।');
+                    showToast('ফেরত নিতে সমস্যা হয়েছে।');
                 });
         }
 
@@ -2329,12 +2377,12 @@ function bn_num($num)
                         closePreorderModal();
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("সংরক্ষণ করতে সমস্যা হয়েছে।");
+                    showToast("সংরক্ষণ করতে সমস্যা হয়েছে।");
                 });
         }
 
@@ -2352,7 +2400,7 @@ function bn_num($num)
                         showToast(data.message);
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
@@ -2395,12 +2443,12 @@ function bn_num($num)
                     if (data.success) {
                         showToast(`${methodKey.toUpperCase()} স্ট্যাটাস আপডেট করা হয়েছে।`);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("আপডেট করতে সমস্যা হয়েছে।");
+                    showToast("আপডেট করতে সমস্যা হয়েছে।");
                 });
         }
 
@@ -2479,14 +2527,99 @@ function bn_num($num)
                         closePaymentConfigModal();
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        alert("ত্রুটি: " + data.message);
+                        showToast("ত্রুটি: " + data.message);
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("সেভ করতে সমস্যা হয়েছে।");
+                    showToast("সেভ করতে সমস্যা হয়েছে।");
                 });
         }
+
+        function updatePaymentStatus(orderId, status) {
+            if (!confirm(`পেমেন্ট স্ট্যাটাস '${status}' হিসেবে আপডেট করতে চান?`)) return;
+
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('status', status);
+
+            fetch('update_payment_status.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(`পেমেন্ট স্ট্যাটাস '${status}' এ আপডেট হয়েছে।`);
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast("ত্রুটি: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("আপডেট করতে সমস্যা হয়েছে।");
+                });
+        }
+
+        function toggleActionMenu(menuId, event) {
+            event.stopPropagation();
+            const btn = event.currentTarget;
+            const targetMenu = document.getElementById(menuId);
+            const allMenus = document.querySelectorAll('.action-menu');
+            
+            let isOpening = targetMenu.classList.contains('hidden');
+            
+            allMenus.forEach(menu => {
+                menu.classList.add('hidden');
+                menu.style.opacity = '0';
+            });
+            
+            if (isOpening) {
+                // Move menu to body to avoid being cut off by overflow-hidden tables
+                document.body.appendChild(targetMenu);
+                
+                const rect = btn.getBoundingClientRect();
+                targetMenu.style.position = 'fixed';
+                targetMenu.style.left = (rect.right - 160) + 'px'; // 160px is w-40
+                
+                const windowHeight = window.innerHeight;
+                if (rect.bottom + 150 > windowHeight) {
+                    targetMenu.style.top = 'auto';
+                    targetMenu.style.bottom = (windowHeight - rect.top + 8) + 'px';
+                } else {
+                    targetMenu.style.bottom = 'auto';
+                    targetMenu.style.top = (rect.bottom + 8) + 'px';
+                }
+
+                targetMenu.classList.remove('hidden');
+                
+                // Trigger reflow for fade-in effect
+                void targetMenu.offsetWidth;
+                targetMenu.style.opacity = '1';
+                targetMenu.style.zIndex = '99999';
+            }
+        }
+
+        // Close action menus when clicking outside
+        document.addEventListener('click', (event) => {
+            const allMenus = document.querySelectorAll('.action-menu');
+            allMenus.forEach(menu => {
+                if (!menu.contains(event.target) && !event.target.closest('button[onclick*="toggleActionMenu"]')) {
+                    menu.classList.add('hidden');
+                    menu.style.opacity = '0';
+                }
+            });
+        });
+        
+        // Hide menus on scroll for safe positioning
+        window.addEventListener('scroll', () => {
+            const allMenus = document.querySelectorAll('.action-menu:not(.hidden)');
+            allMenus.forEach(menu => {
+                menu.classList.add('hidden');
+                menu.style.opacity = '0';
+            });
+        }, { passive: true });
     </script>
 </body>
 
