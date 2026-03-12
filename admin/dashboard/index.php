@@ -33,9 +33,11 @@ $inv_stmt->execute([$search, $search, $search, $cat_id]);
 $inventory_books = $inv_stmt->fetchAll();
 
 // Fetch Real Orders Logic
-$orders_stmt = $pdo->query("SELECT o.*, m.full_name, m.phone 
+$orders_stmt = $pdo->query("SELECT o.*, 
+                                   COALESCE(m.full_name, o.guest_name) as full_name, 
+                                   COALESCE(m.phone, o.guest_phone) as phone 
                             FROM orders o 
-                            JOIN members m ON o.member_id = m.id 
+                            LEFT JOIN members m ON o.member_id = m.id 
                             ORDER BY o.order_date DESC");
 $admin_orders = $orders_stmt->fetchAll();
 
@@ -53,12 +55,15 @@ $preorders_stmt = $pdo->query("SELECT * FROM pre_orders ORDER BY release_date AS
 $admin_preorders = $preorders_stmt->fetchAll();
 
 // Fetch Pre-order Bookings (New)
-$po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, m.full_name, m.phone, m.email, po.title as po_title, po.release_date as po_release, po.is_hot_deal
-                                  FROM order_items oi
-                                  JOIN orders o ON oi.order_id = o.id
-                                  JOIN members m ON o.member_id = m.id
-                                  JOIN pre_orders po ON oi.preorder_id = po.id
-                                  ORDER BY o.order_date DESC");
+$po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, 
+                                          COALESCE(m.full_name, o.guest_name) as full_name, 
+                                          COALESCE(m.phone, o.guest_phone) as phone, 
+                                          m.email, po.title as po_title, po.release_date as po_release, po.is_hot_deal
+                                   FROM order_items oi
+                                   JOIN orders o ON oi.order_id = o.id
+                                   LEFT JOIN members m ON o.member_id = m.id
+                                   JOIN pre_orders po ON oi.preorder_id = po.id
+                                   ORDER BY o.order_date DESC");
 $admin_preorder_bookings = $po_bookings_stmt->fetchAll();
 
 // Fetch Members for Members Tab
@@ -2313,7 +2318,7 @@ function bn_num($num)
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ক্রেতার তথ্য</p>
                                 <p class="text-sm font-bold text-brand-900">${booking.full_name}</p>
                                 <p class="text-xs text-gray-500">${booking.phone}</p>
-                                <p class="text-xs text-gray-500">${booking.email}</p>
+                                <p class="text-xs text-gray-500">${booking.email ? booking.email : '(Guest Order)'}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ডেলিভারি ঠিকানা</p>
