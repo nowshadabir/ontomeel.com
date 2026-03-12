@@ -1,27 +1,54 @@
-# Environment variables
+# --- Security & Credentials ---
+# Never track environment variables or secret keys
 .env
 .env.local
 .env.*.local
+*.env
+config.php
+credentials.json
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+# --- Database & Backups ---
+# Ignore database dumps which may contain user data
+database/*.sql
+/database/ontomeel_bookshop.sql
+*.sql
+*.gz
+*.zip
 
-# OS
+# --- Uploads & Dynamic Assets ---
+# Prevent tracking of user-uploaded images in production
+/admin/assets/book-images/*
+!/admin/assets/book-images/.gitkeep
+/assets/img/preorders/*
+!/assets/img/preorders/.gitkeep
+/uploads/
+/temp/
+
+# --- Logs & Debugging ---
+# Ignore PHP error logs and test scripts
+error_log
+php_errors.log
+*.log
+/test-email.php
+/includes/test_env.php
+
+# --- System & IDE Files ---
+# OS generated files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Logs
-*.log
-logs/
+# IDES
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
 
-# Temporary files
-tmp_*
-*.tmp
-*.bak
+# --- PHP/Composer ---
+# Ignore dependencies if added later
+/vendor/
 
-# Uploaded files (if needed)
-# uploads/
-# admin/assets/book-images/
+# --- XAMPP/Live Server ---
+# Specific to local development environments
+.phpunit.result.cache
+.antigravityignore
