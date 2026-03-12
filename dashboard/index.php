@@ -731,9 +731,21 @@ function getDaysRemaining($due_date)
                                     <?php endif; ?>
 
                                     <?php if ($order['order_status'] === 'Processing'): ?>
-                                        <button onclick="cancelOrder(<?php echo $order['id']; ?>)"
-                                            class="flex-1 sm:flex-none px-6 py-3 bg-red-50 text-red-500 rounded-xl font-bold font-anek text-xs hover:bg-red-500 hover:text-white transition-all border border-red-100">অর্ডার
-                                            বাতিল করুন</button>
+                                        <?php 
+                                            // Calculate time left for cancellation using proper timezone
+                                            $order_tz = new DateTimeZone('Asia/Dhaka');
+                                            $order_dt = new DateTime($order['order_date'], $order_tz);
+                                            $now_dt = new DateTime('now', $order_tz);
+                                            $time_left = 180 - ($now_dt->getTimestamp() - $order_dt->getTimestamp());
+                                        ?>
+                                        <?php if ($time_left > 0): ?>
+                                            <button onclick="cancelOrder(<?php echo $order['id']; ?>)"
+                                                id="cancel-btn-<?php echo $order['id']; ?>"
+                                                data-timeleft="<?php echo $time_left; ?>"
+                                                class="cancel-order-btn flex-1 sm:flex-none px-6 py-3 bg-red-50 text-red-500 rounded-xl font-bold font-anek text-xs hover:bg-red-500 hover:text-white transition-all border border-red-100">
+                                                অর্ডার বাতিল করুন (<span class="timer-text"><?php echo gmdate("i:s", $time_left); ?></span>)
+                                            </button>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -954,6 +966,29 @@ function getDaysRemaining($due_date)
         function setAmount(val) {
             customAmountInput.value = val;
         }
+
+        // Countdown timer for cancel buttons
+        setInterval(() => {
+            const buttons = document.querySelectorAll('.cancel-order-btn');
+            buttons.forEach(btn => {
+                let timeLeft = parseInt(btn.getAttribute('data-timeleft'));
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    btn.setAttribute('data-timeleft', timeLeft);
+                    
+                    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                    const timerSpan = btn.querySelector('.timer-text');
+                    if (timerSpan) {
+                        timerSpan.innerText = `${minutes}:${seconds}`;
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        btn.remove();
+                    }
+                }
+            });
+        }, 1000);
 
         function cancelOrder(orderId) {
             if (!confirm('আপনি কি নিশ্চিত যে আপনি এই অর্ডারটি বাতিল করতে চান?')) return;
