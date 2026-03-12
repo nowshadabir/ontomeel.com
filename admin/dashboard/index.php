@@ -220,6 +220,9 @@ function bn_num($num)
             </a>
         </nav>
     </aside>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300"></div>
 
     <!-- Main Content -->
     <main class="lg:ml-72 min-h-screen">
@@ -1776,12 +1779,12 @@ function bn_num($num)
                 </div>
 
                 <!-- Sticky Footer Actions -->
-                <div class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex gap-4 shrink-0">
+                <div class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4 shrink-0">
                     <button type="button" onclick="closeAddBookModal()"
-                        class="flex-1 py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
+                        class="flex-1 py-4 sm:py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
                         করুন</button>
                     <button id="modal-submit-btn" type="submit"
-                        class="flex-[2] py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">ইনভেন্টরিতে
+                        class="flex-[2] py-4 sm:py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">ইনভেন্টরিতে
                         সেভ করুন</button>
                 </div>
             </form>
@@ -1942,12 +1945,12 @@ function bn_num($num)
 
                 <!-- Footer Actions -->
                 <div
-                    class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
+                    class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
                     <button type="button" onclick="closePreorderModal()"
-                        class="flex-1 py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
+                        class="flex-1 py-4 sm:py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
                         করুন</button>
                     <button type="submit"
-                        class="flex-[2] py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">সংরক্ষণ
+                        class="flex-[2] py-4 sm:py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">সংরক্ষণ
                         করুন</button>
                 </div>
             </form>
@@ -2006,7 +2009,9 @@ function bn_num($num)
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
             if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            if (overlay) overlay.classList.toggle('hidden');
         }
 
         function switchTab(tabId) {
@@ -2738,10 +2743,24 @@ function bn_num($num)
 
                 const rect = btn.getBoundingClientRect();
                 targetMenu.style.position = 'fixed';
-                targetMenu.style.left = (rect.right - 160) + 'px'; // 160px is w-40
+                
+                // Responsive width handling
+                const menuWidth = 160; // w-40
+                let left = rect.right - menuWidth;
+                
+                // Ensure it doesn't go off-screen left
+                if (left < 10) left = 10;
+                
+                // Ensure it doesn't go off-screen right
+                if (left + menuWidth > window.innerWidth) {
+                    left = window.innerWidth - menuWidth - 10;
+                }
+                
+                targetMenu.style.left = left + 'px';
 
                 const windowHeight = window.innerHeight;
-                if (rect.bottom + 150 > windowHeight) {
+                const menuHeight = 150; // approximate
+                if (rect.bottom + menuHeight > windowHeight) {
                     targetMenu.style.top = 'auto';
                     targetMenu.style.bottom = (windowHeight - rect.top + 8) + 'px';
                 } else {

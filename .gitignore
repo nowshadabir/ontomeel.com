@@ -52,3 +52,4 @@ desktop.ini
 # Specific to local development environments
 .phpunit.result.cache
 .antigravityignore
+.htaccess
