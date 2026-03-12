@@ -1888,8 +1888,26 @@ function bn_num($num)
                 if (activeLink) activeLink.classList.remove('text-gray-400');
             }
 
+            // Update URL Hash to preserve tab on reload
+            window.location.hash = tabId;
+
             if (window.innerWidth < 1024) toggleSidebar();
         }
+
+        // On Page Load, check hash and switch tab
+        document.addEventListener('DOMContentLoaded', () => {
+            let hash = window.location.hash.substring(1);
+            if(hash) {
+                // Check if it's a subtab
+                if(hash.startsWith('preorder-')) {
+                   switchTab('preorders');
+                   let subId = hash.replace('preorder-', '');
+                   setTimeout(() => { switchPreorderSubTab(subId); }, 100);
+                } else {
+                   switchTab(hash);
+                }
+            }
+        });
 
         function switchPreorderSubTab(subId) {
             document.querySelectorAll('.preorder-subcontent').forEach(c => c.classList.add('hidden'));
@@ -1901,8 +1919,11 @@ function bn_num($num)
                 btn.classList.add('border-transparent', 'text-gray-400');
             });
             const activeBtn = document.getElementById(`subnav-${subId}`);
-            activeBtn.classList.remove('border-transparent', 'text-gray-400');
-            activeBtn.classList.add('border-brand-900', 'text-brand-900');
+            if(activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-gray-400');
+                activeBtn.classList.add('border-brand-900', 'text-brand-900');
+            }
+            window.location.hash = 'preorder-' + subId;
         }
 
         function openAddBookModal() {

@@ -276,7 +276,7 @@ function bn_num($num)
                         </div>
 
                         <button
-                            onclick="addToCart({id: 'pre_<?php echo $hot_deal['id']; ?>', title: '<?php echo addslashes($hot_deal['title']); ?>', author: '<?php echo addslashes($hot_deal['author']); ?>', price: <?php echo $hot_deal['discount_price']; ?>, img: '<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>'})"
+                            onclick="window.location.href='../pre-order-checkout/index.php?id=<?php echo $hot_deal['id']; ?>'"
                             class="w-full md:w-auto px-10 py-4 bg-brand-gold text-brand-900 font-bold rounded hover:bg-white transition-all transform hover:-translate-y-1 shadow-xl shadow-brand-gold/10">
                             অফারটি লুফে নিন
                         </button>
@@ -381,7 +381,7 @@ function bn_num($num)
                         </div>
                         <?php if ($isOpen): ?>
                             <button
-                                onclick="addToCart({id: 'pre_<?php echo $book['id']; ?>', title: '<?php echo addslashes($book['title']); ?>', author: '<?php echo addslashes($book['author']); ?>', price: <?php echo $book['discount_price']; ?>, img: '<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>'})"
+                                onclick="window.location.href='../pre-order-checkout/index.php?id=<?php echo $book['id']; ?>'"
                                 class="bg-brand-gold text-brand-900 px-5 py-2.5 rounded font-bold text-sm hover:bg-brand-900 hover:text-white transition-colors">
                                 অর্ডার করুন
                             </button>
