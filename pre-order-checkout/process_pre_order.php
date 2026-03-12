@@ -4,20 +4,28 @@ require_once '../includes/db_connect.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'message' => 'User not logged in']);
-    exit();
-}
-
 try {
-    $user_id = $_SESSION['user_id'];
+    // One-time check/migration for guest columns if they don't exist
+    // This is a safe way to ensure the DB is ready without separate access
+    $pdo->exec("ALTER TABLE orders MODIFY member_id INT(11) NULL");
+    
+    // Check if guest_name exists, if not add it
+    $check = $pdo->query("SHOW COLUMNS FROM orders LIKE 'guest_name'");
+    if (!$check->fetch()) {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_name VARCHAR(150) DEFAULT NULL");
+        $pdo->exec("ALTER TABLE orders ADD COLUMN guest_phone VARCHAR(20) DEFAULT NULL");
+    }
+
+    $user_id = $_SESSION['user_id'] ?? null;
     $preorder_id = $_POST['preorder_id'] ?? 0;
+    $name = $_POST['name'] ?? '';
+    $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
     $sender_number = $_POST['sender_number'] ?? '';
     $total_amount = $_POST['total_amount'] ?? 0;
 
-    if (empty($preorder_id) || empty($address) || empty($sender_number)) {
-        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+    if (empty($preorder_id) || empty($address) || empty($sender_number) || empty($name) || empty($phone)) {
+        echo json_encode(['success' => false, 'message' => 'প্রয়োজনীয় তথ্য প্রদান করুন (নাম, মোবাইল, ঠিকানা এবং ট্রাঞ্জেকশন আইডি)']);
         exit();
     }
 
@@ -41,9 +49,9 @@ try {
     // Insert Order
     $stmt = $pdo->prepare("
         INSERT INTO orders (
-            invoice_no, member_id, subtotal, shipping_cost, total_amount, 
+            invoice_no, member_id, guest_name, guest_phone, subtotal, shipping_cost, total_amount, 
             payment_status, payment_method, trx_id, order_status, shipping_address
-        ) VALUES (?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
     ");
     
     // Notice subtotal assumes $total_amount - shipping ($50)
@@ -51,7 +59,7 @@ try {
     $subtotal = $total_amount - $shipping_cost;
 
     $stmt->execute([
-        $invoice_no, $user_id, $subtotal, $shipping_cost, $total_amount,
+        $invoice_no, $user_id, $name, $phone, $subtotal, $shipping_cost, $total_amount,
         $sender_number, $address
     ]);
 
@@ -64,9 +72,11 @@ try {
     ");
     $stmt->execute([$order_id, $preorder_id, $subtotal, $subtotal]);
 
-    // Ensure member address is updated if not fully set
-    $stmt = $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')");
-    $stmt->execute([$address, $user_id]);
+    // Ensure member address is updated ONLY IF LOGGED IN
+    if ($user_id) {
+        $stmt = $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')");
+        $stmt->execute([$address, $user_id]);
+    }
 
     $pdo->commit();
 

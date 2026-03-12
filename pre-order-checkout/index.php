@@ -7,10 +7,12 @@ $is_checkout = true;
 include '../includes/header.php';
 require_once '../includes/db_connect.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    echo "<script>window.location.href = '../login/index.php?redirect=../pre-order-checkout/index.php?id=" . ($_GET['id'] ?? '') . "';</script>";
-    exit();
+// User data if logged in
+$user_data = ['full_name' => '', 'phone' => '', 'address' => ''];
+if (isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user_data = $stmt->fetch();
 }
 
 // Fetch Pre-order Item Details
@@ -25,10 +27,7 @@ if (!$pre_order) {
     exit();
 }
 
-// Fetch User Data
-$stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$user_data = $stmt->fetch();
+// User fetched above
 
 $price = $pre_order['discount_price'] > 0 ? $pre_order['discount_price'] : $pre_order['price'];
 $delivery_charge = 50;
@@ -75,16 +74,16 @@ $total_amount = $price + $delivery_charge;
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার নাম</label>
-                    <input type="text" id="po-name" readonly
+                    <input type="text" id="po-name" <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
                         value="<?php echo htmlspecialchars($user_data['full_name']); ?>"
-                        class="w-full bg-gray-100 border border-transparent rounded-2xl px-6 py-4 text-brand-900 font-bold cursor-not-allowed">
+                        class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">মোবাইল
                         নম্বর</label>
-                    <input type="text" id="po-phone" readonly
+                    <input type="text" id="po-phone" <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
                         value="<?php echo htmlspecialchars($user_data['phone']); ?>"
-                        class="w-full bg-gray-100 border border-transparent rounded-2xl px-6 py-4 text-brand-900 font-bold tracking-wider cursor-not-allowed">
+                        class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold tracking-wider focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি ঠিকানা
@@ -176,14 +175,22 @@ $total_amount = $price + $delivery_charge;
             <p class="text-gray-500 font-anek max-w-md mx-auto mb-8">আপনার পেমেন্ট রিকোয়েস্ট গ্রহণ করা হয়েছে। যাচাই শেষে
                 অর্ডার কনফার্মেশন এসএমএস পাঠানো হবে।</p>
 
-            <div class="bg-brand-light p-6 rounded-3xl max-w-sm mx-auto mb-8 border border-brand-gold/10">
+            <div class="bg-brand-light p-6 rounded-3xl max-w-sm mx-auto mb-8 border border-brand-gold/10 relative overflow-hidden">
                 <p class="text-[10px] text-brand-gold font-bold uppercase tracking-[0.3em] mb-2">অর্ডার নাম্বার</p>
                 <h3 id="final-order-id" class="text-3xl font-mono font-bold text-brand-900 tracking-wider"></h3>
+                
+                <?php if (!isset($_SESSION['user_id'])): ?>
+                    <div class="mt-6 pt-6 border-t border-brand-gold/10">
+                        <p class="text-xs text-red-500 font-anek font-bold mb-2">আপনি রেজিস্ট্রেশন করা সদস্য নন</p>
+                        <p class="text-[10px] text-gray-500 font-anek leading-relaxed">অর্ডার ট্র্যাকিং এর জন্য উপরের আইডি সহ এই স্ক্রিনটির একটি <span class="bg-yellow-100 text-brand-900 px-1">স্ক্রিনশট</span> তুলে রাখুন।</p>
+                    </div>
+                <?php endif; ?>
             </div>
 
-            <a href="../user/dashboard.php"
-                class="inline-block bg-brand-900 text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all">আমার
-                ড্যাশবোর্ডে যান</a>
+            <a href="<?php echo isset($_SESSION['user_id']) ? '../dashboard/index.php' : '../index.php'; ?>"
+                class="inline-block bg-brand-900 text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all">
+                <?php echo isset($_SESSION['user_id']) ? 'আমার ড্যাশবোর্ডে যান' : 'হোম পেজে ফিরে যান'; ?>
+            </a>
         </div>
     </div>
 </main>
@@ -229,11 +236,20 @@ $total_amount = $price + $delivery_charge;
     }
 
     function goToStep2() {
+        const name = document.getElementById('po-name').value.trim();
+        const phone = document.getElementById('po-phone').value.trim();
         const addr = document.getElementById('po-address').value.trim();
-        if (!addr) {
-            showError('অনুগ্রহ করে ডেলিভারি ঠিকানা দিন');
+
+        if (!name || !phone || !addr) {
+            showError('অনুগ্রহ করে আপনার নাম, মোবাইল নম্বর এবং ডেলিভারি ঠিকানা দিন');
             return;
         }
+        
+        if (phone.length < 11) {
+            showError('সঠিক মোবাইল নম্বর দিন');
+            return;
+        }
+
         switchStep('step-1', 'step-2');
     }
 
@@ -256,6 +272,8 @@ $total_amount = $price + $delivery_charge;
         // Prepare data to send to server
         const formData = new FormData();
         formData.append('preorder_id', preOrderId);
+        formData.append('name', document.getElementById('po-name').value.trim());
+        formData.append('phone', document.getElementById('po-phone').value.trim());
         formData.append('address', addr);
         formData.append('sender_number', senderNum);
         formData.append('total_amount', totalAmount);
