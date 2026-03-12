@@ -75,7 +75,7 @@ if (session_status() == PHP_SESSION_NONE) {
             <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
                 <a href="<?php echo $path_prefix ?? ''; ?>index.php" class="flex items-center gap-3">
                     <img src="<?php echo $path_prefix ?? ''; ?>assets/img/logo.png" alt="logo" class="w-10 h-auto">
-                    <span class="font-serif text-2xl font-bold tracking-tight text-brand-900 mt-1 uppercase">ANTYAMIL<span
+                    <span class="font-serif text-2xl font-bold tracking-tight text-brand-900 mt-1 uppercase">Ontomeel<span
                             class="text-brand-gold">.</span></span>
                 </a>
                 <div class="flex items-center gap-4">

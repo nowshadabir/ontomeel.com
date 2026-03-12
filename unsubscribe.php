@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unsubscribe - Antyamil Bookshop</title>
+    <title>Unsubscribe - Ontomeel Bookshop</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
     <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 m-4">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Unsubscribe</h1>
-            <p class="text-gray-600 mt-2">Antyamil Bookshop</p>
+            <p class="text-gray-600 mt-2">Ontomeel Bookshop</p>
         </div>
 
         <?php if ($message): ?>

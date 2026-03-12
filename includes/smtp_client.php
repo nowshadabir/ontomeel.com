@@ -1,10 +1,10 @@
 <?php
 /**
- * Minimal SMTP Client for Secure Email Sending
- * Sends email via SMTP with SSL/TLS and Authentication without external libraries.
+ * SMTP Client for Secure Email Sending
+ * Sends email via SMTP with SSL/TLS and Authentication
  */
 
-function get_smtp_response($socket)
+function get_smtp_response($socket, $debug = false)
 {
     $res = "";
     while ($str = fgets($socket, 515)) {
@@ -12,6 +12,8 @@ function get_smtp_response($socket)
         if (substr($str, 3, 1) == " ")
             break;
     }
+    if ($debug)
+        echo "S <- $res<br>";
     return $res;
 }
 
@@ -24,49 +26,85 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
     $port = $config['port'];
     $user = $config['user'];
     $pass = $config['pass'];
-    $from_name = $config['from_name'] ?? "Antyamil";
+    $from_name = $config['from_name'] ?? "Ontomeel Bookshop";
     $reply_to = $config['reply_to'] ?? $user;
 
-    // Create Socket
-    $socket = @fsockopen("ssl://$host", $port, $errno, $errstr, 30);
-    if (!$socket)
-        return ["success" => false, "message" => "Connection failed: $errstr ($errno)"];
+    $debug_log = [];
+    $debug_log[] = "Connecting to ssl://$host:$port";
+
+    // Create Socket with SSL context
+    $context = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        ]
+    ]);
+
+    $socket = @stream_socket_client(
+        "ssl://$host:$port",
+        $errno,
+        $errstr,
+        30,
+        STREAM_CLIENT_CONNECT,
+        $context
+    );
+
+    if (!$socket) {
+        $debug_log[] = "Connection failed: $errstr ($errno)";
+        return ["success" => false, "message" => "Connection failed: $errstr ($errno)", "debug" => implode("\n", $debug_log)];
+    }
+
+    $debug_log[] = "Connected successfully";
 
     // Server Greeting
-    get_smtp_response($socket);
+    $res = get_smtp_response($socket, false);
+    $debug_log[] = "Greeting: " . substr($res, 0, 50);
 
-    // HELO/EHLO
-    fputs($socket, "EHLO $host\r\n");
-    get_smtp_response($socket);
+    // EHLO - use the actual host
+    fwrite($socket, "EHLO $host\r\n");
+    $res = get_smtp_response($socket, false);
+    $debug_log[] = "EHLO response: " . substr($res, 0, 100);
 
-    // Login
-    fputs($socket, "AUTH LOGIN\r\n");
-    $res = get_smtp_response($socket);
+    // AUTH LOGIN
+    fwrite($socket, "AUTH LOGIN\r\n");
+    $res = get_smtp_response($socket, false);
+    $debug_log[] = "AUTH LOGIN: " . substr($res, 0, 50);
+
     if (strpos($res, "334") === false) {
         fclose($socket);
-        return ["success" => false, "message" => "AUTH LOGIN command failed: $res"];
+        $debug_log[] = "AUTH LOGIN failed - server didn't respond with 334";
+        return ["success" => false, "message" => "AUTH LOGIN failed: " . substr($res, 0, 100), "debug" => implode("\n", $debug_log)];
     }
 
-    fputs($socket, base64_encode($user) . "\r\n");
-    get_smtp_response($socket);
+    // Send username
+    fwrite($socket, base64_encode($user) . "\r\n");
+    $res = get_smtp_response($socket, false);
+    $debug_log[] = "Username sent: " . substr($res, 0, 50);
 
-    fputs($socket, base64_encode($pass) . "\r\n");
-    $res = get_smtp_response($socket);
+    // Send password
+    fwrite($socket, base64_encode($pass) . "\r\n");
+    $res = get_smtp_response($socket, false);
+    $debug_log[] = "Password sent, response: " . substr($res, 0, 50);
+
     if (strpos($res, "235") === false) {
         fclose($socket);
-        return ["success" => false, "message" => "Authentication failed: $res"];
+        $debug_log[] = "Authentication FAILED - 235 not received";
+        return ["success" => false, "message" => "Authentication failed: " . substr($res, 0, 100), "debug" => implode("\n", $debug_log)];
     }
 
+    $debug_log[] = "Authentication successful!";
+
     // MAIL FROM
-    fputs($socket, "MAIL FROM: <$user>\r\n");
+    fwrite($socket, "MAIL FROM: <$user>\r\n");
     get_smtp_response($socket);
 
     // RCPT TO
-    fputs($socket, "RCPT TO: <$to>\r\n");
+    fwrite($socket, "RCPT TO: <$to>\r\n");
     get_smtp_response($socket);
 
     // DATA
-    fputs($socket, "DATA\r\n");
+    fwrite($socket, "DATA\r\n");
     get_smtp_response($socket);
 
     // Encode Subject and From Name
@@ -75,12 +113,13 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
 
     // Boundary for multipart
     $boundary = "----=_Part_" . md5(time() . uniqid());
-    $domain = (strpos($host, '.') !== false) ? $host : "ontomeel.com";
-    $msg_id = "<" . time() . "." . uniqid() . "@$domain>";
+    $domain = "ontomeel.com";
+    $msg_id = "<" . time() . "." . uniqid() . "@" . $domain . ">";
     $date = date('r');
 
-    // Create Plain Text version by stripping tags if it's HTML
-    $text_message = $is_html ? strip_tags(str_replace(['<br>', '</p>'], "\n", $message)) : $message;
+    // Create Plain Text version
+    $text_message = $is_html ? strip_tags(str_replace(['<br>', '</p>', '<div>', '</div>', '<span>', '</span>'], "\n", $message)) : $message;
+    $text_message = html_entity_decode($text_message, ENT_QUOTES, 'UTF-8');
     $encoded_text = quoted_printable_encode($text_message);
     $encoded_html = $is_html ? quoted_printable_encode($message) : "";
 
@@ -94,17 +133,17 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
     $headers .= "Return-Path: <$user>\r\n";
     $headers .= "Subject: $encoded_subject\r\n";
     $headers .= "X-Priority: 3\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+    $headers .= "X-Mailer: Ontomeel Mailer\r\n";
     $headers .= "Importance: normal\r\n";
     $headers .= "Auto-Submitted: auto-generated\r\n";
     $headers .= "X-Auto-Response-Suppress: OOF, DR, RN, NRN\r\n";
+    $headers .= "Content-Language: en-US\r\n";
 
     if ($is_html) {
         $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
-        $headers .= "List-Unsubscribe: <mailto:unsubscribe@ontomeel.com>\r\n";
-        $headers .= "Precedence: bulk\r\n\r\n";
+        $headers .= "List-Unsubscribe: <mailto:unsubscribe@ontomeel.com>, <https://ontomeel.com/unsubscribe>\r\n";
+        $headers .= "Precedence: transactional\r\n\r\n";
 
-        // Body Construction (Multipart)
         $body = "--$boundary\r\n";
         $body .= "Content-Type: text/plain; charset=UTF-8\r\n";
         $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
@@ -119,16 +158,21 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
         $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
         $headers .= "Content-Transfer-Encoding: quoted-printable\r\n";
         $headers .= "List-Unsubscribe: <mailto:unsubscribe@ontomeel.com>\r\n";
-        $headers .= "Precedence: bulk\r\n\r\n";
+        $headers .= "Precedence: transactional\r\n\r\n";
         $body = $encoded_text;
     }
 
-    fputs($socket, $headers . $body . "\r\n.\r\n");
+    fwrite($socket, $headers . $body . "\r\n.\r\n");
     $res = get_smtp_response($socket);
+    $debug_log[] = "DATA response: " . substr($res, 0, 50);
 
     // QUIT
-    fputs($socket, "QUIT\r\n");
+    fwrite($socket, "QUIT\r\n");
     fclose($socket);
 
-    return (strpos($res, "250") !== false || strpos($res, "200") !== false) ? ["success" => true] : ["success" => false, "message" => $res];
+    $debug_log[] = "Email sent!";
+
+    return (strpos($res, "250") !== false || strpos($res, "200") !== false)
+        ? ["success" => true, "debug" => implode("\n", $debug_log)]
+        : ["success" => false, "message" => $res, "debug" => implode("\n", $debug_log)];
 }

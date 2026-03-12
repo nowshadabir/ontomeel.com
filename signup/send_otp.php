@@ -23,12 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    // Load SMTP settings from .env
+    // Load SMTP settings - use auth@ontomeel.com for OTP
     $smtp_config = [
-        'host' => getenv('SMTP_HOST'),
-        'port' => getenv('SMTP_PORT'),
-        'user' => getenv('SMTP_AUTH_USER') ?: getenv('SMTP_USER'),
-        'pass' => getenv('SMTP_PASS')
+        'host' => getenv('SMTP_HOST') ?: 'ontomeel.com',
+        'port' => getenv('SMTP_PORT') ?: 465,
+        'user' => getenv('SMTP_AUTH_USER') ?: 'auth@ontomeel.com',
+        'pass' => getenv('SMTP_AUTH_PASS') ?: getenv('SMTP_PASS'),
+        'from_name' => 'Ontomeel Verification'
     ];
 
     // Generate 6 digit OTP
@@ -46,23 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ];
 
     require_once '../includes/smtp_client.php';
-    
-    $subject = "Verification Code: $otp - Antyamil";
+
+    $subject = "Verification Code: $otp - Ontomeel";
     $message = "Your 6-digit verification code is: $otp\r\n\r\nThis code will expire in 10 minutes.";
-    
+
     $result = send_smtp_email($email, $subject, $message, $smtp_config);
 
     if ($result['success']) {
         echo json_encode([
-            'success' => true, 
+            'success' => true,
             'message' => 'ওটিপি আপনার ইমেইলে পাঠানো হয়েছে।'
         ]);
     } else {
         // Log the error for debugging
         error_log("SMTP Error: " . $result['message']);
-        
+
         echo json_encode([
-            'success' => false, 
+            'success' => false,
             'message' => 'ইমেইল পাঠাতে সমস্যা হয়েছে। দয়া করে এডমিনের সাথে যোগাযোগ করুন।'
         ]);
     }

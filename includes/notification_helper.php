@@ -2,7 +2,7 @@
 require_once __DIR__ . '/smtp_client.php';
 
 /**
- * Original instant send function - now renamed to avoided conflict with queue
+ * Send notifications instantly - all content in English to avoid spam
  */
 function send_notification_instantly($to, $type, $data)
 {
@@ -22,10 +22,9 @@ function send_notification_instantly($to, $type, $data)
         // Continue if check fails
     }
 
-    // Use single SMTP account for all purposes as requested
-    $user = getenv('SMTP_USER') ?: 'info@ontomeel.com';
+    // SMTP configuration
+    $user = getenv('SMTP_USER') ?: 'auth@ontomeel.com';
     $pass = getenv('SMTP_PASS');
-
     $host = getenv('SMTP_HOST') ?: 'ontomeel.com';
     $port = getenv('SMTP_PORT') ?: 465;
 
@@ -39,135 +38,150 @@ function send_notification_instantly($to, $type, $data)
     $subject = "";
     $title = "";
     $content = "";
-    $color = "#0f172a";
+    $color = "#2563eb"; // Professional blue
 
-    // ... (templates logic - same as before)
     switch ($type) {
         case 'order_placed':
-            $subject = "অর্ডার কনফার্মেশন - #{$data['invoice_no']}";
-            $title = "অর্ডার সফলভাবে গ্রহণ করা হয়েছে!";
+            $subject = "Order Confirmed - #" . $data['invoice_no'];
+            $title = "Thank You for Your Order!";
             $color = "#16a34a";
             $content = "
-                <p>প্রিয় <strong>{$data['name']}</strong>,</p>
-                <p>আপনার অর্ডারটি (#{$data['invoice_no']}) সফলভাবে আমাদের সিস্টেমে যুক্ত হয়েছে। আমরা দ্রুততম সময়ের মধ্যে আপনার কাছে বই পৌঁছে দিতে কাজ করছি।</p>
-                <div style='background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-                    <p style='margin: 0; color: #64748b; font-size: 12px; text-transform: uppercase;'>অর্ডার বিবরণ:</p>
-                    <p style='margin: 5px 0;'><strong>পরিমাণ:</strong> ৳{$data['amount']}</p>
-                    <p style='margin: 5px 0;'><strong>ঠিকানা:</strong> {$data['address']}</p>
+                <p>Dear <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been successfully placed and is being processed.</p>
+                <div style='background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #e2e8f0;'>
+                    <p style='margin: 0 0 10px 0; color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Order Details</p>
+                    <p style='margin: 5px 0;'><strong>Amount:</strong> BDT " . number_format($data['amount'], 2) . "</p>
+                    <p style='margin: 5px 0;'><strong>Shipping Address:</strong> " . htmlspecialchars($data['address']) . "</p>
                 </div>
+                <p>We will notify you once your order is shipped.</p>
             ";
             if (isset($data['guest']) && $data['guest']) {
-                $content .= "<p style='color: #ef4444; font-weight: bold;'>যেহেতু আপনি গেস্ট হিসেবে অর্ডার করেছেন, দয়া করে অর্ডার নম্বরটি লিখে রাখুন বা এই ইমেইলটি সংরক্ষণ করুন।</p>";
+                $content .= "<p style='color: #ef4444; font-weight: bold;'>As a guest customer, please save your order number <strong>#" . $data['invoice_no'] . "</strong> for tracking.</p>";
             }
             break;
 
         case 'order_cancelled':
-            $subject = "অর্ডার বাতিল - #{$data['invoice_no']}";
-            $title = "অর্ডার বাতিল করা হয়েছে";
-            $color = "#ef4444";
+            $subject = "Order Cancelled - #" . $data['invoice_no'];
+            $title = "Order Cancellation Notice";
+            $color = "#dc2626";
             $content = "
-                <p>প্রিয় {$data['name']},</p>
-                <p>আপনার অনুরোধ বা প্রশাসনিক কারণে অর্ডার নম্বর <strong>#{$data['invoice_no']}</strong> বাতিল করা হয়েছে।</p>
-                <p>যদি পেমেন্ট করা হয়ে থাকে, তবে তা আপনার একাউন্ট ব্যালেন্সে রিফান্ড করে দেওয়া হবে।</p>
+                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
+                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been cancelled.</p>
+                <p>If you have made any payment, it will be refunded to your account balance within 3-5 business days.</p>
+                <p>If you did not request this cancellation, please contact our support team immediately.</p>
             ";
             break;
 
         case 'order_status_update':
             $status_labels = [
-                'Confirmed' => 'নিশ্চিত করা হয়েছে',
-                'Shipped' => 'পাঠানো হয়েছে (Shipped)',
-                'Delivered' => 'ডেলিভারি সম্পন্ন',
-                'Processing' => 'প্রসেসিং হচ্ছে'
+                'Confirmed' => 'Confirmed',
+                'Shipped' => 'Shipped',
+                'Delivered' => 'Delivered',
+                'Processing' => 'Processing'
             ];
             $display_status = $status_labels[$data['status']] ?? $data['status'];
-            $subject = "অর্ডার আপডেট - #{$data['invoice_no']}";
-            $title = "আপনার অর্ডারের নতুন আপডেট";
-            $color = "#3b82f6";
+            $subject = "Order Update - #" . $data['invoice_no'];
+            $title = "Your Order Status Has Been Updated";
+            $color = "#2563eb";
             $content = "
-                <p>প্রিয় {$data['name']},</p>
-                <p>আপনার অর্ডার <strong>#{$data['invoice_no']}</strong> এর বর্তমান স্ট্যাটাস: <span style='background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 5px; font-weight: bold;'>{$display_status}</span></p>
+                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
+                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> status has been updated.</p>
+                <p style='margin: 20px 0;'><span style='background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 5px; font-weight: bold; font-size: 14px;'>Current Status: " . $display_status . "</span></p>
             ";
             break;
 
         case 'borrow_active':
-            $subject = "বই ধার শুরু - #{$data['invoice_no']}";
-            $title = "বই ধার নেওয়া সফল হয়েছে";
-            $color = "#8b5cf6";
+            $subject = "Book Borrowed - #" . $data['invoice_no'];
+            $title = "Book Borrowing Confirmed";
+            $color = "#7c3aed";
             $content = "
-                <p>প্রিয় {$data['name']},</p>
-                <p>আপনার <strong>'{$data['book_title']}'</strong> বইটি ধার নেওয়ার অনুরোধটি সক্রিয় করা হয়েছে।</p>
-                <div style='background: #f5f3ff; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-                    <p style='margin: 0; color: #7c3aed; font-weight: bold;'>ফেরত দেওয়ার শেষ তারিখ: {$data['due_date']}</p>
-                    <p style='margin: 5px 0; font-size: 13px; color: #6b7280;'>দয়া করে সময়ের মধ্যে বইটি ফেরত দিয়ে অন্যদের সুযোগ করে দিন।</p>
+                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
+                <p>You have successfully borrowed the book <strong>'" . htmlspecialchars($data['book_title']) . "'</strong>.</p>
+                <div style='background: #f5f3ff; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #ddd6fe;'>
+                    <p style='margin: 0; color: #7c3aed; font-weight: bold; font-size: 16px;'>Return Due Date: " . htmlspecialchars($data['due_date']) . "</p>
+                    <p style='margin: 10px 0 0 0; font-size: 13px; color: #6b7280;'>Please return the book on time so others can enjoy it too.</p>
                 </div>
             ";
             break;
 
         case 'borrow_returned':
-            $subject = "বই ফেরত পাওয়া গেছে - #{$data['invoice_no']}";
-            $title = "বই ফেরত কনফার্মেশন";
+            $subject = "Book Returned - #" . $data['invoice_no'];
+            $title = "Book Return Confirmed";
             $color = "#059669";
             $content = "
-                <p>প্রিয় {$data['name']},</p>
-                <p>আপনার ধার নেওয়া <strong>'{$data['book_title']}'</strong> বইটি আমাদের হাতে পৌঁছেছে। সময়মতো ফেরত দেওয়ার জন্য ধন্যবাদ।</p>
+                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
+                <p>Thank you for returning the book <strong>'" . htmlspecialchars($data['book_title']) . "'</strong> on time.</p>
+                <p>We hope you enjoyed reading it!</p>
             ";
             break;
 
         default:
-            $subject = "Antyamil - নতুন নোটিফিকেশন";
-            $title = "সিস্টেম আপডেট";
-            $content = "<p>আপনার একাউন্টে একটি নতুন আপডেট আছে। বিস্তারিত জানতে ড্যাশবোর্ড ভিজিট করুন।</p>";
+            $subject = "Ontomeel Bookshop - Notification";
+            $title = "Account Update";
+            $content = "<p>You have a new update on your Ontomeel Bookshop account. Please log in to your dashboard to view details.</p>";
             break;
     }
 
-    // Determine professional From Name based on type
+    // Professional From Name
     if (strpos($type, 'order') !== false) {
-        $from_name = "Antyamil Billing";
+        $from_name = "Ontomeel Orders";
     } elseif (strpos($type, 'otp') !== false || strpos($type, 'auth') !== false) {
-        $from_name = "Antyamil Auth";
+        $from_name = "Ontomeel";
     } else {
-        $from_name = "Antyamil";
+        $from_name = "Ontomeel Bookshop";
     }
 
-    // Pass custom from_name to config
     $config['from_name'] = $from_name;
-    $config['reply_to'] = $user; // Reply to the account that sent it
+    $config['reply_to'] = $user;
 
-    // Wrap in professional HTML template
+    // Clean, professional HTML template in English
     $html_message = "
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset='UTF-8'>
-        <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-            .container { max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-            .header { background: {$color}; color: white; padding: 30px; text-align: center; }
-            .content { padding: 30px; background: #ffffff; }
-            .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
-            .btn { display: inline-block; padding: 12px 24px; background: {$color}; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
-        </style>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     </head>
-    <body>
-        <div class='container'>
-            <div class='header'>
-                <h1 style='margin: 0; font-size: 24px;'>{$title}</h1>
-            </div>
-            <div class='content'>
-                {$content}
-                <div style='text-align: center;'>
-                    <a href='https://ontomeel.com/dashboard' class='btn'>ড্যাশবোর্ড দেখুন</a>
-                </div>
-            </div>
-            <div class='footer'>
-                <p style='margin: 5px 0;'>&copy; " . date('Y') . " Antyamil Bookshop. All rights reserved.</p>
-                <p style='margin: 5px 0;'>এটি একটি অটোমেটিক জেনারেটেড ইমেইল। কোনো সাহায্যের প্রয়োজন হলে আমাদের <a href='mailto:support@ontomeel.com' style='color: #3b82f6;'>সাপোর্ট টিমের</a> সাথে যোগাযোগ করুন।</p>
-                <p style='margin: 5px 0; font-size: 10px;'>Antomeel | Online Book Shop | Bangladesh</p>
-                <div style='margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;'>
-                    <a href='https://ontomeel.com/unsubscribe' style='color: #64748b; font-size: 11px; text-decoration: underline;'>Unsubscribe</a>
-                </div>
-            </div>
-        </div>
+    <body style='margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333;'>
+        <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>
+            <tr>
+                <td align='center'>
+                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden;'>
+                        <!-- Header -->
+                        <tr>
+                            <td style='background: " . $color . "; color: #ffffff; padding: 30px; text-align: center;'>
+                                <h1 style='margin: 0; font-size: 24px; font-weight: bold;'>" . $title . "</h1>
+                            </td>
+                        </tr>
+                        <!-- Content -->
+                        <tr>
+                            <td style='padding: 30px;'>
+                                " . $content . "
+                                <div style='text-align: center; margin-top: 25px;'>
+                                    <a href='https://ontomeel.com/dashboard' style='display: inline-block; padding: 12px 30px; background: " . $color . "; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;'>View Dashboard</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Footer -->
+                        <tr>
+                            <td style='background: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #e9ecef;'>
+                                <p style='margin: 0 0 10px 0; font-size: 14px; color: #6c757d;'>&copy; " . date('Y') . " Ontomeel Bookshop. All rights reserved.</p>
+                                <p style='margin: 0 0 10px 0; font-size: 12px; color: #adb5bd;'>This is an automated message. Please do not reply to this email.</p>
+                                <p style='margin: 0 0 15px 0; font-size: 12px; color: #adb5bd;'>
+                                    Need help? <a href='mailto:support@ontomeel.com' style='color: " . $color . ";'>Contact Support</a>
+                                </p>
+                                <div style='border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;'>
+                                    <a href='https://ontomeel.com/unsubscribe' style='color: #adb5bd; font-size: 11px; text-decoration: underline;'>Unsubscribe</a>
+                                    <span style='color: #adb5bd; font-size: 11px;'> | </span>
+                                    <a href='https://ontomeel.com/privacy' style='color: #adb5bd; font-size: 11px; text-decoration: underline;'>Privacy Policy</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <p style='margin: 20px 0 0 0; font-size: 11px; color: #999999;'>Ontomeel Bookshop | Online Book Store | Bangladesh</p>
+                </td>
+            </tr>
+        </table>
     </body>
     </html>
     ";
@@ -176,25 +190,21 @@ function send_notification_instantly($to, $type, $data)
 }
 
 /**
- * Public function to queue an email and trigger worker
+ * Queue-based notification (not used for critical emails)
  */
 function send_notification($to, $type, $data)
 {
     global $pdo;
 
-    // Add to queue
     try {
         $stmt = $pdo->prepare("INSERT INTO email_queue (recipient, type, payload) VALUES (?, ?, ?)");
         $stmt->execute([$to, $type, json_encode($data)]);
     } catch (Exception $e) {
-        // Fallback to instant send if queue fails
         error_log("Queue Failed, falling back to instant send: " . $e->getMessage());
         return send_notification_instantly($to, $type, $data);
     }
 
-    // 3. Trigger worker asynchronously (non-blocking)
     trigger_worker();
-
     return ['success' => true, 'message' => 'Email queued'];
 }
 
@@ -202,12 +212,8 @@ function trigger_worker()
 {
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
-
-    // Construct a absolute path regardless of where we are
-    // We assume the project is in /bookshop/ relative to document root
     $url = $protocol . "://" . $host . "/bookshop/includes/email_worker.php";
 
-    // Simple non-blocking trigger using fsockopen
     $parts = parse_url($url);
     $port = isset($parts['port']) ? $parts['port'] : ($parts['scheme'] === 'https' ? 443 : 80);
     $host_conn = ($parts['scheme'] === 'https' ? "ssl://" : "") . $parts['host'];
@@ -218,7 +224,6 @@ function trigger_worker()
         $out .= "Host: " . $parts['host'] . "\r\n";
         $out .= "Connection: Close\r\n\r\n";
         fwrite($fp, $out);
-        // We don't wait for response, just close and continue
         fclose($fp);
     }
 }
