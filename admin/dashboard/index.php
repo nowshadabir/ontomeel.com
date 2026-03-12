@@ -75,19 +75,19 @@ try {
             config_json TEXT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
-        
+
         $methods = [
             ['bkash', 'bKash Payment', 1],
             ['nagad', 'Nagad Payment', 1],
             ['cod', 'Cash on Delivery', 1],
             ['fund', 'Account Fund', 1]
         ];
-        
+
         foreach ($methods as $method) {
             $stmt = $pdo->prepare("INSERT IGNORE INTO payment_methods (method_key, method_name, is_active) VALUES (?, ?, ?)");
             $stmt->execute($method);
         }
-        
+
         $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
         $payment_methods = $payments_stmt->fetchAll();
     } else {
@@ -224,7 +224,8 @@ function bn_num($num)
             <button onclick="switchTab('payments')" id="nav-payments"
                 class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 পেমেন্ট সেটিংস
             </button>
@@ -1134,23 +1135,29 @@ function bn_num($num)
                                                 <div class="font-bold text-brand-900 text-xs">
                                                     #<?php echo $booking['invoice_no']; ?></div>
                                                 <div class="text-[10px] text-gray-400 mt-1">
-                                                    <?php echo date('d M, Y', strtotime($booking['order_date'])); ?></div>
+                                                    <?php echo date('d M, Y', strtotime($booking['order_date'])); ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="font-bold text-brand-900 text-xs">
-                                                    <?php echo htmlspecialchars($booking['full_name']); ?></div>
+                                                    <?php echo htmlspecialchars($booking['full_name']); ?>
+                                                </div>
                                                 <div class="text-[10px] text-gray-400">
-                                                    <?php echo htmlspecialchars($booking['phone']); ?></div>
+                                                    <?php echo htmlspecialchars($booking['phone']); ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="font-bold text-brand-900 text-xs">
-                                                    <?php echo htmlspecialchars($booking['po_title']); ?></div>
+                                                    <?php echo htmlspecialchars($booking['po_title']); ?>
+                                                </div>
                                                 <div class="text-[10px] text-gray-400">পরিমাণ:
-                                                    <?php echo bn_num($booking['quantity']); ?></div>
+                                                    <?php echo bn_num($booking['quantity']); ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="text-xs text-gray-500">
-                                                    <?php echo date('d M, Y', strtotime($booking['po_release'])); ?></div>
+                                                    <?php echo date('d M, Y', strtotime($booking['po_release'])); ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <?php
@@ -1192,46 +1199,65 @@ function bn_num($num)
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <?php foreach ($payment_methods as $method): 
+                <?php foreach ($payment_methods as $method):
                     $config = json_decode($method['config_json'], true) ?: [];
-                ?>
-                <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
-                                <?php if($method['method_key'] == 'bkash'): ?>
-                                    <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto" onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
-                                <?php elseif($method['method_key'] == 'nagad'): ?>
-                                    <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
-                                <?php elseif($method['method_key'] == 'cod'): ?>
-                                    <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                    </svg>
-                                <?php else: ?>
-                                    <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                <?php endif; ?>
+                    ?>
+                    <div
+                        class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
+                                    <?php if ($method['method_key'] == 'bkash'): ?>
+                                        <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto"
+                                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
+                                    <?php elseif ($method['method_key'] == 'nagad'): ?>
+                                        <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto"
+                                            onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
+                                    <?php elseif ($method['method_key'] == 'cod'): ?>
+                                        <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                            </path>
+                                        </svg>
+                                    <?php else: ?>
+                                        <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                            </path>
+                                        </svg>
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <h3 class="font-anek font-bold text-brand-900">
+                                        <?php echo htmlspecialchars($method['method_name']); ?></h3>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                        <?php echo strtoupper($method['method_key']); ?></p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="font-anek font-bold text-brand-900"><?php echo htmlspecialchars($method['method_name']); ?></h3>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest"><?php echo strtoupper($method['method_key']); ?></p>
-                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox"
+                                    onchange="togglePaymentMethod('<?php echo $method['method_key']; ?>', this.checked)"
+                                    class="sr-only peer" <?php echo $method['is_active'] ? 'checked' : ''; ?>>
+                                <div
+                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold">
+                                </div>
+                            </label>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" onchange="togglePaymentMethod('<?php echo $method['method_key']; ?>', this.checked)" class="sr-only peer" <?php echo $method['is_active'] ? 'checked' : ''; ?>>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold"></div>
-                        </label>
-                    </div>
 
-                    <div class="space-y-4">
-                        <?php if($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad'): ?>
-                            <button onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)' class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API কনফিগারেশন আপডেট করুন</button>
-                        <?php else: ?>
-                            <p class="text-xs text-gray-400 font-anek leading-relaxed">এই মেথডটির জন্য কোনো বিশেষ API কনফিগারেশন প্রয়োজন নেই। এটি সরাসরি কাস্টমার চেকআউট পেজে প্রদর্শিত হবে।</p>
-                        <?php endif; ?>
+                        <div class="space-y-4">
+                            <?php if ($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad'): ?>
+                                <button
+                                    onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)'
+                                    class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API
+                                    কনফিগারেশন আপডেট করুন</button>
+                            <?php else: ?>
+                                <p class="text-xs text-gray-400 font-anek leading-relaxed">এই মেথডটির জন্য কোনো বিশেষ API
+                                    কনফিগারেশন প্রয়োজন নেই। এটি সরাসরি কাস্টমার চেকআউট পেজে প্রদর্শিত হবে।</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -1709,8 +1735,8 @@ function bn_num($num)
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">সাব-টাইটেল (Sub-title)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">সাব-টাইটেল
+                                (Sub-title)</label>
                             <input type="text" name="sub_title" placeholder="যেমন: কম্বো প্যাকে বিশেষ ছাড়!"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
@@ -1837,15 +1863,18 @@ function bn_num($num)
     <!-- Payment Config Modal -->
     <div id="payment-config-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closePaymentConfigModal()"></div>
-        <div class="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20">
+        <div
+            class="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20">
             <div class="bg-brand-900 p-8 flex justify-between items-center">
                 <div>
                     <h3 id="payment-modal-title" class="text-2xl font-anek font-bold text-white">API কনফিগারেশন</h3>
-                    <p class="text-brand-gold text-[10px] font-bold uppercase tracking-widest mt-1">পেমেন্ট গেটওয়ে সেটিংস</p>
+                    <p class="text-brand-gold text-[10px] font-bold uppercase tracking-widest mt-1">পেমেন্ট গেটওয়ে
+                        সেটিংস</p>
                 </div>
                 <button onclick="closePaymentConfigModal()" class="text-white/50 hover:text-white transition-colors">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
@@ -1855,8 +1884,11 @@ function bn_num($num)
                     <!-- Dynamic fields based on method -->
                 </div>
                 <div class="pt-6 border-t border-gray-100 flex gap-4">
-                    <button type="button" onclick="closePaymentConfigModal()" class="flex-1 py-4 bg-gray-100 text-gray-500 font-anek font-bold rounded-2xl hover:bg-gray-200 transition-all">বাতিল</button>
-                    <button type="submit" class="flex-[2] py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">সেভ করুন</button>
+                    <button type="button" onclick="closePaymentConfigModal()"
+                        class="flex-1 py-4 bg-gray-100 text-gray-500 font-anek font-bold rounded-2xl hover:bg-gray-200 transition-all">বাতিল</button>
+                    <button type="submit"
+                        class="flex-[2] py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">সেভ
+                        করুন</button>
                 </div>
             </form>
         </div>
@@ -1891,20 +1923,20 @@ function bn_num($num)
             // Update URL Hash to preserve tab on reload
             window.location.hash = tabId;
 
-            if (window.innerWidth < 1024) toggleSidebar();
+            if (window.innerWidth < 1024) tog gleSidebar();
         }
 
         // On Page Load, check hash and switch tab
         document.addEventListener('DOMContentLoaded', () => {
             let hash = window.location.hash.substring(1);
-            if(hash) {
+            if (hash) {
                 // Check if it's a subtab
-                if(hash.startsWith('preorder-')) {
-                   switchTab('preorders');
-                   let subId = hash.replace('preorder-', '');
-                   setTimeout(() => { switchPreorderSubTab(subId); }, 100);
+                if (hash.startsWith('preorder-')) {
+                    switchTab('preorders');
+                    let subId = hash.replace('preorder-', '');
+                    setTimeout(() => { switchPreorderSubTab(subId); }, 100);
                 } else {
-                   switchTab(hash);
+                    switchTab(hash);
                 }
             }
         });
@@ -1919,7 +1951,7 @@ function bn_num($num)
                 btn.classList.add('border-transparent', 'text-gray-400');
             });
             const activeBtn = document.getElementById(`subnav-${subId}`);
-            if(activeBtn) {
+            if (activeBtn) {
                 activeBtn.classList.remove('border-transparent', 'text-gray-400');
                 activeBtn.classList.add('border-brand-900', 'text-brand-900');
             }
@@ -2356,18 +2388,18 @@ function bn_num($num)
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `method_key=${methodKey}&is_active=${isActive ? 1 : 0}`
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(`${methodKey.toUpperCase()} স্ট্যাটাস আপডেট করা হয়েছে।`);
-                } else {
-                    alert("ত্রুটি: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("আপডেট করতে সমস্যা হয়েছে।");
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(`${methodKey.toUpperCase()} স্ট্যাটাস আপডেট করা হয়েছে।`);
+                    } else {
+                        alert("ত্রুটি: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("আপডেট করতে সমস্যা হয়েছে।");
+                });
         }
 
         function openPaymentConfigModal(methodKey, config) {
@@ -2375,7 +2407,7 @@ function bn_num($num)
             const fieldsContainer = document.getElementById('config-fields');
             document.getElementById('config_method_key').value = methodKey;
             document.getElementById('payment-modal-title').innerText = `${methodKey.toUpperCase()} কনফিগারেশন`;
-            
+
             let fieldsHtml = '';
             if (methodKey === 'bkash') {
                 fieldsHtml = `
@@ -2438,20 +2470,20 @@ function bn_num($num)
                 method: 'POST',
                 body: formData
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast("কনফিগারেশন সেভ করা হয়েছে।");
-                    closePaymentConfigModal();
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    alert("ত্রুটি: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("সেভ করতে সমস্যা হয়েছে।");
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast("কনফিগারেশন সেভ করা হয়েছে।");
+                        closePaymentConfigModal();
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        alert("ত্রুটি: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("সেভ করতে সমস্যা হয়েছে।");
+                });
         }
     </script>
 </body>
