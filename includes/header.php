@@ -42,11 +42,24 @@ if (session_status() == PHP_SESSION_NONE) {
     $parts_to_keep = count($path_array) - $depth - 1;
     $project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
     ?>
+    <?php
+    $m_plan = 'None';
+    if (isset($_SESSION['user_id'])) {
+        require_once $path_prefix . 'includes/db_connect.php';
+        $m_stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
+        $m_stmt->execute([$_SESSION['user_id']]);
+        $m_user = $m_stmt->fetch();
+        if ($m_user) {
+            $m_plan = $m_user['membership_plan'];
+            $_SESSION['membership_plan'] = $m_plan;
+        }
+    }
+    ?>
     <script>
         const PROJECT_ROOT = '<?php echo htmlspecialchars($project_root, ENT_QUOTES, 'UTF-8'); ?>';
         <?php if (isset($_SESSION['user_id'])): ?>
             const user_id = <?php echo (int) $_SESSION['user_id']; ?>;
-            const membership_plan = '<?php echo htmlspecialchars($_SESSION['membership_plan'] ?? '', ENT_QUOTES, 'UTF-8'); ?>';
+            const membership_plan = '<?php echo htmlspecialchars($m_plan, ENT_QUOTES, 'UTF-8'); ?>';
             localStorage.setItem('membership_plan', membership_plan);
         <?php endif; ?>
     </script>

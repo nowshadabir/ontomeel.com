@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
         $stmt = $pdo->prepare("UPDATE members SET membership_plan = ?, plan_expire_date = ? WHERE id = ?");
         $stmt->execute([$plan, $expire_date, $user_id]);
 
+        // Update Session
+        $_SESSION['membership_plan'] = $plan;
+
         header("Location: index.php?subscription=success");
         exit();
     } catch (PDOException $e) {

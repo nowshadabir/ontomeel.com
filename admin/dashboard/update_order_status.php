@@ -92,6 +92,13 @@ try {
         $pdo->prepare("UPDATE orders SET payment_status = 'Paid' WHERE id = ? AND payment_status = 'Pending'")
             ->execute([$order_id]);
 
+        if ($is_borrow) {
+            // Activate borrow records if they were still processing
+            $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP
+                           WHERE order_id = ? AND status = 'Processing'")
+                ->execute([$order_id]);
+        }
+
     } elseif ($status === 'Cancelled' && in_array($prev_status, ['Processing', 'Confirmed', 'Shipped'])) {
 
         // Restore inventory
@@ -145,6 +152,13 @@ try {
         // For any other manual status change (e.g. Processing → Delivered directly)
         $pdo->prepare("UPDATE orders SET order_status = ? WHERE id = ?")
             ->execute([$status, $order_id]);
+
+        // If it's not processing or cancelled, and it is a borrow, it should be active
+        if ($is_borrow && !in_array($status, ['Processing', 'Cancelled'])) {
+            $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP
+                           WHERE order_id = ? AND status = 'Processing'")
+                ->execute([$order_id]);
+        }
     }
 
     $pdo->commit();

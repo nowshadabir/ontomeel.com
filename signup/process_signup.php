@@ -1,40 +1,41 @@
 <?php
+session_start();
 require_once '../includes/db_connect.php';
 
+header('Content-Type: application/json');
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $full_name = trim($_POST['full_name']);
-    $email = trim($_POST['email']);
-    $phone = trim($_POST['phone']);
-    $password = $_POST['password'];
-    $plan = $_POST['plan'];
-
-    // Basic validation
-    if (empty($full_name) || empty($email) || empty($phone) || empty($password)) {
-        header("Location: index.php?error=empty");
+    $submitted_otp = trim($_POST['otp'] ?? '');
+    
+    // Check if session data exists
+    if (!isset($_SESSION['signup_data'])) {
+        echo json_encode(['success' => false, 'message' => 'সেশন শেষ হয়ে গিয়েছে। আবার চেষ্টা করুন।']);
         exit();
     }
 
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header("Location: index.php?error=invalid_email");
+    $signup_data = $_SESSION['signup_data'];
+
+    // Verify OTP and Expiry
+    if ($submitted_otp != $signup_data['otp']) {
+        echo json_encode(['success' => false, 'message' => 'ভুল ওটিপি দিয়েছেন।']);
         exit();
     }
 
-    // Validate password length
-    if (strlen($password) < 6) {
-        header("Location: index.php?error=weak_password");
+    if (time() > $signup_data['otp_expiry']) {
+        echo json_encode(['success' => false, 'message' => 'ওটিপির মেয়াদ শেষ হয়ে গিয়েছে।']);
         exit();
     }
+
+    // Data from session
+    $full_name = $signup_data['full_name'];
+    $email = $signup_data['email'];
+    $phone = $signup_data['phone'];
+    $hashed_password = $signup_data['password'];
+    $plan = 'None'; // Default plan as UI is hidden
 
     // Determine initial balance and expiry based on plan
-    $initial_balance = 0; // Balance is always 0 by default now
+    $initial_balance = 0;
     $expire_date = null;
-    if ($plan != 'None') {
-        $expire_date = date('Y-m-d H:i:s', strtotime('+30 days'));
-    }
-
-    // Hash password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Generate unique membership ID (e.g., OM-2026-XXXX)
     $year = date('Y');
@@ -45,19 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO members (membership_id, full_name, email, phone, password, membership_plan, acc_balance, plan_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$membership_id, $full_name, $email, $phone, $hashed_password, $plan, $initial_balance, $expire_date]);
 
-        // Redirect to login or success page
-        header("Location: ../login/index.php?signup=success");
+        // Success - Clear signup session
+        unset($_SESSION['signup_data']);
+
+        echo json_encode(['success' => true, 'message' => 'রেজিস্ট্রেশন সফল হয়েছে!']);
         exit();
     } catch (PDOException $e) {
         error_log("Signup Error: " . $e->getMessage());
-        if ($e->getCode() == 23000) {
-            die("Error: Email or Phone already registered.");
-        } else {
-            die("An error occurred. Please try again later.");
-        }
+        echo json_encode(['success' => false, 'message' => 'একটি সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।']);
+        exit();
     }
 } else {
-    header("Location: index.php");
-    exit();
+    echo json_encode(['success' => false, 'message' => 'Invalid request.']);
 }
 ?>
