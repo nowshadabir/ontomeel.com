@@ -302,6 +302,9 @@ function getDaysRemaining($due_date)
             </a>
         </div>
     </aside>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300"></div>
 
     <!-- Main Content -->
     <main class="lg:ml-72 min-h-screen">
@@ -936,7 +939,9 @@ function getDaysRemaining($due_date)
         const customAmountInput = document.getElementById('custom-amount');
 
         function toggleSidebar() {
+            const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('-translate-x-full');
+            if (overlay) overlay.classList.toggle('hidden');
         }
 
         function switchTab(tabId) {
