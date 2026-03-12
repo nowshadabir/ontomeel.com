@@ -41,7 +41,7 @@
         <!-- Branding Side -->
         <div class="hidden md:block w-1/2">
             <a href="../index.php" class="flex items-center gap-3 mb-10 reveal">
-                <img src="../assets/img/logo.png" alt="logo" class="w-16 h-auto">
+                <img src="../assets/img/logo.webp" alt="logo" class="w-16 h-auto">
                 <span class="font-serif text-4xl font-bold tracking-wide text-brand-900 mt-1">অন্ত্যমিল<span
                         class="text-brand-gold">.</span></span>
             </a>
@@ -57,7 +57,7 @@
                 class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-white/20 md:border-gray-100 backdrop-blur-3xl">
                 <!-- Mobile Logo -->
                 <div class="md:hidden flex flex-col items-center mb-10">
-                    <img src="../assets/img/logo.png" alt="logo" class="w-12 h-auto mb-4">
+                    <img src="../assets/img/logo.webp" alt="logo" class="w-12 h-auto mb-4">
                     <h2 class="text-3xl font-anek font-bold text-white">নতুন অ্যাকাউন্ট</h2>
                 </div>
 
@@ -70,26 +70,31 @@
                     <!-- Step 1: Basic Info -->
                     <div id="step-1" class="space-y-5 transition-all duration-500">
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">সম্পূর্ণ নাম (English)</label>
+                            <label
+                                class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">সম্পূর্ণ
+                                নাম (English)</label>
                             <input type="text" name="full_name" id="full_name" required placeholder="Ex: Sayeam Ahmed"
                                 class="w-full bg-brand-light md:bg-gray-50 border border-transparent md:border-gray-100 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all font-anek text-brand-900">
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">ইমেইল</label>
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">ইমেইল</label>
                                 <input type="email" name="email" id="email" required placeholder="name@mail.com"
                                     class="w-full bg-brand-light md:bg-gray-50 border border-transparent md:border-gray-100 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all font-anek text-brand-900">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">মোবাইল</label>
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">মোবাইল</label>
                                 <input type="tel" name="phone" id="phone" required placeholder="017XXXXXXXX"
                                     class="w-full bg-brand-light md:bg-gray-50 border border-transparent md:border-gray-100 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all font-anek text-brand-900">
                             </div>
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">পাসওয়ার্ড</label>
+                            <label
+                                class="text-[10px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek ml-2">পাসওয়ার্ড</label>
                             <input type="password" name="password" id="password" required placeholder="••••••••"
                                 class="w-full bg-brand-light md:bg-gray-50 border border-transparent md:border-gray-100 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all font-anek text-brand-900">
                         </div>
@@ -116,17 +121,23 @@
                     <!-- Step 2: OTP Verification -->
                     <div id="step-2" class="space-y-6 hidden transition-all duration-500 scale-95 opacity-0">
                         <div class="text-center">
-                            <div class="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <div
+                                class="w-16 h-16 bg-brand-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <h3 class="text-xl font-bold text-brand-900 font-anek">ইমেইল ভেরিফিকেশন</h3>
-                            <p class="text-gray-400 text-xs mt-2 font-anek">আপনার ইমেইলে একটি ৬-সংখ্যার ওটিপি পাঠানো হয়েছে।</p>
+                            <p class="text-gray-400 text-xs mt-2 font-anek">আপনার ইমেইলে একটি ৬-সংখ্যার ওটিপি পাঠানো
+                                হয়েছে।</p>
                         </div>
 
                         <div class="space-y-1 text-center">
-                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-anek">৬-সংখ্যার ওটিপি</label>
+                            <label
+                                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-anek">৬-সংখ্যার
+                                ওটিপি</label>
                             <input type="text" name="otp" id="otp" maxlength="6" placeholder="0 0 0 0 0 0"
                                 class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all text-brand-900 placeholder:text-gray-200">
                         </div>
@@ -136,7 +147,8 @@
                             ভেরিফাই ও সম্পূর্ণ করুন
                         </button>
 
-                        <button type="button" onclick="backToStep1()" class="w-full text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-900 transition-colors">
+                        <button type="button" onclick="backToStep1()"
+                            class="w-full text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-900 transition-colors">
                             তথ্য পরিবর্তন করুন
                         </button>
                     </div>
@@ -155,12 +167,12 @@
                         const password = document.getElementById('password').value;
                         const terms = document.getElementById('terms').checked;
 
-                        if(!fullName || !email || !phone || !password) {
+                        if (!fullName || !email || !phone || !password) {
                             alert("সবগুলো তথ্য সঠিকভাবে পূরণ করুন।");
                             return;
                         }
 
-                        if(!terms) {
+                        if (!terms) {
                             alert("শর্তাবলির সাথে একমত হতে হবে।");
                             return;
                         }
@@ -179,27 +191,27 @@
                             method: 'POST',
                             body: formData
                         })
-                        .then(res => res.json())
-                        .then(data => {
-                            if(data.success) {
-                                document.getElementById('step-1').classList.add('hidden');
-                                const step2 = document.getElementById('step-2');
-                                step2.classList.remove('hidden');
-                                setTimeout(() => {
-                                    step2.classList.remove('scale-95', 'opacity-0');
-                                }, 50);
-                            } else {
-                                alert("ত্রুটি: " + data.message);
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById('step-1').classList.add('hidden');
+                                    const step2 = document.getElementById('step-2');
+                                    step2.classList.remove('hidden');
+                                    setTimeout(() => {
+                                        step2.classList.remove('scale-95', 'opacity-0');
+                                    }, 50);
+                                } else {
+                                    alert("ত্রুটি: " + data.message);
+                                    btn.disabled = false;
+                                    btn.innerText = "ওটিপি পাঠান";
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                alert("ওটিপি পাঠাতে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।");
                                 btn.disabled = false;
                                 btn.innerText = "ওটিপি পাঠান";
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert("ওটিপি পাঠাতে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।");
-                            btn.disabled = false;
-                            btn.innerText = "ওটিপি পাঠান";
-                        });
+                            });
                     }
 
                     function backToStep1() {
@@ -215,7 +227,7 @@
                     function handleSignup(e) {
                         e.preventDefault();
                         const otp = document.getElementById('otp').value;
-                        if(!otp || otp.length < 6) {
+                        if (!otp || otp.length < 6) {
                             alert("সঠিক ওটিপি দিন।");
                             return;
                         }
@@ -230,22 +242,22 @@
                             method: 'POST',
                             body: formData
                         })
-                        .then(res => res.json())
-                        .then(data => {
-                            if(data.success) {
-                                window.location.href = "../login/index.php?signup=success";
-                            } else {
-                                alert("ত্রুটি: " + data.message);
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.href = "../login/index.php?signup=success";
+                                } else {
+                                    alert("ত্রুটি: " + data.message);
+                                    btn.disabled = false;
+                                    btn.innerText = "ভেরিফাই ও সম্পূর্ণ করুন";
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                alert("ভেরিফিকেশন করতে সমস্যা হয়েছে।");
                                 btn.disabled = false;
                                 btn.innerText = "ভেরিফাই ও সম্পূর্ণ করুন";
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert("ভেরিফিকেশন করতে সমস্যা হয়েছে।");
-                            btn.disabled = false;
-                            btn.innerText = "ভেরিফাই ও সম্পূর্ণ করুন";
-                        });
+                            });
                     }
                 </script>
             </div>

@@ -118,11 +118,15 @@ $active_payment_methods = $payments_stmt->fetchAll();
                                         <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
                                             <div id="dot-bkash" class="w-2.5 h-2.5 bg-[#D12053] rounded-full hidden"></div>
                                         </div>
-                                        <span class="font-anek font-bold text-brand-900 group-hover:text-[#D12053] transition-colors">বিকাশ পেমেন্ট</span>
+                                        <span
+                                            class="font-anek font-bold text-brand-900 group-hover:text-[#D12053] transition-colors">বিকাশ
+                                            পেমেন্ট</span>
                                     </div>
-                                    <img src="../assets/img/bkash-logo.jpg" alt="bkash" class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100" onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
+                                    <img src="../assets/img/bkash-logo.jpg" alt="bkash"
+                                        class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
+                                        onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
                                 </div>
-<?php elseif ($method['method_key'] == 'nagad'): ?>
+                            <?php elseif ($method['method_key'] == 'nagad'): ?>
                                 <!-- Option: Nagad -->
                                 <div onclick="selectPayment('nagad')" id="pay-nagad"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#EF1F23]/50 transition-all flex items-center justify-between group">
@@ -130,9 +134,13 @@ $active_payment_methods = $payments_stmt->fetchAll();
                                         <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
                                             <div id="dot-nagad" class="w-2.5 h-2.5 bg-[#EF1F23] rounded-full hidden"></div>
                                         </div>
-                                        <span class="font-anek font-bold text-brand-900 group-hover:text-[#EF1F23] transition-colors">নগদ পেমেন্ট</span>
+                                        <span
+                                            class="font-anek font-bold text-brand-900 group-hover:text-[#EF1F23] transition-colors">নগদ
+                                            পেমেন্ট</span>
                                     </div>
-                                    <img src="../assets/img/nagad-logo.jpg" alt="nagad" class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
+                                    <img src="../assets/img/nagad-logo.jpg" alt="nagad"
+                                        class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
+                                        onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
                                 </div>
                             <?php elseif ($method['method_key'] == 'cod'): ?>
                                 <!-- Option: COD -->
@@ -144,8 +152,11 @@ $active_payment_methods = $payments_stmt->fetchAll();
                                         </div>
                                         <span class="font-anek font-bold text-brand-900">ক্যাশ অন ডেলিভারি</span>
                                     </div>
-                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-900 transition-colors" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                        </path>
                                     </svg>
                                 </div>
                             <?php elseif ($method['method_key'] == 'fund'): ?>
@@ -157,20 +168,28 @@ $active_payment_methods = $payments_stmt->fetchAll();
                                             <div id="dot-fund" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
                                         </div>
                                         <div class="flex flex-col">
-                                            <span class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors">অ্যাকাউন্ট ফান্ড</span>
-                                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">৳<?php echo number_format($user_balance); ?> available</span>
+                                            <span
+                                                class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors">অ্যাকাউন্ট
+                                                ফান্ড</span>
+                                            <span
+                                                class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">৳<?php echo number_format($user_balance); ?>
+                                                available</span>
                                         </div>
                                     </div>
-                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
                                     </svg>
                                 </div>
                             <?php endif; ?>
                         <?php endforeach; ?>
-                        
+
                         <?php if (empty($active_payment_methods)): ?>
                             <div class="p-6 bg-red-50 border border-red-100 rounded-3xl col-span-2">
-                                <p class="text-sm text-red-600 font-anek text-center">আপাতত পেমেন্ট গেটওয়ে বন্ধ আছে। অনুগ্রহ করে পরে চেষ্টা করুন।</p>
+                                <p class="text-sm text-red-600 font-anek text-center">আপাতত পেমেন্ট গেটওয়ে বন্ধ আছে। অনুগ্রহ করে
+                                    পরে চেষ্টা করুন।</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -279,7 +298,8 @@ $active_payment_methods = $payments_stmt->fetchAll();
 <script src="../bkash/bkash-helper.js"></script>
 
 <!-- Toast Notification -->
-<div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 bg-brand-900 text-white px-8 py-4 rounded-2xl shadow-2xl transition-all duration-500 translate-y-20 opacity-0 invisible">
+<div id="toast"
+    class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 bg-brand-900 text-white px-8 py-4 rounded-2xl shadow-2xl transition-all duration-500 translate-y-20 opacity-0 invisible">
     <div class="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_10px_#cda873]"></div>
     <span id="toast-message" class="font-anek font-bold text-sm tracking-wide"></span>
 </div>

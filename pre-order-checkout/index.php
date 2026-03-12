@@ -86,7 +86,8 @@ $total_amount = $price + $delivery_charge;
                         class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold tracking-wider focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার ইমেইল (ঐচ্ছিক)</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার ইমেইল
+                        (ঐচ্ছিক)</label>
                     <input type="email" id="po-email" <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
                         value="<?php echo htmlspecialchars($user_data['email'] ?? ''); ?>"
                         placeholder="আপনার ইমেইল এড্রেস লিখুন (যদি থাকে)"
@@ -128,7 +129,7 @@ $total_amount = $price + $delivery_charge;
                 <div class="flex-1 space-y-4">
                     <div class="flex items-center gap-3 mb-4">
                         <img src="../assets/img/bkash-logo.jpg" alt="bkash" class="h-8 rounded"
-                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
+                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
                         <h4 class="font-bold text-[#D12053] text-lg font-anek">বিকাশ পেমেন্ট</h4>
                     </div>
                     <p class="text-brand-900 font-anek font-medium leading-relaxed">১। আপনার বিকাশ অ্যাপ থেকে উপরের QR
@@ -182,14 +183,17 @@ $total_amount = $price + $delivery_charge;
             <p class="text-gray-500 font-anek max-w-md mx-auto mb-8">আপনার পেমেন্ট রিকোয়েস্ট গ্রহণ করা হয়েছে। যাচাই শেষে
                 অর্ডার কনফার্মেশন এসএমএস পাঠানো হবে।</p>
 
-            <div class="bg-brand-light p-6 rounded-3xl max-w-sm mx-auto mb-8 border border-brand-gold/10 relative overflow-hidden">
+            <div
+                class="bg-brand-light p-6 rounded-3xl max-w-sm mx-auto mb-8 border border-brand-gold/10 relative overflow-hidden">
                 <p class="text-[10px] text-brand-gold font-bold uppercase tracking-[0.3em] mb-2">অর্ডার নাম্বার</p>
                 <h3 id="final-order-id" class="text-3xl font-mono font-bold text-brand-900 tracking-wider"></h3>
-                
+
                 <?php if (!isset($_SESSION['user_id'])): ?>
                     <div class="mt-6 pt-6 border-t border-brand-gold/10">
                         <p class="text-xs text-red-500 font-anek font-bold mb-2">আপনি রেজিস্ট্রেশন করা সদস্য নন</p>
-                        <p class="text-[10px] text-gray-500 font-anek leading-relaxed">অর্ডার ট্র্যাকিং এর জন্য উপরের আইডি সহ এই স্ক্রিনটির একটি <span class="bg-yellow-100 text-brand-900 px-1">স্ক্রিনশট</span> তুলে রাখুন।</p>
+                        <p class="text-[10px] text-gray-500 font-anek leading-relaxed">অর্ডার ট্র্যাকিং এর জন্য উপরের আইডি
+                            সহ এই স্ক্রিনটির একটি <span class="bg-yellow-100 text-brand-900 px-1">স্ক্রিনশট</span> তুলে
+                            রাখুন।</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -251,7 +255,7 @@ $total_amount = $price + $delivery_charge;
             showError('অনুগ্রহ করে আপনার নাম, মোবাইল নম্বর এবং ডেলিভারি ঠিকানা দিন');
             return;
         }
-        
+
         if (phone.length < 11) {
             showError('সঠিক মোবাইল নম্বর দিন');
             return;

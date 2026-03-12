@@ -4,7 +4,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div class="md:col-span-1">
                 <a href="<?php echo $path_prefix ?? ''; ?>index.php" class="flex items-center gap-2 mb-6">
-                    <img src="<?php echo $path_prefix ?? ''; ?>assets/img/logo.png" alt="logo of ontomeel"
+                    <img src="<?php echo $path_prefix ?? ''; ?>assets/img/logo.webp" alt="logo of ontomeel"
                         class="w-12 h-auto">
                     <span class="font-serif text-3xl font-bold tracking-wide mt-1">অন্ত্যমিল<span
                             class="text-brand-gold">.</span></span>

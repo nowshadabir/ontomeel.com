@@ -139,7 +139,7 @@ function bn_num($num)
         class="fixed inset-y-0 left-0 w-72 bg-brand-900 z-50 transform -translate-x-full transition-transform lg:translate-x-0 overflow-y-auto">
         <div class="p-8 border-b border-white/5">
             <a href="../../index.php" class="flex items-center gap-2 group">
-                <img src="../../assets/img/logo.png" alt="logo" class="w-10 h-auto">
+                <img src="../../assets/img/logo.webp" alt="logo" class="w-10 h-auto">
                 <span class="font-serif text-2xl font-bold tracking-wide text-white mt-1 uppercase">অ্যাডমিন<span
                         class="text-brand-gold">.</span></span>
             </a>
@@ -434,53 +434,73 @@ function bn_num($num)
                                         ৳<?php echo bn_num(number_format($order['total_amount'])); ?></td>
                                     <td class="px-10 py-6">
                                         <div class="flex flex-col gap-1 relative">
-                                            <span class="text-[10px] text-gray-400 font-bold tracking-wider uppercase"><?php echo $order['payment_method']; ?></span>
-                                            <button 
+                                            <span
+                                                class="text-[10px] text-gray-400 font-bold tracking-wider uppercase"><?php echo $order['payment_method']; ?></span>
+                                            <button
                                                 onclick="toggleActionMenu('pay-menu-<?php echo $order['id']; ?>', event)"
                                                 class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest w-fit transition-all hover:ring-2 hover:ring-offset-2 <?php echo $order['payment_status'] == 'Paid' ? 'bg-green-100 text-green-600 hover:ring-green-200' : 'bg-red-100 text-red-600 hover:ring-red-200'; ?>">
                                                 <?php echo $order['payment_status'] == 'Paid' ? 'Paid' : 'Pending'; ?>
                                             </button>
-                                            
+
                                             <!-- Payment Status Dropdown -->
-                                            <div id="pay-menu-<?php echo $order['id']; ?>" class="action-menu w-32 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
-                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')" class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">Paid</button>
-                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Pending')" class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">Pending</button>
+                                            <div id="pay-menu-<?php echo $order['id']; ?>"
+                                                class="action-menu w-32 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
+                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
+                                                    class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">Paid</button>
+                                                <button
+                                                    onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Pending')"
+                                                    class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">Pending</button>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-10 py-6 relative">
                                         <?php if (in_array($order['order_status'], ['Delivered', 'Cancelled'])): ?>
-                                            <span class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
+                                            <span
+                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
                                                 <?php
                                                 $st = $order['order_status'];
-                                                if ($st == 'Delivered') echo 'ডেলিভারড';
-                                                else if ($st == 'Cancelled') echo 'বাতিল';
+                                                if ($st == 'Delivered')
+                                                    echo 'ডেলিভারড';
+                                                else if ($st == 'Cancelled')
+                                                    echo 'বাতিল';
                                                 ?>
                                             </span>
                                         <?php else: ?>
-                                            <button 
-                                                onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
-                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php 
-                                                    if ($order['order_status'] == 'Processing') echo 'hover:ring-orange-200';
-                                                    else if ($order['order_status'] == 'Confirmed') echo 'hover:ring-amber-200';
-                                                    else if ($order['order_status'] == 'Shipped') echo 'hover:ring-blue-200';
-                                                ?>">
+                                            <button onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
+                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php
+                                                    if ($order['order_status'] == 'Processing')
+                                                        echo 'hover:ring-orange-200';
+                                                    else if ($order['order_status'] == 'Confirmed')
+                                                        echo 'hover:ring-amber-200';
+                                                    else if ($order['order_status'] == 'Shipped')
+                                                        echo 'hover:ring-blue-200';
+                                                    ?>">
                                                 <?php
                                                 $st = $order['order_status'];
-                                                if ($st == 'Processing') echo 'পেন্ডিং';
-                                                else if ($st == 'Confirmed') echo 'কনফার্মড';
-                                                else if ($st == 'Shipped') echo 'শিপড';
-                                                else echo $st;
+                                                if ($st == 'Processing')
+                                                    echo 'পেন্ডিং';
+                                                else if ($st == 'Confirmed')
+                                                    echo 'কনফার্মড';
+                                                else if ($st == 'Shipped')
+                                                    echo 'শিপড';
+                                                else
+                                                    echo $st;
                                                 ?>
                                             </button>
 
                                             <!-- Order Status Dropdown -->
-                                            <div id="status-menu-<?php echo $order['id']; ?>" class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Processing')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-orange-600 hover:bg-orange-50 border-b border-gray-50">পেন্ডিং</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-amber-600 hover:bg-amber-50 border-b border-gray-50">কনফার্মড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-blue-600 hover:bg-blue-50 border-b border-gray-50">শিপড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">ডেলিভারড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')" class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
+                                            <div id="status-menu-<?php echo $order['id']; ?>"
+                                                class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Processing')"
+                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-orange-600 hover:bg-orange-50 border-b border-gray-50">পেন্ডিং</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
+                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-amber-600 hover:bg-amber-50 border-b border-gray-50">কনফার্মড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
+                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-blue-600 hover:bg-blue-50 border-b border-gray-50">শিপড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')"
+                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">ডেলিভারড</button>
+                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
+                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
                                             </div>
                                         <?php endif; ?>
                                     </td>
@@ -497,9 +517,13 @@ function bn_num($num)
                                                 </svg>
                                             </button>
                                             <div class="relative">
-                                                <button onclick="toggleActionMenu('action-menu-<?php echo $order['id']; ?>', event)" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:bg-gray-200 hover:text-brand-900 transition-all">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                                                <button
+                                                    onclick="toggleActionMenu('action-menu-<?php echo $order['id']; ?>', event)"
+                                                    class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:bg-gray-200 hover:text-brand-900 transition-all">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                                     </svg>
                                                 </button>
                                                 <div id="action-menu-<?php echo $order['id']; ?>"
@@ -507,13 +531,13 @@ function bn_num($num)
                                                     <?php if ($order['payment_status'] == 'Pending'): ?>
                                                         <button
                                                             onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট 
+                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট
                                                             পেড</button>
                                                     <?php endif; ?>
                                                     <?php if ($order['order_status'] == 'Processing'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম 
+                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম
                                                             করুন</button>
                                                     <?php endif; ?>
                                                     <?php if (in_array($order['order_status'], ['Processing', 'Confirmed'])): ?>
@@ -737,10 +761,11 @@ function bn_num($num)
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php if (empty($admin_members)): ?>
                                 <tr>
-                                    <td colspan="5" class="px-10 py-20 text-center text-gray-400 font-anek">আপাতত কোনো মেম্বার পাওয়া যায়নি।</td>
+                                    <td colspan="5" class="px-10 py-20 text-center text-gray-400 font-anek">আপাতত কোনো
+                                        মেম্বার পাওয়া যায়নি।</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($admin_members as $member): 
+                                <?php foreach ($admin_members as $member):
                                     $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
                                     $join_date = date('d F, Y', strtotime($member['created_at']));
                                     // Translate month to Bengali if needed, but standard date is fine for now
@@ -748,12 +773,15 @@ function bn_num($num)
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="px-10 py-6">
                                             <div class="flex items-center gap-4">
-                                                <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">
+                                                <div
+                                                    class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">
                                                     <?php echo $first_char; ?>
                                                 </div>
                                                 <div>
-                                                    <div class="text-sm font-bold text-brand-900"><?php echo htmlspecialchars($member['full_name']); ?></div>
-                                                    <div class="text-[10px] text-gray-400"><?php echo htmlspecialchars($member['email']); ?></div>
+                                                    <div class="text-sm font-bold text-brand-900">
+                                                        <?php echo htmlspecialchars($member['full_name']); ?></div>
+                                                    <div class="text-[10px] text-gray-400">
+                                                        <?php echo htmlspecialchars($member['email']); ?></div>
                                                 </div>
                                             </div>
                                         </td>
@@ -761,13 +789,18 @@ function bn_num($num)
                                             <?php echo !empty($member['membership_id']) ? $member['membership_id'] : 'N/A'; ?>
                                         </td>
                                         <td class="px-10 py-6">
-                                            <span class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                <?php 
+                                            <span
+                                                class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                <?php
                                                 $plan = $member['membership_plan'] ?? 'None';
-                                                if ($plan == 'General') echo 'সাধারণ';
-                                                else if ($plan == 'BookLover') echo 'বইপ্রেমী';
-                                                else if ($plan == 'Collector') echo 'সংগ্রাহক';
-                                                else echo 'বেসিক';
+                                                if ($plan == 'General')
+                                                    echo 'সাধারণ';
+                                                else if ($plan == 'BookLover')
+                                                    echo 'বইপ্রেমী';
+                                                else if ($plan == 'Collector')
+                                                    echo 'সংগ্রাহক';
+                                                else
+                                                    echo 'বেসিক';
                                                 ?>
                                             </span>
                                         </td>
@@ -777,8 +810,10 @@ function bn_num($num)
                                         <td class="px-10 py-6 text-center">
                                             <div class="flex items-center justify-end gap-2">
                                                 <div class="text-right mr-4">
-                                                    <div class="text-xs font-bold text-brand-900">৳<?php echo bn_num($member['acc_balance']); ?></div>
-                                                    <div class="text-[8px] text-gray-400 uppercase tracking-widest">ওয়ালেট ব্যালেন্স</div>
+                                                    <div class="text-xs font-bold text-brand-900">
+                                                        ৳<?php echo bn_num($member['acc_balance']); ?></div>
+                                                    <div class="text-[8px] text-gray-400 uppercase tracking-widest">ওয়ালেট
+                                                        ব্যালেন্স</div>
                                                 </div>
                                                 <button class="text-gray-400 hover:text-brand-900 transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1276,7 +1311,7 @@ function bn_num($num)
                                 <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
                                     <?php if ($method['method_key'] == 'bkash'): ?>
                                         <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto"
-                                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.png'">
+                                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
                                     <?php elseif ($method['method_key'] == 'nagad'): ?>
                                         <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
@@ -2286,9 +2321,9 @@ function bn_num($num)
                         <div class="space-y-1">
                             <div class="flex items-center gap-3">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ইনভয়েস নং</p>
-                                ${parseInt(booking.is_hot_deal) === 1 
-                                    ? '<span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">🔥 Hot Deal</span>' 
-                                    : '<span class="bg-brand-gold/10 text-brand-900 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">Pre-Order</span>'}
+                                ${parseInt(booking.is_hot_deal) === 1
+                    ? '<span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">🔥 Hot Deal</span>'
+                    : '<span class="bg-brand-gold/10 text-brand-900 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">Pre-Order</span>'}
                             </div>
                             <h4 class="text-xl font-bold text-brand-900">#${booking.invoice_no}</h4>
                         </div>
@@ -2689,22 +2724,22 @@ function bn_num($num)
             const btn = event.currentTarget;
             const targetMenu = document.getElementById(menuId);
             const allMenus = document.querySelectorAll('.action-menu');
-            
+
             let isOpening = targetMenu.classList.contains('hidden');
-            
+
             allMenus.forEach(menu => {
                 menu.classList.add('hidden');
                 menu.style.opacity = '0';
             });
-            
+
             if (isOpening) {
                 // Move menu to body to avoid being cut off by overflow-hidden tables
                 document.body.appendChild(targetMenu);
-                
+
                 const rect = btn.getBoundingClientRect();
                 targetMenu.style.position = 'fixed';
                 targetMenu.style.left = (rect.right - 160) + 'px'; // 160px is w-40
-                
+
                 const windowHeight = window.innerHeight;
                 if (rect.bottom + 150 > windowHeight) {
                     targetMenu.style.top = 'auto';
@@ -2715,7 +2750,7 @@ function bn_num($num)
                 }
 
                 targetMenu.classList.remove('hidden');
-                
+
                 // Trigger reflow for fade-in effect
                 void targetMenu.offsetWidth;
                 targetMenu.style.opacity = '1';
@@ -2733,7 +2768,7 @@ function bn_num($num)
                 }
             });
         });
-        
+
         // Hide menus on scroll for safe positioning
         window.addEventListener('scroll', () => {
             const allMenus = document.querySelectorAll('.action-menu:not(.hidden)');
