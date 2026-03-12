@@ -158,6 +158,8 @@ function getStatusClass($status)
         return 'bg-green-100 text-green-700';
     if (in_array($s, ['processing', 'shipped']))
         return 'bg-blue-100 text-blue-700';
+    if (in_array($s, ['confirmed']))
+        return 'bg-amber-100 text-amber-600';
     if (in_array($s, ['cancelled', 'overdue', 'failed']))
         return 'bg-red-100 text-red-600';
     return 'bg-gray-100 text-gray-500';
@@ -168,6 +170,8 @@ function getStatusLabel($status)
     switch (strtolower($status)) {
         case 'processing':
             return 'প্রসেসিং';
+        case 'confirmed':
+            return 'কনফার্মড';
         case 'shipped':
             return 'শিপড';
         case 'delivered':

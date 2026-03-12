@@ -23,7 +23,7 @@ if (!$order_id || !$status) {
     exit();
 }
 
-$allowed = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+$allowed = ['Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
 if (!in_array($status, $allowed)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status']);
     exit();
@@ -69,9 +69,9 @@ try {
     //         Cash (COD) → no refund
     // ─────────────────────────────────────────────────────────────────
 
-    if ($status === 'Shipped' && $prev_status === 'Processing') {
-        // Admin ships → mark as Delivered for the customer
-        $new_db_status = 'Delivered';
+    if ($status === 'Shipped' && in_array($prev_status, ['Processing', 'Confirmed'])) {
+        // Admin ships → mark as Shipped
+        $new_db_status = 'Shipped';
 
         if ($is_borrow) {
             // Activate borrow records
@@ -83,7 +83,16 @@ try {
         $pdo->prepare("UPDATE orders SET order_status = ? WHERE id = ?")
             ->execute([$new_db_status, $order_id]);
 
-    } elseif ($status === 'Cancelled' && in_array($prev_status, ['Processing', 'Shipped'])) {
+    } elseif ($status === 'Delivered') {
+        // Mark as Delivered
+        $pdo->prepare("UPDATE orders SET order_status = 'Delivered' WHERE id = ?")
+            ->execute([$order_id]);
+
+        // If delivered, payment is fulfilled
+        $pdo->prepare("UPDATE orders SET payment_status = 'Paid' WHERE id = ? AND payment_status = 'Pending'")
+            ->execute([$order_id]);
+
+    } elseif ($status === 'Cancelled' && in_array($prev_status, ['Processing', 'Confirmed', 'Shipped'])) {
 
         // Restore inventory
         foreach ($items as $item) {
@@ -128,6 +137,10 @@ try {
         $pdo->prepare("UPDATE orders SET order_status = 'Cancelled' WHERE id = ?")
             ->execute([$order_id]);
 
+    } elseif ($status === 'Confirmed' && $prev_status === 'Processing') {
+        // Just move to confirmed state, wait for Shipped
+        $pdo->prepare("UPDATE orders SET order_status = 'Confirmed' WHERE id = ?")
+            ->execute([$order_id]);
     } else {
         // For any other manual status change (e.g. Processing → Delivered directly)
         $pdo->prepare("UPDATE orders SET order_status = ? WHERE id = ?")
