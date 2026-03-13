@@ -20,6 +20,14 @@ try {
         exit();
     }
 
+    // Check if Transaction ID already exists
+    $stmt = $pdo->prepare("SELECT id FROM orders WHERE trx_id = ?");
+    $stmt->execute([$sender_number]);
+    if ($stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'এই ট্রাঞ্জেকশন আইডিটি ইতিপূর্বেই ব্যবহার করা হয়েছে। অনুগ্রহ করে সঠিক আইডিটি দিন অথবা আমাদের সাথে যোগাযোগ করুন।']);
+        exit();
+    }
+
     // Generate Invoice Number
     $invoice_prefix = 'PRE-';
     $year = date('y');

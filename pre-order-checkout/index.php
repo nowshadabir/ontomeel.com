@@ -268,7 +268,7 @@ $total_amount = $price + $delivery_charge;
         switchStep('step-2', 'step-1');
     }
 
-    function submitPreOrder() {
+    async function submitPreOrder() {
         const addr = document.getElementById('po-address').value.trim();
         const senderNum = document.getElementById('po-sender-number').value.trim();
 
@@ -277,7 +277,7 @@ $total_amount = $price + $delivery_charge;
             return;
         }
 
-        // Switch to Step 3 (Verifying)
+        // Switch to Step 3 (Verifying Animation)
         switchStep('step-2', 'step-3');
 
         // Prepare data to send to server
@@ -290,27 +290,40 @@ $total_amount = $price + $delivery_charge;
         formData.append('sender_number', senderNum);
         formData.append('total_amount', totalAmount);
 
-        // Simulate verfying delay of 2.5 seconds
-        setTimeout(() => {
-            fetch('process_pre_order.php', {
+        // Record start time to ensure minimum animation duration
+        const startTime = Date.now();
+        const minAnimDuration = 2000; // 2 seconds
+
+        try {
+            const response = await fetch('process_pre_order.php', {
                 method: 'POST',
                 body: formData
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('final-order-id').innerText = '#' + data.order_id;
-                        switchStep('step-3', 'step-4');
-                    } else {
-                        showError(data.message || 'একটি সমস্যা হয়েছে।');
-                        switchStep('step-3', 'step-2'); // Go back to payment step
-                    }
-                })
-                .catch(err => {
-                    showError('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
+            });
+            const data = await response.json();
+
+            // Calculate remaining time for animation
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minAnimDuration - elapsedTime);
+
+            setTimeout(() => {
+                if (data.success) {
+                    document.getElementById('final-order-id').innerText = '#' + data.order_id;
+                    switchStep('step-3', 'step-4');
+                } else {
+                    showError(data.message || 'একটি সমস্যা হয়েছে।');
                     switchStep('step-3', 'step-2');
-                });
-        }, 2500);
+                }
+            }, remainingTime);
+
+        } catch (err) {
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minAnimDuration - elapsedTime);
+            
+            setTimeout(() => {
+                showError('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
+                switchStep('step-3', 'step-2');
+            }, remainingTime);
+        }
     }
 </script>
 
