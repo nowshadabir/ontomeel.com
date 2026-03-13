@@ -114,6 +114,54 @@ $additional_head = '
             overflow: hidden;
         }
 
+        /* Hero Section Styles */
+        .hero-floating-element {
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .hero-glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dot-pattern {
+            background-image: radial-gradient(rgba(205, 168, 115, 0.2) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animate-gradient {
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-bounce-slow {
+            animation: bounceSlow 3s ease-in-out infinite;
+        }
+
         /* Mockup Inspired Cards */
         .mockup-card {
             background: #ffffff;
@@ -230,12 +278,21 @@ $preorders = $all_preorders_stmt->fetchAll();
 
 function bn_date($date)
 {
-    if (!$date) return '';
+    if (!$date)
+        return '';
     $months = [
-        'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
-        'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
-        'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
-        'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর'
+        'January' => 'জানুয়ারি',
+        'February' => 'ফেব্রুয়ারি',
+        'March' => 'মার্চ',
+        'April' => 'এপ্রিল',
+        'May' => 'মে',
+        'June' => 'জুন',
+        'July' => 'জুলাই',
+        'August' => 'আগস্ট',
+        'September' => 'সেপ্টেম্বর',
+        'October' => 'অক্টোবর',
+        'November' => 'নভেম্বর',
+        'December' => 'ডিসেম্বর'
     ];
     $date_str = date('d F, Y', strtotime($date));
     foreach ($months as $en => $bn) {
@@ -246,72 +303,153 @@ function bn_date($date)
 
 function bn_num($num)
 {
-    if ($num === null || $num === '') return '০';
+    if ($num === null || $num === '')
+        return '০';
     $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
     return str_replace(range(0, 9), $bn_digits, $num);
 }
 ?>
 
-<div class="paper-texture min-h-screen pt-24 pb-20 premium-gradient">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        
-        <?php if ($hot_deal): ?>
-        <!-- Modern Hot Deal Section -->
-        <section onclick="window.location.href='book-details.php?id=<?php echo $hot_deal['id']; ?>'"
-                 class="hot-deal-container p-10 md:p-20 mb-24 reveal active cursor-pointer group">
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none"></div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-                <div class="space-y-8">
-                    <div class="badge-limited">
-                        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
-                        সীমিত সময়ের অফার
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <h2 class="text-4xl sm:text-6xl md:text-7xl font-sans font-black text-gray-900 leading-tight">
-                            <?php echo $hot_deal['title']; ?>
-                        </h2>
-                        <h3 class="text-xl sm:text-3xl md:text-4xl font-serif italic text-brand-gold opacity-90">
-                            <?php echo $hot_deal['sub_title']; ?>
-                        </h3>
+<div class="paper-texture min-h-screen pt-20 pb-20 premium-gradient">
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden mb-20 py-20 px-6 sm:px-12">
+        <div class="absolute inset-0 dot-pattern opacity-50"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-gold/10 rounded-full blur-[100px]"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-brand-gold/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Hero Content -->
+                <div class="flex-1 text-center lg:text-left space-y-8">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-brand-gold/10 text-brand-gold rounded-full text-xs font-black uppercase tracking-[0.2em] animate-fade-in">
+                        <span class="w-2 h-2 bg-brand-gold rounded-full animate-ping"></span>
+                        আগামী দিনের সেরা সংগ্রহ
                     </div>
 
-                    <p id="hot-deal-desc" class="text-gray-600 text-lg font-anek leading-relaxed desc-clamped max-w-lg">
-                        <?php echo $hot_deal['description']; ?>
+                    <h1
+                        class="text-5xl sm:text-7xl lg:text-8xl font-sans font-black text-brand-900 leading-[1.1] tracking-tight">
+                        বইয়ের জগতে <br>
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-brand-900 via-brand-gold to-brand-900 bg-[length:200%_auto] animate-gradient">প্রথম
+                            দখল।</span>
+                    </h1>
+
+                    <p class="text-xl text-gray-500 font-anek max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        বাজারে আসার আগেই সংগ্রহ করুন আপনার কাঙ্ক্ষিত বইটি। প্রি-বুকিং অফারে পান বিশেষ ছাড় এবং নিশ্চিত
+                        ডেলিভারি। আপনার পাঠ্য তালিকার পরবর্তী চমকটি বুক করে রাখুন এখনই।
                     </p>
 
-                    <div class="price-box">
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">विशेष मूल्य</p>
-                            <div class="flex items-baseline gap-4">
-                                <span class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $hot_deal['discount_price']); ?></span>
-                                <span class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int) $hot_deal['price']); ?></span>
+                    <div class="flex flex-wrap justify-center lg:justify-start gap-6 pt-4">
+                        <a href="#hot-deal-desc"
+                            class="px-8 py-4 bg-brand-900 text-white rounded-2xl font-bold font-anek hover:bg-brand-gold hover:text-brand-900 transition-all shadow-2xl shadow-brand-900/20 transform hover:-translate-y-1">
+                            অফার দেখুন
+                        </a>
+                        <div
+                            class="flex items-center gap-4 px-6 py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white">
+                            <div class="flex -space-x-3">
+                                <?php for ($i = 1; $i <= 3; $i++): ?>
+                                    <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                                        <img src="https://i.pravatar.cc/100?img=<?php echo $i + 10; ?>" alt="user">
+                                    </div>
+                                <?php endfor; ?>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-xs font-bold text-brand-900">১২০০+ পাঠক</p>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">প্রি-বুকিং
+                                    করেছেন</p>
                             </div>
                         </div>
-                        <div class="h-16 w-[1px] bg-gray-200 hidden sm:block"></div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-brand-gold uppercase tracking-widest font-bold mb-1">আপনি বাঁচাচ্ছেন</p>
-                            <p class="text-lg sm:text-2xl font-bold font-anek text-brand-gold">৳<?php echo bn_num((int) ($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়</p>
-                        </div>
-                    </div>
-
-                    <div class="pt-4">
-                        <button class="btn-premium group-hover:bg-[#1a1a1a] transition-colors">
-                            বিস্তারিত দেখুন
-                        </button>
                     </div>
                 </div>
 
-                <div class="relative flex justify-center lg:justify-end">
-                    <div class="book-3d-hot w-[280px] md:w-[400px]">
-                        <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                             class="rounded-r-xl shadow-2xl"
-                             alt="<?php echo $hot_deal['title']; ?>">
+                <!-- Hero Graphics/Book Showcase -->
+                <div class="flex-1 w-full max-w-lg lg:max-w-none relative">
+                    <div class="hero-floating-element relative z-20">
+                        <div class="relative group">
+                            <!-- Background glow -->
+                            <div
+                                class="absolute inset-0 bg-brand-gold/30 rounded-[40px] blur-[60px] transform rotate-12 group-hover:bg-brand-gold/40 transition-all">
+                            </div>
+
+                            <!-- Hero Image Main -->
+                            <div class="relative hero-glass p-4 rounded-[40px] shadow-2xl overflow-hidden">
+                                <img src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
+                                    alt="Premium Book Collection" class="w-full h-auto rounded-[30px] object-cover">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+        <?php if ($hot_deal): ?>
+            <!-- Modern Hot Deal Section -->
+            <section onclick="window.location.href='book-details.php?id=<?php echo $hot_deal['id']; ?>'"
+                class="hot-deal-container p-10 md:p-20 mb-24 reveal active cursor-pointer group">
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none">
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                    <div class="space-y-8">
+                        <div class="badge-limited">
+                            <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                            সীমিত সময়ের অফার
+                        </div>
+
+                        <div class="space-y-4">
+                            <h2 class="text-4xl sm:text-6xl md:text-7xl font-sans font-black text-gray-900 leading-tight">
+                                <?php echo $hot_deal['title']; ?>
+                            </h2>
+                            <h3 class="text-xl sm:text-3xl md:text-4xl font-serif italic text-brand-gold opacity-90">
+                                <?php echo $hot_deal['sub_title']; ?>
+                            </h3>
+                        </div>
+
+                        <p id="hot-deal-desc" class="text-gray-600 text-lg font-anek leading-relaxed desc-clamped max-w-lg">
+                            <?php echo $hot_deal['description']; ?>
+                        </p>
+
+                        <div class="price-box">
+                            <div class="space-y-1">
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">विशेष मूल्य
+                                </p>
+                                <div class="flex items-baseline gap-4">
+                                    <span
+                                        class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $hot_deal['discount_price']); ?></span>
+                                    <span
+                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int) $hot_deal['price']); ?></span>
+                                </div>
+                            </div>
+                            <div class="h-16 w-[1px] bg-gray-200 hidden sm:block"></div>
+                            <div class="space-y-1">
+                                <p class="text-[10px] text-brand-gold uppercase tracking-widest font-bold mb-1">আপনি
+                                    বাঁচাচ্ছেন</p>
+                                <p class="text-lg sm:text-2xl font-bold font-anek text-brand-gold">
+                                    ৳<?php echo bn_num((int) ($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <button class="btn-premium group-hover:bg-[#1a1a1a] transition-colors">
+                                বিস্তারিত দেখুন
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative flex justify-center lg:justify-end">
+                        <div class="book-3d-hot w-[280px] md:w-[400px]">
+                            <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
+                                class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                        </div>
+                    </div>
+                </div>
+            </section>
         <?php endif; ?>
 
         <!-- Other Pre-orders Grid -->
@@ -320,48 +458,55 @@ function bn_num($num)
                 <span class="text-brand-gold font-bold uppercase tracking-[0.3em] text-xs">আসন্ন সংগ্রহ</span>
                 <div class="h-[1px] flex-1 bg-gray-100"></div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                <?php foreach ($preorders as $index => $book): 
+                <?php foreach ($preorders as $index => $book):
                     $isOpen = $book['status'] == 'Open';
-                ?>
-                    <div onclick="window.location.href='book-details.php?id=<?php echo $book['id']; ?>'" 
-                         class="mockup-card reveal group">
-                        
+                    ?>
+                    <div onclick="window.location.href='book-details.php?id=<?php echo $book['id']; ?>'"
+                        class="mockup-card reveal group">
+
                         <div class="mockup-img-wrapper mb-8">
                             <span class="mockup-badge"><?php echo $isOpen ? 'ওপেন' : 'আসন্ন'; ?></span>
                             <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>"
                                 alt="<?php echo $book['title']; ?>"
                                 class="w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-700">
-                            
+
                             <!-- Detailed Preview Overlay (Subtle) -->
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
                                 <p class="text-white text-xs font-anek leading-relaxed line-clamp-4">
                                     <?php echo strip_tags($book['description']); ?>
                                 </p>
-                                <span class="text-brand-gold text-[10px] font-bold uppercase tracking-widest mt-4">বিস্তারিত পড়তে ক্লিক করুন</span>
+                                <span class="text-brand-gold text-[10px] font-bold uppercase tracking-widest mt-4">বিস্তারিত
+                                    পড়তে ক্লিক করুন</span>
                             </div>
                         </div>
 
                         <div class="space-y-6">
                             <div class="space-y-2">
-                                <h3 class="text-2xl font-sans font-bold text-gray-800 line-clamp-1"><?php echo $book['title']; ?></h3>
+                                <h3 class="text-2xl font-sans font-bold text-gray-800 line-clamp-1">
+                                    <?php echo $book['title']; ?>
+                                </h3>
                                 <p class="text-gray-400 font-anek text-sm"><?php echo $book['author']; ?></p>
                             </div>
-                            
+
                             <div class="h-[1px] w-full bg-gray-50 mt-4"></div>
 
                             <div class="flex justify-between items-center">
                                 <div>
                                     <div class="flex items-baseline gap-3">
-                                        <span class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
-                                        <span class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
+                                        <span
+                                            class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
+                                        <span
+                                            class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mockup-arrow-btn">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                     </svg>
                                 </div>
                             </div>
