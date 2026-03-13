@@ -13,6 +13,9 @@ if (isset($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_data = $stmt->fetch();
+    if (!$user_data) {
+        $user_data = ['full_name' => '', 'phone' => '', 'address' => '', 'email' => ''];
+    }
 }
 
 // Fetch Pre-order Item Details
@@ -34,13 +37,13 @@ $delivery_charge = 50;
 $total_amount = $price + $delivery_charge;
 ?>
 
-<main class="max-w-4xl mx-auto px-6 py-12">
-    <div class="bg-white rounded-[40px] shadow-xl shadow-brand-900/5 p-8 md:p-12 overflow-hidden relative">
-        <h1 class="text-3xl font-anek font-bold text-brand-900 mb-2 border-b-2 border-brand-gold pb-4">প্রি-বুকিং চেকআউট
+<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+    <div class="bg-white rounded-[30px] md:rounded-[40px] shadow-xl shadow-brand-900/5 p-5 sm:p-8 md:p-12 overflow-hidden relative">
+        <h1 class="text-2xl md:text-3xl font-anek font-bold text-brand-900 mb-2 border-b-2 border-brand-gold pb-4">প্রি-বুকিং চেকআউট
         </h1>
 
         <!-- Pre-order Item Summary -->
-        <div class="flex items-center gap-6 mt-8 p-6 bg-brand-light/20 rounded-3xl mb-8 border border-brand-gold/20">
+        <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mt-8 p-5 sm:p-6 bg-brand-light/20 rounded-3xl mb-8 border border-brand-gold/20 text-center sm:text-left">
             <div class="w-20 h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
                 <img src="<?php echo htmlspecialchars(strpos($pre_order['cover_image'], 'http') !== false ? $pre_order['cover_image'] : '../assets/img/preorders/' . $pre_order['cover_image']); ?>"
                     onerror="this.src='../assets/img/book-placeholder.jpg'"
@@ -48,18 +51,18 @@ $total_amount = $price + $delivery_charge;
             </div>
             <div class="flex-1">
                 <div
-                    class="inline-block px-3 py-1 bg-brand-gold/20 text-brand-900 font-bold text-xs rounded-full uppercase tracking-widest mb-2">
+                    class="inline-block px-3 py-1 bg-brand-gold/20 text-brand-900 font-bold text-[10px] md:text-xs rounded-full uppercase tracking-widest mb-2">
                     Pre-Order</div>
-                <h3 class="font-anek font-bold text-2xl text-brand-900">
+                <h3 class="font-anek font-bold text-xl md:text-2xl text-brand-900 leading-tight">
                     <?php echo htmlspecialchars($pre_order['title']); ?>
                 </h3>
-                <p class="text-sm text-gray-500 font-anek">লেখক: <?php echo htmlspecialchars($pre_order['author']); ?>
+                <p class="text-xs md:text-sm text-gray-500 font-anek mt-1">লেখক: <?php echo htmlspecialchars($pre_order['author']); ?>
                 </p>
             </div>
-            <div class="text-right">
-                <p class="text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
-                <p class="text-xs text-brand-900/60 font-anek">+ ৳<?php echo $delivery_charge; ?> ডেলিভারি</p>
-                <div class="mt-2 text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1 rounded-full inline-block">
+            <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
+                <p class="text-xl md:text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
+                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek">+ ৳<?php echo $delivery_charge; ?> ডেলিভারি</p>
+                <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block">
                     মোট: ৳<?php echo number_format($total_amount); ?></div>
             </div>
         </div>
@@ -103,7 +106,7 @@ $total_amount = $price + $delivery_charge;
             </div>
             <div class="mt-8 flex justify-end">
                 <button onclick="goToStep2()"
-                    class="bg-brand-900 text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg flex items-center gap-2">
+                    class="w-full sm:w-auto bg-brand-900 text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg flex items-center justify-center gap-2">
                     পরবর্তী ধাপ: পেমেন্ট <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -120,10 +123,11 @@ $total_amount = $price + $delivery_charge;
                 পেমেন্ট সম্পন্ন করুন
             </h2>
             <div
-                class="bg-pink-50 border-2 border-[#D12053]/20 rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-center">
-                <div class="w-48 h-48 bg-white p-4 rounded-2xl shadow-sm border border-[#D12053]/10 flex-shrink-0">
-                    <!-- Placeholder QR code linking to a generic bKash pay instruction -->
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=bkash://pay?amount=<?php echo $total_amount; ?>"
+                class="bg-pink-50 border-2 border-[#D12053]/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center text-center md:text-left">
+                <div class="w-40 h-40 md:w-48 md:h-48 bg-white p-4 rounded-2xl shadow-sm border border-[#D12053]/10 flex-shrink-0">
+                    <!-- Custom Merchant QR Image -->
+                    <img src="../assets/img/merchant-qr.jpg"
+                        onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=bkash://pay?amount=<?php echo $total_amount; ?>'"
                         alt="bKash QR" class="w-full h-full object-contain mix-blend-multiply">
                 </div>
                 <div class="flex-1 space-y-4">
@@ -145,16 +149,16 @@ $total_amount = $price + $delivery_charge;
                     </div>
                 </div>
             </div>
-            <div class="mt-8 flex justify-between">
+            <div class="mt-8 flex flex-col-reverse sm:flex-row justify-between gap-4">
                 <button onclick="goToStep1()"
-                    class="text-brand-900 px-6 py-4 font-anek font-bold hover:text-brand-gold transition-all flex items-center gap-2">
+                    class="w-full sm:w-auto text-brand-900 px-6 py-4 font-anek font-bold hover:text-brand-gold transition-all flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg> পিছনে যান
                 </button>
                 <button onclick="submitPreOrder()"
-                    class="bg-[#D12053] text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-[#b01844] transition-all shadow-lg flex items-center gap-2">
+                    class="w-full sm:w-auto bg-[#D12053] text-white px-8 py-4 rounded-xl font-anek font-bold hover:bg-[#b01844] transition-all shadow-lg flex items-center justify-center gap-2">
                     পেমেন্ট নিশ্চিত করুন <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -175,11 +179,11 @@ $total_amount = $price + $delivery_charge;
         <div id="step-4" class="hidden opacity-0 transition-opacity duration-500 py-12 text-center">
             <div
                 class="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8">
-                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-10 h-10 md:w-12 md:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            <h2 class="text-3xl font-anek font-bold text-brand-900 mb-4">প্রি-বুকিং সফল হয়েছে!</h2>
+            <h2 class="text-2xl md:text-3xl font-anek font-bold text-brand-900 mb-4 px-4">প্রি-বুকিং সফল হয়েছে!</h2>
             <p class="text-gray-500 font-anek max-w-md mx-auto mb-8">আপনার পেমেন্ট রিকোয়েস্ট গ্রহণ করা হয়েছে। যাচাই শেষে
                 অর্ডার কনফার্মেশন এসএমএস পাঠানো হবে।</p>
 
