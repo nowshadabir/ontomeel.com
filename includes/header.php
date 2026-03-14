@@ -25,11 +25,11 @@ if (session_status() == PHP_SESSION_NONE) {
     <!-- Tailwind Configuration -->
     <script src="<?php echo $path_prefix ?? ''; ?>assets/js/tailwind-config.js"></script>
 
-    <!-- Custom JS -->
-    <script src="<?php echo $path_prefix ?? ''; ?>assets/js/script.js?v=<?php echo time(); ?>" defer></script>
+    <!-- Custom JS - Version controlled for cache management -->
+    <script src="<?php echo $path_prefix ?? ''; ?>assets/js/script.js?v=2.0.1" defer></script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="<?php echo $path_prefix ?? ''; ?>assets/css/style.css?v=<?php echo time(); ?>">
+    <!-- Custom Styles - Version controlled for cache management -->
+    <link rel="stylesheet" href="<?php echo $path_prefix ?? ''; ?>assets/css/style.css?v=2.0.1">
 
     <!-- favicon -->
     <link rel="icon" href="<?php echo $path_prefix ?? ''; ?>assets/img/logo.webp">
@@ -332,7 +332,8 @@ if (session_status() == PHP_SESSION_NONE) {
                             </svg></a>
                     </div>
                 </div>
-                <p class="text-[10px] text-gray-500 text-center font-sans tracking-tight">© ২০২৪ অন্ত্যমিল। সর্বস্বত্ব সংরক্ষিত।
+                <p class="text-[10px] text-gray-500 text-center font-sans tracking-tight">© ২০২৪ অন্ত্যমিল। সর্বস্বত্ব
+                    সংরক্ষিত।
                 </p>
             </div>
         </div>
