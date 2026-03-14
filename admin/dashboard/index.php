@@ -1,4 +1,4 @@
-<?php
+ or<?php
 session_start();
 include '../../includes/db_connect.php';
 
@@ -782,9 +782,11 @@ function bn_num($num)
                                                 </div>
                                                 <div>
                                                     <div class="text-sm font-bold text-brand-900">
-                                                        <?php echo htmlspecialchars($member['full_name']); ?></div>
+                                                        <?php echo htmlspecialchars($member['full_name']); ?>
+                                                    </div>
                                                     <div class="text-[10px] text-gray-400">
-                                                        <?php echo htmlspecialchars($member['email']); ?></div>
+                                                        <?php echo htmlspecialchars($member['email']); ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -1779,7 +1781,8 @@ function bn_num($num)
                 </div>
 
                 <!-- Sticky Footer Actions -->
-                <div class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4 shrink-0">
+                <div
+                    class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4 shrink-0">
                     <button type="button" onclick="closeAddBookModal()"
                         class="flex-1 py-4 sm:py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
                         করুন</button>
@@ -1935,6 +1938,38 @@ function bn_num($num)
                                             </path>
                                         </svg>
                                         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">ইমেজ
+                                            আপলোড</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Second Cover Image -->
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">দ্বিতীয়
+                                কাভার ইমেজ (ঐচ্ছিক)</label>
+                            <div class="flex items-center gap-6">
+                                <div id="po-second-cover-preview"
+                                    class="w-24 h-32 rounded-2xl bg-gray-50 border border-brand-gold/20 overflow-hidden flex-shrink-0 relative group <?php echo empty($po['second_cover_image']) ? 'hidden' : ''; ?>">
+                                    <img src="" class="w-full h-full object-cover">
+                                    <div
+                                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span class="text-white text-[8px] font-bold">পরিবর্তন</span>
+                                    </div>
+                                </div>
+                                <label class="flex-1">
+                                    <input type="file" name="second_cover_image" accept="image/*" class="hidden"
+                                        onchange="previewImage(this, 'po-second-cover-preview')">
+                                    <div
+                                        class="w-full bg-gray-50 border-2 border-dashed border-brand-gold/20 rounded-2xl px-6 py-8 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-gold/5 hover:border-brand-gold/50 transition-all group">
+                                        <svg class="w-8 h-8 text-brand-gold/40 mb-2 group-hover:scale-110 transition-transform"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">দ্বিতীয়
+                                            ইমেজ
                                             আপলোড</span>
                                     </div>
                                 </label>
@@ -2521,6 +2556,16 @@ function bn_num($num)
             } else {
                 preview.classList.add('hidden');
             }
+
+            // Second Cover Image Preview
+            const secondPreview = document.getElementById('po-second-cover-preview');
+            const secondImg = secondPreview.querySelector('img');
+            if (po.second_cover_image) {
+                secondImg.src = po.second_cover_image.startsWith('http') ? po.second_cover_image : '../../assets/img/preorders/' + po.second_cover_image;
+                secondPreview.classList.remove('hidden');
+            } else {
+                secondPreview.classList.add('hidden');
+            }
         }
 
         function handlePreorder(e) {
@@ -2743,19 +2788,19 @@ function bn_num($num)
 
                 const rect = btn.getBoundingClientRect();
                 targetMenu.style.position = 'fixed';
-                
+
                 // Responsive width handling
                 const menuWidth = 160; // w-40
                 let left = rect.right - menuWidth;
-                
+
                 // Ensure it doesn't go off-screen left
                 if (left < 10) left = 10;
-                
+
                 // Ensure it doesn't go off-screen right
                 if (left + menuWidth > window.innerWidth) {
                     left = window.innerWidth - menuWidth - 10;
                 }
-                
+
                 targetMenu.style.left = left + 'px';
 
                 const windowHeight = window.innerHeight;
