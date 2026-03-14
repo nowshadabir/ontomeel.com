@@ -1,5 +1,7 @@
 <?php
-$page_title = 'লাইব্রেরি | অন্ত্যমিল';
+$page_title = 'লাইব্রেরি | সব ধরনের বইয়ের বিশাল সংগ্রহ - অন্ত্যমিল';
+$page_description = 'অন্ত্যমিল লাইব্রেরি - গল্প, উপন্যাস, কবিতা এবং আরও অনেক বিষয়ের বইয়ের এক অফুরন্ত ভান্ডার। অনলাইনে বই খুঁজুন এবং আপনার পছন্দের বইটি অর্ডার করুন।';
+$page_keywords = 'লাইব্রেরি, বইয়ের তালিকা, গল্পের বই, উপন্যাস, অন্ত্যমিল, Vivago Digital, Online Library, Book Collection';
 $path_prefix = '../';
 include '../includes/db_connect.php';
 include '../includes/header.php';

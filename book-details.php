@@ -1,5 +1,4 @@
 <?php
-$page_title = 'বইয়ের বিস্তারিত | অন্ত্যমিল';
 include 'includes/db_connect.php';
 
 // Get book ID from URL
@@ -37,6 +36,12 @@ function bn_num($num)
     $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
     return str_replace(range(0, 9), $bn_digits, $num);
 }
+
+// SEO Meta Tags
+$page_title = $book['title'] . ' | ' . $book['author'] . ' - অন্ত্যমিল';
+$page_description = $book['title'] . ' বাই ' . $book['author'] . ' - ' . mb_substr(strip_tags($book['description'] ?? ''), 0, 160) . '...';
+$page_keywords = $book['title'] . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, Vivago Digital, অনলাইন বুকস্টোর';
+$og_image = getBookImage($book['cover_image'] ?? '');
 
 include 'includes/header.php';
 ?>

@@ -9,7 +9,28 @@ if (session_status() == PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?></title>
+    <title><?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি - একটি প্রিমিয়াম অনলাইন বুকস্টোর'; ?></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন। সাহিত্য ও জ্ঞানের এক অনন্য ভান্ডার।'; ?>">
+    <meta name="keywords" content="<?php echo $page_keywords ?? 'বুকস্টোর, লাইব্রেরি, অনলাইন বুক শপ, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, Vivago Digital, অনলাইন লাইব্রেরি'; ?>">
+    <meta name="author" content="Vivago Digital">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <meta property="og:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
+    <meta property="og:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
+    <meta property="og:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <meta property="twitter:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
+    <meta property="twitter:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
+    <meta property="twitter:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
 
     <!-- Google Fonts for Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

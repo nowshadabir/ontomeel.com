@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>লগইন | অন্ত্যমিল</title>
+    <title>লগইন | অন্ত্যমিল - আপনার বুকশেলফে ফিরে যান</title>
+    <meta name="description" content="অন্ত্যমিল অ্যাকাউন্টে লগইন করুন এবং আপনার কেনা ও ধার নেওয়া বই ম্যানেজ করুন। আপনার রিডিং প্রগ্রেস সেভ করুন খুব সহজেই।">
+    <meta name="keywords" content="লগইন, অন্ত্যমিল, Vivago Digital, অনলাইন বুকস্টোর, মেম্বার লগইন">
+    <meta name="author" content="Vivago Digital">
 
     <!-- Google Fonts for Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

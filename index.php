@@ -1,5 +1,7 @@
 <?php
-$page_title = 'অন্ত্যমিল | বই ও লাইব্রেরি';
+$page_title = 'অন্ত্যমিল | বই ও লাইব্রেরি - প্রিমিয়াম অনলাইন বুকস্টোর';
+$page_description = 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন। সাহিত্য ও জ্ঞানের এক অনন্য ভান্ডার।';
+$page_keywords = 'বুকস্টোর, লাইব্রেরি, অনলাইন বুক শপ, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, Vivago Digital, অনলাইন লাইব্রেরি, গল্পের বই';
 $path_prefix = '';
 include 'includes/db_connect.php';
 include 'includes/header.php';
