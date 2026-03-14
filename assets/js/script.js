@@ -1,20 +1,24 @@
 // --- 1. Navbar Scroll Effect ---
 const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('shadow-md');
-        navbar.classList.replace('py-4', 'py-2');
-    } else {
-        navbar.classList.remove('shadow-md');
-        navbar.classList.replace('py-2', 'py-4');
-    }
-});
+if (navbar) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('shadow-md');
+            navbar.classList.replace('py-4', 'py-2');
+        } else {
+            navbar.classList.remove('shadow-md');
+            navbar.classList.replace('py-2', 'py-4');
+        }
+    });
+}
 
 // --- 2. Mobile Menu Toggle ---
 const mobileMenu = document.getElementById('mobile-menu');
 const mobileOverlay = document.getElementById('mobile-menu-overlay');
 
 function toggleMobileMenu() {
+    if (!mobileMenu) return;
+
     if (mobileMenu.classList.contains('translate-x-full')) {
         mobileMenu.classList.remove('translate-x-full');
         if (mobileOverlay) {
@@ -175,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // If homepage has suggested books pre-rendered by PHP, we might still want to "refresh" 
         // them or just let them stay. The user asked for skeleton loading animation.
         // Let's hide the PHP rendered ones, show skeletons, then show them again.
-        
+
         // Check if we have suggested books in the data
         const suggestedBooks = allBooks.filter(book => parseInt(book.is_suggested) === 1);
         if (suggestedBooks.length > 0) {

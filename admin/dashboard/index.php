@@ -1,4 +1,5 @@
- or<?php
+or
+<?php
 session_start();
 include '../../includes/db_connect.php';
 
@@ -8,9 +9,9 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-// Fetch Overview Data
+// Fetch Overview Data - Optimized with indexes
 $total_members = $pdo->query("SELECT COUNT(*) FROM members")->fetchColumn();
-$total_sales = $pdo->query("SELECT SUM(total_amount) FROM orders WHERE payment_status = 'Paid'")->fetchColumn() ?: 0;
+$total_sales = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE payment_status = 'Paid'")->fetchColumn() ?: 0;
 $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Processing'")->fetchColumn();
 $borrowed_books = $pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Active'")->fetchColumn();
 
@@ -18,9 +19,9 @@ $borrowed_books = $pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Acti
 $cats_stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
 $categories = $cats_stmt->fetchAll();
 
-// Inventory Filter Logic
-$search = isset($_GET['search']) ? '%' . $_GET['search'] . '%' : '%';
-$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? $_GET['category'] : '%';
+// Inventory Filter Logic - Use prepared statement
+$search = isset($_GET['search']) ? '%' . trim($_GET['search']) . '%' : '%';
+$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int) $_GET['category'] : '%';
 
 $inv_stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
                           FROM books b 
@@ -32,7 +33,7 @@ $inv_stmt = $pdo->prepare("SELECT b.*, c.name as category_name
 $inv_stmt->execute([$search, $search, $search, $cat_id]);
 $inventory_books = $inv_stmt->fetchAll();
 
-// Fetch Real Orders Logic
+// Fetch Orders with JOIN
 $orders_stmt = $pdo->query("SELECT o.*, 
                                    COALESCE(m.full_name, o.guest_name) as full_name, 
                                    COALESCE(m.phone, o.guest_phone) as phone,
@@ -41,6 +42,21 @@ $orders_stmt = $pdo->query("SELECT o.*,
                             LEFT JOIN members m ON o.member_id = m.id 
                             ORDER BY o.order_date DESC");
 $admin_orders = $orders_stmt->fetchAll();
+
+// Pre-fetch all order items to avoid N+1 queries - PERFORMANCE OPTIMIZATION
+$all_order_items_stmt = $pdo->query("SELECT oi.*, 
+                                      COALESCE(b.title, po.title) as title, 
+                                      COALESCE(b.cover_image, po.cover_image) as cover_image 
+                               FROM order_items oi 
+                               LEFT JOIN books b ON oi.book_id = b.id 
+                               LEFT JOIN pre_orders po ON oi.preorder_id = po.id");
+$all_order_items = $all_order_items_stmt->fetchAll();
+
+// Create a lookup array indexed by order_id for O(1) access
+$order_items_by_order = [];
+foreach ($all_order_items as $item) {
+    $order_items_by_order[$item['order_id']][] = $item;
+}
 
 // Fetch Active Borrows for Borrows Tab
 $borrows_stmt = $pdo->query("SELECT br.*, m.full_name, m.phone, b.title, b.cover_image, o.order_status
@@ -76,18 +92,10 @@ $admin_members = $members_stmt->fetchAll();
 $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
 $payment_methods = $payments_stmt->fetchAll();
 
-// Function to get items for an order
-function getOrderItems($pdo, $order_id)
+// Helper function using pre-fetched data
+function getOrderItems($order_id, $order_items_by_order)
 {
-    $stmt = $pdo->prepare("SELECT oi.*, 
-                                  COALESCE(b.title, po.title) as title, 
-                                  COALESCE(b.cover_image, po.cover_image) as cover_image 
-                           FROM order_items oi 
-                           LEFT JOIN books b ON oi.book_id = b.id 
-                           LEFT JOIN pre_orders po ON oi.preorder_id = po.id
-                           WHERE oi.order_id = ?");
-    $stmt->execute([$order_id]);
-    return $stmt->fetchAll();
+    return $order_items_by_order[$order_id] ?? [];
 }
 
 function bn_num($num)
@@ -399,7 +407,7 @@ function bn_num($num)
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php foreach ($admin_orders as $order):
-                                $items = getOrderItems($pdo, $order['id']);
+                                $items = getOrderItems($order['id'], $order_items_by_order);
                                 $items_list = implode(', ', array_column($items, 'title'));
                                 $status_color = 'bg-gray-100 text-gray-600';
                                 if ($order['order_status'] == 'Processing')

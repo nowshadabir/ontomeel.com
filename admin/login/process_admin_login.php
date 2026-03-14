@@ -2,7 +2,17 @@
 session_start();
 require_once '../../includes/db_connect.php';
 
+// Include security helper
+require_once '../../includes/security_helper.php';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Rate limiting check
+    if (!check_rate_limit('admin_login', 5, 300)) {
+        log_security_event('rate_limit_exceeded', ['identifier' => 'admin_login']);
+        header("Location: index.php?error=rate_limit");
+        exit();
+    }
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
@@ -20,29 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($admin) {
             $password_valid = false;
 
-            // Try password_verify first (handles bcrypt, argon2, etc.)
+            // Verify password using bcrypt (secure hashing)
             if (password_verify($password, $admin['password'])) {
                 $password_valid = true;
-                
+
                 // Upgrade hash if needed
                 if (password_needs_rehash($admin['password'], PASSWORD_DEFAULT)) {
                     $new_hash = password_hash($password, PASSWORD_DEFAULT);
                     $update_stmt = $pdo->prepare("UPDATE admins SET password = ? WHERE id = ?");
                     $update_stmt->execute([$new_hash, $admin['id']]);
                 }
-            } 
-            // Fallback: Check plain text password (legacy support or if manually updated in DB as plain text)
-            elseif ($password === $admin['password']) {
-                $password_valid = true;
-
-                // Upgrade to hashed password immediately
-                $new_hash = password_hash($password, PASSWORD_DEFAULT);
-                $update_stmt = $pdo->prepare("UPDATE admins SET password = ? WHERE id = ?");
-                $update_stmt->execute([$new_hash, $admin['id']]);
             }
 
             if ($password_valid) {
-                // Authentication successful
+                // Authentication successful - regenerate session ID
+                session_regenerate_id(true);
+
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
                 $_SESSION['admin_full_name'] = $admin['full_name'];
