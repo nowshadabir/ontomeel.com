@@ -73,59 +73,81 @@ $additional_head = '
             display: flex;
             justify-content: center;
             align-items: center;
+            perspective: 2000px;
         }
 
-        .dual-book-container .book-3d-hot {
+        .dual-book-container .book-wrapper {
             position: absolute;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dual-book-container .book-1 {
             left: 50%;
-            margin-left: -180px;
-            transform: perspective(1500px) rotateY(-20deg) rotateX(5deg);
+            margin-left: -220px;
+            transform: rotateY(-25deg) rotateX(5deg) translateZ(50px);
             z-index: 20;
-            filter: drop-shadow(30px 40px 60px rgba(0,0,0,0.2));
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .dual-book-container .book-3d-hot-second {
-            position: absolute;
+        .dual-book-container .book-2 {
             left: 50%;
-            margin-left: -20px;
-            transform: perspective(1500px) rotateY(-20deg) rotateX(5deg) scale(0.95);
+            margin-left: 20px;
+            transform: rotateY(-15deg) rotateX(5deg) scale(0.95);
             z-index: 10;
-            opacity: 0.9;
-            filter: drop-shadow(15px 20px 30px rgba(0,0,0,0.15));
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0.98;
+        }
+
+        .dual-book-container .book-wrapper:hover {
+            transform: rotateY(-10deg) rotateX(0deg) scale(1.05) translateZ(100px);
+            z-index: 30;
         }
 
         @media (max-width: 768px) {
             .dual-book-container {
-                height: 480px !important;
-                margin-top: 2.5rem !important;
+                height: 400px !important;
+                margin-top: 2rem !important;
                 display: flex !important;
                 justify-content: center !important;
                 align-items: center !important;
             }
-            .dual-book-container .book-3d-hot,
-            .dual-book-container .book-3d-hot-second {
+            .dual-book-container .book-wrapper {
                 position: absolute !important;
                 left: 50% !important;
-                right: auto !important;
-                margin-right: 0 !important;
             }
-            .dual-book-container .book-3d-hot {
-                margin-left: -180px !important;
-                transform: perspective(1000px) rotateY(-15deg) rotateX(5deg) !important;
-                width: 260px !important;
-                z-index: 20 !important;
+            .dual-book-container .book-1 {
+                margin-left: -140px !important;
+                width: 180px !important;
             }
-            .dual-book-container .book-3d-hot-second {
-                margin-left: -80px !important;
-                transform: perspective(1000px) rotateY(-15deg) rotateX(5deg) scale(0.95) !important;
-                width: 260px !important;
-                z-index: 10 !important;
+            .dual-book-container .book-2 {
+                margin-left: -20px !important;
+                width: 180px !important;
             }
         }
 
+        .status-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            z-index: 100;
+            font-family: "Anek Bangla", sans-serif;
+        }
 
+        .label-preorder {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+        }
+
+        .label-released {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+        }
 
         .reveal {
             opacity: 0;
@@ -512,17 +534,25 @@ function bn_num($num)
                         </div>
                     </div>
 
-                    <div class="relative flex justify-center lg:justify-end" style="min-height: 450px;">
+                    <div class="relative flex justify-center lg:justify-end" style="min-height: 500px;">
                         <?php if (!empty($hot_deal['second_cover_image'])): ?>
                             <!-- Dual Book Display with Animation -->
-                            <div class="dual-book-container w-[500px] md:w-[700px] h-[350px] md:h-[450px]">
-                                <div class="book-3d-hot w-[220px] md:w-[300px]">
+                            <div class="dual-book-container w-full h-[450px]">
+                                <div class="book-wrapper book-1 w-[220px] md:w-[280px]">
                                     <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
                                         class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                                    <div class="status-label label-preorder">
+                                        <span class="inline-block w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                                        প্রি-অর্ডার চলছে
+                                    </div>
                                 </div>
-                                <div class="book-3d-hot-second w-[220px] md:w-[300px]">
+                                <div class="book-wrapper book-2 w-[220px] md:w-[280px]">
                                     <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['second_cover_image']; ?>"
-                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Back Cover">
+                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
+                                    <div class="status-label label-released">
+                                        <span class="inline-block w-2 h-2 bg-white rounded-full mr-2"></span>
+                                        সদ্য প্রকাশিত
+                                    </div>
                                 </div>
                             </div>
                         <?php else: ?>
