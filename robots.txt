@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /includes/
+Disallow: /bkash/
+Disallow: /checkout/
+Disallow: /pre-order-checkout/
+
+Sitemap: https://ontomeel.com/sitemap.xml
