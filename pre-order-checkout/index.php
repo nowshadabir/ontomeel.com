@@ -1,11 +1,10 @@
 <?php
-session_start();
+require_once '../includes/db_connect.php';
 $page_title = 'প্রি-অর্ডার চেকআউট | অন্ত্যমিল অনলাইন বুকশপ';
 $path_prefix = '../';
 $is_checkout = true;
 
 include '../includes/header.php';
-require_once '../includes/db_connect.php';
 
 // User data if logged in
 $user_data = ['full_name' => '', 'phone' => '', 'address' => ''];
@@ -32,8 +31,25 @@ if (!$pre_order) {
 
 // User fetched above
 
+// Helper to get settings
+function getSetting($pdo, $key, $default = '')
+{
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        return $val !== false ? $val : $default;
+    }
+    catch (Exception $e) {
+        return $default;
+    }
+}
+
+$inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
+$outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
+
 $price = $pre_order['discount_price'] > 0 ? $pre_order['discount_price'] : $pre_order['price'];
-$delivery_charge = 50;
+$delivery_charge = $inside_charge; // Default
 $total_amount = $price + $delivery_charge;
 ?>
 
@@ -61,9 +77,9 @@ $total_amount = $price + $delivery_charge;
             </div>
             <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
                 <p class="text-xl md:text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
-                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek">+ ৳<?php echo $delivery_charge; ?> ডেলিভারি</p>
+                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek">+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি</p>
                 <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block">
-                    মোট: ৳<?php echo number_format($total_amount); ?></div>
+                    মোট: ৳<span id="display-total"><?php echo number_format($total_amount); ?></span></div>
             </div>
         </div>
 
@@ -97,6 +113,25 @@ $total_amount = $price + $delivery_charge;
                         class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি এরিয়া *</label>
+                    <div class="flex gap-4">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
+                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                                <p class="text-sm font-anek font-bold text-brand-900">কক্সবাজার শহর</p>
+                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo($pre_order['free_delivery'] == 1) ? '০' : $inside_charge; ?></p>
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="location" value="outside" onchange="updateDelivery(this.value)" class="hidden peer">
+                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                                <p class="text-sm font-anek font-bold text-brand-900">আউটসাইড কক্সবাজার</p>
+                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo($pre_order['free_delivery'] == 1) ? '০' : $outside_charge; ?></p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি ঠিকানা
                         (বিস্তারিত) *</label>
                     <textarea id="po-address" rows="3"
@@ -126,18 +161,17 @@ $total_amount = $price + $delivery_charge;
                 class="bg-pink-50 border-2 border-[#D12053]/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center text-center md:text-left">
                 <div class="w-40 h-40 md:w-48 md:h-48 bg-white p-4 rounded-2xl shadow-sm border border-[#D12053]/10 flex-shrink-0">
                     <!-- Custom Merchant QR Image -->
-                    <img src="../assets/img/merchant-qr.jpg"
-                        onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=bkash://pay?amount=<?php echo $total_amount; ?>'"
+                    <img src="../assets/img/merchant.png"
+                        onerror="this.src='https://ontomeel.com/assets/img/merchant.png'"
                         alt="bKash QR" class="w-full h-full object-contain mix-blend-multiply">
                 </div>
                 <div class="flex-1 space-y-4">
                     <div class="flex items-center gap-3 mb-4">
-                        <img src="../assets/img/bkash-logo.jpg" alt="bkash" class="h-8 rounded"
-                            onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
+                        <img src="../assets/img/merchant.png" alt="bkash" class="h-8 rounded">
                         <h4 class="font-bold text-[#D12053] text-lg font-anek">বিকাশ পেমেন্ট</h4>
                     </div>
                     <p class="text-brand-900 font-anek font-medium leading-relaxed">১। আপনার বিকাশ অ্যাপ থেকে উপরের QR
-                        কোডটি স্ক্যান করুন অথবা <strong class="text-[#D12053]">017XXXXXXXX</strong> নম্বরে পেমেন্ট
+                        কোডটি স্ক্যান করুন অথবা <strong class="text-[#D12053]">01330975787</strong> নম্বরে পেমেন্ট
                         করুন।<br>২। টাকার পরিমাণ: <strong
                             class="text-lg">৳<?php echo number_format($total_amount); ?></strong></p>
 
@@ -199,7 +233,8 @@ $total_amount = $price + $delivery_charge;
                             সহ এই স্ক্রিনটির একটি <span class="bg-yellow-100 text-brand-900 px-1">স্ক্রিনশট</span> তুলে
                             রাখুন।</p>
                     </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
 
             <a href="<?php echo isset($_SESSION['user_id']) ? '../dashboard/index.php' : '../index.php'; ?>"
@@ -222,7 +257,28 @@ $total_amount = $price + $delivery_charge;
 
 <script>
     const preOrderId = <?php echo $pre_order_id; ?>;
-    const totalAmount = <?php echo $total_amount; ?>;
+    const basePrice = <?php echo $price; ?>;
+    const isFreeDelivery = <?php echo($pre_order['free_delivery'] == 1) ? 'true' : 'false'; ?>;
+    const insideCharge = isFreeDelivery ? 0 : <?php echo $inside_charge; ?>;
+    const outsideCharge = isFreeDelivery ? 0 : <?php echo $outside_charge; ?>;
+    let currentDeliveryCharge = insideCharge;
+    let totalAmount = basePrice + currentDeliveryCharge;
+
+    function updateDelivery(loc) {
+        currentDeliveryCharge = loc === 'inside' ? insideCharge : outsideCharge;
+        totalAmount = basePrice + currentDeliveryCharge;
+        
+        document.getElementById('display-delivery').innerText = currentDeliveryCharge;
+        document.getElementById('display-total').innerText = totalAmount.toLocaleString();
+        
+        // Update QR code fallback amount
+        const qrImg = document.querySelector('#step-2 img');
+        if (qrImg) {
+            qrImg.onerror = () => {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=bkash://pay?amount=${totalAmount}`;
+            };
+        }
+    }
 
     function showError(msg) {
         const toast = document.getElementById('po-toast');
@@ -285,12 +341,14 @@ $total_amount = $price + $delivery_charge;
         switchStep('step-2', 'step-3');
 
         // Prepare data to send to server
+        const location = document.querySelector('input[name="location"]:checked').value;
         const formData = new FormData();
         formData.append('preorder_id', preOrderId);
         formData.append('name', document.getElementById('po-name').value.trim());
         formData.append('phone', document.getElementById('po-phone').value.trim());
         formData.append('email', document.getElementById('po-email').value.trim());
         formData.append('address', addr);
+        formData.append('location', location);
         formData.append('sender_number', senderNum);
         formData.append('total_amount', totalAmount);
 

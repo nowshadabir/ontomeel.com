@@ -52,9 +52,30 @@ try {
             payment_status, payment_method, trx_id, order_status, shipping_address
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
     ");
+
+    // Fetch free_delivery status for this pre-order
+    $po_stmt = $pdo->prepare("SELECT free_delivery FROM pre_orders WHERE id = ?");
+    $po_stmt->execute([$preorder_id]);
+    $is_free_delivery = (int)($po_stmt->fetchColumn() ?: 0);
+
+    // Fetch shipping charges from settings
+    function getSetting($pdo, $key, $default = '') {
+        try {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+            return $val !== false ? $val : $default;
+        } catch (Exception $e) {
+            return $default;
+        }
+    }
+
+    $c_location = $_POST['location'] ?? 'inside';
+    $inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
+    $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
+    $selected_charge = ($c_location === 'inside') ? $inside_charge : $outside_charge;
     
-    // Notice subtotal assumes $total_amount - shipping ($50)
-    $shipping_cost = 50;
+    $shipping_cost = ($is_free_delivery === 1) ? 0 : $selected_charge;
     $subtotal = $total_amount - $shipping_cost;
 
     $stmt->execute([

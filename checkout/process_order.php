@@ -145,10 +145,27 @@ try {
             ->execute([$user_id, $total_amount, 'Book purchase via Wallet']);
     }
 
+    // Fetch shipping charges from settings
+    function getSetting($pdo, $key, $default = '') {
+        try {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+            return $val !== false ? $val : $default;
+        } catch (Exception $e) {
+            return $default;
+        }
+    }
+
+    $c_location = $_POST['location'] ?? 'inside';
+    $inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
+    $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
+    $selected_charge = ($c_location === 'inside') ? $inside_charge : $outside_charge;
+
     // 3. Create Main Order
     $invoice_no = 'OM-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -5));
     $payment_status = ($payment_method === 'fund') ? 'Paid' : 'Pending';
-    $shipping_cost = ($checkout_type === 'borrow' || $total_amount <= 0) ? 0 : 50;
+    $shipping_cost = ($checkout_type === 'borrow' || $total_amount <= 0) ? 0 : $selected_charge;
     $subtotal = max(0, $total_amount - $shipping_cost);
 
     // Determine order notes based on contents

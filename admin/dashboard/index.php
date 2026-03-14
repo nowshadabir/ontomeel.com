@@ -1,6 +1,4 @@
-or
 <?php
-session_start();
 include '../../includes/db_connect.php';
 
 // Check Authentication
@@ -91,6 +89,20 @@ $admin_members = $members_stmt->fetchAll();
 // Fetch Payment Methods
 $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
 $payment_methods = $payments_stmt->fetchAll();
+
+// Helper to get settings
+function getSetting($pdo, $key, $default = '') {
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        return $val !== false ? $val : $default;
+    } catch (Exception $e) {
+        return $default;
+    }
+}
+$inside_charge = getSetting($pdo, 'delivery_charge_inside', '60');
+$outside_charge = getSetting($pdo, 'delivery_charge_outside', '120');
 
 // Helper function using pre-fetched data
 function getOrderItems($order_id, $order_items_by_order)
@@ -1170,13 +1182,21 @@ function bn_num($num)
                                                 </span>
                                             </td>
                                             <td class="px-8 py-5">
-                                                <?php if ($po['is_hot_deal']): ?>
-                                                    <span
-                                                        class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">হট
-                                                        ডিল</span>
-                                                <?php else: ?>
-                                                    <span class="text-xs text-gray-400">সাধারণ</span>
-                                                <?php endif; ?>
+                                                <div class="flex flex-col gap-1">
+                                                    <?php if ($po['is_hot_deal']): ?>
+                                                        <span
+                                                            class="w-fit text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">হট
+                                                            ডিল</span>
+                                                    <?php endif; ?>
+                                                    <?php if ($po['free_delivery']): ?>
+                                                        <span
+                                                            class="w-fit text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">ফ্রি
+                                                            ডেলিভারি</span>
+                                                    <?php endif; ?>
+                                                    <?php if (!$po['is_hot_deal'] && !$po['free_delivery']): ?>
+                                                        <span class="text-xs text-gray-400">সাধারণ</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5 text-right">
                                                 <div class="flex justify-end gap-2">
@@ -1376,6 +1396,34 @@ function bn_num($num)
                         </div>
                     </div>
                 <?php endforeach; ?>
+            </div>
+
+            <div class="mt-12">
+                <h2 class="text-2xl font-anek font-bold text-brand-900 mb-8">ডেলিভারি চার্জ সেটিংস</h2>
+                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm max-w-2xl">
+                    <form onsubmit="updateDeliveryCharges(event)" class="space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">কক্সবাজার শহর (Inside)</label>
+                                <div class="relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
+                                    <input type="number" id="charge_inside" value="<?php echo $inside_charge; ?>" required
+                                        class="w-full bg-gray-50 border border-transparent rounded-2xl pl-12 pr-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-bold text-brand-900 shadow-inner">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আউটসাইড কক্সবাজার (Outside)</label>
+                                <div class="relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
+                                    <input type="number" id="charge_outside" value="<?php echo $outside_charge; ?>" required
+                                        class="w-full bg-gray-50 border border-transparent rounded-2xl pl-12 pr-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-bold text-brand-900 shadow-inner">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" 
+                            class="w-full py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">চার্জ আপডেট করুন</button>
+                    </form>
+                </div>
             </div>
         </div>
     </main>
@@ -1918,6 +1966,19 @@ function bn_num($num)
                                 <input type="checkbox" name="is_hot_deal" class="sr-only peer">
                                 <div
                                     class="w-11 h-6 bg-orange-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600">
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-4 bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-blue-900 font-anek">ফ্রি ডেলিভারি সুবিধা</h4>
+                                <p class="text-[10px] text-blue-700 font-anek">এটি অন থাকলে ডেলিভারি চার্জ যোগ হবে না</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="free_delivery" class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-blue-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                 </div>
                             </label>
                         </div>
@@ -2477,6 +2538,43 @@ function bn_num($num)
                 });
         }
 
+        function updateDeliveryCharges(e) {
+            e.preventDefault();
+            const inside = document.getElementById('charge_inside').value;
+            const outside = document.getElementById('charge_outside').value;
+            
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "আপডেট হচ্ছে...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('action', 'update_charges');
+            formData.append('inside', inside);
+            formData.append('outside', outside);
+
+            fetch('process_settings.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message);
+                } else {
+                    showToast("ত্রুটি: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("চার্জ আপডেট করতে সমস্যা হয়েছে।");
+            })
+            .finally(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+
         function deleteBook(bookId) {
             if (!confirm('আপনি কি নিশ্চিত যে এই বইটি ডিলিট করতে চান? এটি ইনভেন্টরি থেকে স্থায়ীভাবে মুছে যাবে।')) return;
 
@@ -2554,6 +2652,7 @@ function bn_num($num)
             form.release_date.value = po.release_date;
             form.status.value = po.status;
             form.is_hot_deal.checked = parseInt(po.is_hot_deal) === 1;
+            form.free_delivery.checked = parseInt(po.free_delivery) === 1;
 
             // Image Preview
             const preview = document.getElementById('po-cover-preview');

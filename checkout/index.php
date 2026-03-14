@@ -1,4 +1,5 @@
 <?php
+require_once '../includes/db_connect.php';
 $page_title = 'চেকআউট | অন্ত্যমিল অনলাইন বুকশপ';
 $path_prefix = '../';
 $is_checkout = true;
@@ -30,7 +31,6 @@ $additional_head = '
         }
     </style>';
 include '../includes/header.php';
-require_once '../includes/db_connect.php';
 
 $user_balance = 0;
 $user_data = null;
@@ -46,6 +46,21 @@ $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
 // Fetch Active Payment Methods
 $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 ORDER BY id ASC");
 $active_payment_methods = $payments_stmt->fetchAll();
+
+// Helper to get settings
+function getSetting($pdo, $key, $defaultValue = '') {
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        return $val !== false ? $val : $defaultValue;
+    } catch (Exception $e) {
+        return $defaultValue;
+    }
+}
+
+$inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
+$outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
 ?>
 
 <main class="max-w-7xl mx-auto px-6 py-12">
@@ -82,19 +97,31 @@ $active_payment_methods = $payments_stmt->fetchAll();
                             value="<?php echo htmlspecialchars($user_data['address'] ?? ''); ?>"
                             class="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-brand-gold transition-all font-anek text-brand-900 font-medium">
                     </div>
-                    <div class="space-y-2">
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">ডেলিভারি এরিয়া *</label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
+                                <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                                    <p class="text-sm font-anek font-bold text-brand-900">কক্সবাজার শহর</p>
+                                    <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $inside_charge; ?></p>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="location" value="outside" onchange="updateDelivery(this.value)" class="hidden peer">
+                                <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                                    <p class="text-sm font-anek font-bold text-brand-900">আউটসাইড কক্সবাজার</p>
+                                    <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $outside_charge; ?></p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="space-y-2 hidden">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">শহর
                             *</label>
                         <select id="cust-city"
                             class="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-brand-gold transition-all font-anek text-brand-900 font-medium appearance-none">
-                            <option>ঢাকা</option>
-                            <option>চট্টগ্রাম</option>
-                            <option>রাজশাহী</option>
-                            <option>খুলনা</option>
-                            <option>বরিশাল</option>
-                            <option>সিলেট</option>
-                            <option>রংপুর</option>
-                            <option>ময়মনসিংহ</option>
+                            <option value="Cox's Bazar">Cox's Bazar</option>
                         </select>
                     </div>
                 </div>
@@ -232,7 +259,7 @@ $active_payment_methods = $payments_stmt->fetchAll();
                     <?php if ($checkout_type == 'buy'): ?>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-400 font-anek">ডেলিভারি চার্জ</span>
-                            <span class="font-bold text-brand-900 font-anek">৳৫০</span>
+                            <span id="display-delivery" class="font-bold text-brand-900 font-anek">৳<?php echo $inside_charge; ?></span>
                         </div>
                     <?php endif; ?>
                     <div class="flex justify-between text-xl pt-4">
@@ -309,6 +336,21 @@ $active_payment_methods = $payments_stmt->fetchAll();
     const currentUserFund = <?php echo (int) $user_balance; ?>;
     const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
+
+    const insideCharge = <?php echo $inside_charge; ?>;
+    const outsideCharge = <?php echo $outside_charge; ?>;
+    let currentDeliveryCharge = insideCharge;
+    let subTotal = 0;
+
+    function updateDelivery(loc) {
+        currentDeliveryCharge = (loc === 'inside') ? insideCharge : outsideCharge;
+        const total = subTotal + (checkoutType === 'borrow' ? 0 : currentDeliveryCharge);
+        
+        if (document.getElementById('display-delivery')) {
+            document.getElementById('display-delivery').innerText = `৳${convertToBengaliNumber(currentDeliveryCharge)}`;
+        }
+        document.getElementById('grand-total').innerText = `৳${convertToBengaliNumber(total)}`;
+    }
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -389,7 +431,8 @@ $active_payment_methods = $payments_stmt->fetchAll();
                 `;
         });
 
-        const deliveryCharge = (checkoutType === 'borrow') ? 0 : 50;
+        const deliveryCharge = (checkoutType === 'borrow') ? 0 : currentDeliveryCharge;
+        subTotal = total;
         document.getElementById('sub-total').innerText = `৳${convertToBengaliNumber(total)}`;
         document.getElementById('grand-total').innerText = `৳${convertToBengaliNumber(total + deliveryCharge)}`;
     }
@@ -423,7 +466,7 @@ $active_payment_methods = $payments_stmt->fetchAll();
         // Calculate total amount
         let total = 0;
         cartItems.forEach(item => total += (checkoutType === 'borrow' ? 0 : item.price));
-        const finalAmount = total + (checkoutType === 'borrow' ? 0 : 50);
+        const finalAmount = total + (checkoutType === 'borrow' ? 0 : currentDeliveryCharge);
 
         // Check if account fund is sufficient
         if (selectedPayMethod === 'fund' && finalAmount > currentUserFund) {
@@ -431,12 +474,13 @@ $active_payment_methods = $payments_stmt->fetchAll();
             return;
         }
 
-        // Prepare data for backend
+        const location = document.querySelector('input[name="location"]:checked').value;
         const formData = new FormData();
         formData.append('name', name);
         formData.append('phone', phone);
         formData.append('address', addr);
         formData.append('city', city);
+        formData.append('location', location);
         formData.append('payment_method', selectedPayMethod);
         formData.append('checkout_type', checkoutType);
         formData.append('total_amount', finalAmount);
