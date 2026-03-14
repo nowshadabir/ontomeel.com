@@ -27,6 +27,16 @@ if (isset($_SESSION['user_id'])) {
             প্ল্যানটি বেছে নিন।
         </p>
 
+        <!-- Closure Notice -->
+        <div class="mt-10 inline-flex items-center gap-4 px-6 py-4 bg-red-500/10 border border-red-500/20 backdrop-blur-md rounded-2xl animate-pulse">
+            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+            <p class="text-white font-anek font-bold">বর্তমানে আমাদের মেম্বারশিপ প্রোগ্রামটি সাময়িকভাবে বন্ধ আছে।</p>
+        </div>
+        
+        <div class="mt-6 text-gray-400 font-anek text-sm">
+            আপনি যদি বই ধার নিতে চান, তবে সরাসরি <a href="../library/" class="text-brand-gold hover:underline">লাইব্রেরিতে</a> গিয়ে যোগাযোগ করুন এবং বই সংগ্রহ করুন।
+        </div>
+
         <?php if ($current_user_plan != 'None'): ?>
             <div
                 class="mt-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 max-w-lg mx-auto animate-slide-up">
@@ -150,9 +160,8 @@ if (isset($_SESSION['user_id'])) {
                         ডিজিটাল অ্যাক্সেস
                     </li>
                 </ul>
-                <button onclick="openModal('সাধারণ পাঠক')"
-                    class="w-full py-4 rounded-xl border-2 border-brand-900 text-brand-900 font-bold hover:bg-brand-900 hover:text-white transition-all duration-300">শুরু
-                    করুন</button>
+                <button disabled
+                    class="w-full py-4 rounded-xl border-2 border-gray-200 text-gray-400 font-bold cursor-not-allowed">বন্ধ আছে</button>
             </div>
 
             <!-- Pro Plan -->
@@ -197,9 +206,8 @@ if (isset($_SESSION['user_id'])) {
                         অডিওবুক অ্যাক্সেস
                     </li>
                 </ul>
-                <button onclick="openModal('বইপ্রেমী')"
-                    class="w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-bold hover:bg-white transition-all duration-300 shadow-lg shadow-brand-gold/20">সাবস্ক্রাইব
-                    করুন</button>
+                <button disabled
+                    class="w-full py-4 rounded-xl bg-gray-700 text-gray-400 font-bold cursor-not-allowed">বন্ধ আছে</button>
             </div>
 
             <!-- Collector Plan -->
@@ -234,9 +242,8 @@ if (isset($_SESSION['user_id'])) {
                         ভিআইপি লাউঞ্জ অ্যাক্সেস
                     </li>
                 </ul>
-                <button onclick="openModal('সংগ্রাহক')"
-                    class="w-full py-4 rounded-xl border-2 border-brand-900 text-brand-900 font-bold hover:bg-brand-900 hover:text-white transition-all duration-300">শুরু
-                    করুন</button>
+                <button disabled
+                    class="w-full py-4 rounded-xl border-2 border-gray-200 text-gray-400 font-bold cursor-not-allowed">বন্ধ আছে</button>
             </div>
         </div>
     </div>
