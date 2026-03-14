@@ -229,7 +229,7 @@ function getDaysRemaining($due_date)
     <link rel="stylesheet" href="../assets/css/style.css">
 
     <script>
-        const user_id = <?php echo (int) $user['id']; ?>;
+        const user_id = <?php echo (int)$user['id']; ?>;
         const membership_plan = '<?php echo htmlspecialchars($user['membership_plan'], ENT_QUOTES, 'UTF-8'); ?>';
         localStorage.setItem('membership_plan', membership_plan);
     </script>
@@ -372,7 +372,8 @@ function getDaysRemaining($due_date)
                             <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest leading-none">
                                 মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?>
                             </p>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                         <a href="../membership/"
                             class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2 hover:underline block leading-none">প্ল্যান
                             পরিবর্তন করুন →</a>
@@ -497,13 +498,16 @@ function getDaysRemaining($due_date)
                                             </span>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                                <?php
+    endforeach; ?>
+                            <?php
+else: ?>
                                 <tr>
                                     <td colspan="4" class="px-10 py-10 text-center text-gray-400 font-anek italic">কোন
                                         কার্যক্রম খুঁজে পাওয়া যায়নি</td>
                                 </tr>
-                            <?php endif; ?>
+                            <?php
+endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -552,9 +556,9 @@ function getDaysRemaining($due_date)
                                         <?php echo htmlspecialchars($book['author']); ?>
                                     </p>
                                     <?php
-                                    $days = getDaysRemaining($book['due_date']);
-                                    $color = $days < 0 ? 'text-red-600' : ($days < 3 ? 'text-orange-500' : 'text-green-600');
-                                    ?>
+        $days = getDaysRemaining($book['due_date']);
+        $color = $days < 0 ? 'text-red-600' : ($days < 3 ? 'text-orange-500' : 'text-green-600');
+?>
                                     <p class="text-[10px] <?php echo $color; ?> font-bold uppercase tracking-widest mb-1">
                                         <?php echo $days < 0 ? 'ফেরতে বিলম্ব: ' . abs($days) . ' দিন' : 'ফেরত দিতে বাকি: ' . $days . ' দিন'; ?>
                                     </p>
@@ -585,15 +589,19 @@ function getDaysRemaining($due_date)
                                             class="w-full py-2 bg-red-50 text-red-500 rounded-xl text-xs font-bold font-anek hover:bg-red-500 hover:text-white transition-colors uppercase tracking-widest shadow-sm border border-red-100">
                                             অর্ডার বাতিল করুন
                                         </button>
-                                    <?php endif; ?>
+                                    <?php
+        endif; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                            <?php
+    endforeach; ?>
+                        <?php
+else: ?>
                             <div
                                 class="col-span-full py-10 text-center bg-white rounded-[32px] border border-dashed border-gray-200">
                                 <p class="font-anek text-gray-400">বর্তমানে কোন বই ধার নেওয়া নেই</p>
                             </div>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                     </div>
                 </div>
 
@@ -612,7 +620,17 @@ function getDaysRemaining($due_date)
                                 <div
                                     class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group">
                                     <div class="relative aspect-[3/4] mb-6 overflow-hidden rounded-2xl bg-gray-50">
-                                        <img src="<?php echo !empty($book['cover_image']) ? '../admin/assets/book-images/' . $book['cover_image'] : '../assets/img/book-placeholder.png'; ?>"
+                                        <img src="<?php
+        $cover_image = !empty($book['cover_image']) ? trim($book['cover_image']) : '../assets/img/book-placeholder.png';
+        // Check if this is a pre-order by checking preorder_id or if cover path suggests preorder
+        $is_preorder = isset($book['preorder_id']) && $book['preorder_id'] !== null;
+        if ($is_preorder) {
+            echo strpos($cover_image, 'http') === 0 ? $cover_image : '../assets/img/preorders/' . trim($cover_image);
+        }
+        else {
+            echo strpos($cover_image, 'http') === 0 ? $cover_image : '../admin/assets/book-images/' . trim($cover_image);
+        }
+?>"
                                             alt="book" class="w-full h-full object-cover">
                                         <div
                                             class="absolute top-4 right-4 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
@@ -638,13 +656,16 @@ function getDaysRemaining($due_date)
                                         সম্পূর্ণ
                                     </p>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                            <?php
+    endforeach; ?>
+                        <?php
+else: ?>
                             <div
                                 class="col-span-full py-10 text-center bg-white rounded-[32px] border border-dashed border-gray-200">
                                 <p class="font-anek text-gray-400">আপনার সংগ্রহের ঝুলি বর্তমানে শূন্য</p>
                             </div>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                     </div>
                 </div>
             </div>
@@ -689,7 +710,17 @@ function getDaysRemaining($due_date)
                                 <?php foreach ($order['items'] as $item): ?>
                                     <div class="flex items-center gap-6">
                                         <div class="w-16 h-20 bg-gray-50 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
-                                            <img src="<?php echo !empty($item['cover_image']) ? '../admin/assets/book-images/' . $item['cover_image'] : 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=200'; ?>"
+                                            <img src="<?php
+            $cover_image = !empty($item['cover_image']) ? trim($item['cover_image']) : 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=200';
+            // Check if this is a pre-order
+            $is_preorder = isset($item['item_type']) && $item['item_type'] === 'Pre-order';
+            if ($is_preorder) {
+                echo strpos($cover_image, 'http') === 0 ? $cover_image : '../assets/img/preorders/' . trim($cover_image);
+            }
+            else {
+                echo strpos($cover_image, 'http') === 0 ? $cover_image : '../admin/assets/book-images/' . trim($cover_image);
+            }
+?>"
                                                 alt="book" class="w-full h-full object-cover">
                                         </div>
                                         <div class="flex-1">
@@ -698,7 +729,8 @@ function getDaysRemaining($due_date)
                                                 <?php if ($item['item_type'] === 'Pre-order'): ?>
                                                     <span
                                                         class="text-[8px] bg-brand-gold/10 text-brand-gold px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">প্রি-অর্ডার</span>
-                                                <?php endif; ?>
+                                                <?php
+            endif; ?>
                                             </h4>
                                             <p class="text-xs text-gray-400 font-anek">
                                                 <?php echo htmlspecialchars($item['author']); ?>
@@ -711,11 +743,13 @@ function getDaysRemaining($due_date)
                                                         class="text-[9px] text-gray-500 font-bold bg-gray-50 px-2 py-0.5 rounded border border-gray-100 uppercase tracking-tighter">
                                                         রিলিজ ডেট: <?php echo date('d M, Y', strtotime($item['release_date'])); ?>
                                                     </p>
-                                                <?php endif; ?>
+                                                <?php
+            endif; ?>
                                             </div>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php
+        endforeach; ?>
                             </div>
 
                             <div
@@ -748,16 +782,17 @@ function getDaysRemaining($due_date)
                                                 ফান্ডে রিফান্ড করে দেওয়া হয়েছে।
                                             </p>
                                         </div>
-                                    <?php endif; ?>
+                                    <?php
+        endif; ?>
 
                                     <?php if ($order['order_status'] === 'Processing'): ?>
                                         <?php
-                                        // Calculate time left for cancellation using proper timezone
-                                        $order_tz = new DateTimeZone('Asia/Dhaka');
-                                        $order_dt = new DateTime($order['order_date'], $order_tz);
-                                        $now_dt = new DateTime('now', $order_tz);
-                                        $time_left = 180 - ($now_dt->getTimestamp() - $order_dt->getTimestamp());
-                                        ?>
+            // Calculate time left for cancellation using proper timezone
+            $order_tz = new DateTimeZone('Asia/Dhaka');
+            $order_dt = new DateTime($order['order_date'], $order_tz);
+            $now_dt = new DateTime('now', $order_tz);
+            $time_left = 180 - ($now_dt->getTimestamp() - $order_dt->getTimestamp());
+?>
                                         <?php if ($time_left > 0): ?>
                                             <button onclick="cancelOrder(<?php echo $order['id']; ?>)"
                                                 id="cancel-btn-<?php echo $order['id']; ?>" data-timeleft="<?php echo $time_left; ?>"
@@ -765,17 +800,22 @@ function getDaysRemaining($due_date)
                                                 অর্ডার বাতিল করুন (<span
                                                     class="timer-text"><?php echo gmdate("i:s", $time_left); ?></span>)
                                             </button>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
+                                        <?php
+            endif; ?>
+                                    <?php
+        endif; ?>
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
+                    <?php
+    endforeach; ?>
+                <?php
+else: ?>
                     <div class="py-20 text-center bg-white rounded-[40px] border border-dashed border-gray-200">
                         <p class="font-anek text-gray-400">আপনার এখনো কোন অর্ডার নেই</p>
                     </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
         </div>
 
@@ -807,7 +847,8 @@ function getDaysRemaining($due_date)
                                 <?php if ($user['membership_plan'] != 'None' && $user['plan_expire_date']): ?>
                                     <span class="px-4 py-2 bg-red-100 text-red-600 rounded-full text-xs font-bold">মেয়াদ
                                         শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?></span>
-                                <?php endif; ?>
+                                <?php
+endif; ?>
                                 <span class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">ID:
                                     <?php echo htmlspecialchars($user['membership_id']); ?></span>
                                 <div
@@ -931,7 +972,8 @@ function getDaysRemaining($due_date)
                 setTimeout(() => document.getElementById('success-toast').remove(), 500);
             }, 3000);
         </script>
-    <?php endif; ?>
+    <?php
+endif; ?>
 
     <script>
         const sidebar = document.getElementById('dashboard-sidebar');

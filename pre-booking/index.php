@@ -444,7 +444,8 @@ function bn_num($num)
                                     <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
                                         <img src="https://i.pravatar.cc/100?img=<?php echo $i + 10; ?>" alt="user">
                                     </div>
-                                <?php endfor; ?>
+                                <?php
+endfor; ?>
                             </div>
                             <div class="text-left">
                                 <p class="text-xs font-bold text-brand-900">১২০০+ পাঠক</p>
@@ -512,9 +513,9 @@ function bn_num($num)
                                 </p>
                                 <div class="flex items-baseline gap-4">
                                     <span
-                                        class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $hot_deal['discount_price']); ?></span>
+                                        class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int)$hot_deal['discount_price']); ?></span>
                                     <span
-                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int) $hot_deal['price']); ?></span>
+                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int)$hot_deal['price']); ?></span>
                                 </div>
                             </div>
                             <div class="h-16 w-[1px] bg-gray-200 hidden sm:block"></div>
@@ -522,7 +523,7 @@ function bn_num($num)
                                 <p class="text-[10px] text-brand-gold uppercase tracking-widest font-bold mb-1">আপনি
                                     বাঁচাচ্ছেন</p>
                                 <p class="text-lg sm:text-2xl font-bold font-anek text-brand-gold">
-                                    ৳<?php echo bn_num((int) ($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
+                                    ৳<?php echo bn_num((int)($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
                                 </p>
                             </div>
                         </div>
@@ -547,7 +548,7 @@ function bn_num($num)
                                     </div>
                                 </div>
                                 <div class="book-wrapper book-2 w-[220px] md:w-[280px]">
-                                    <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['second_cover_image']; ?>"
+                                    <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
                                         class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
                                     <div class="status-label label-released">
                                         <span class="inline-block w-2 h-2 bg-white rounded-full mr-2"></span>
@@ -555,17 +556,20 @@ function bn_num($num)
                                     </div>
                                 </div>
                             </div>
-                        <?php else: ?>
+                        <?php
+    else: ?>
                             <!-- Single Book Display -->
                             <div class="book-3d-hot w-[280px] md:w-[400px]">
                                 <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
                                     class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
                             </div>
-                        <?php endif; ?>
+                        <?php
+    endif; ?>
                     </div>
                 </div>
             </section>
-        <?php endif; ?>
+        <?php
+endif; ?>
 
         <!-- Other Pre-orders Grid -->
         <div class="reveal">
@@ -576,14 +580,14 @@ function bn_num($num)
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                 <?php foreach ($preorders as $index => $book):
-                    $isOpen = $book['status'] == 'Open';
-                    ?>
+    $isOpen = $book['status'] == 'Open';
+?>
                     <div onclick="window.location.href='book-details.php?id=<?php echo $book['id']; ?>'"
                         class="mockup-card reveal group">
 
                         <div class="mockup-img-wrapper mb-8">
                             <span class="mockup-badge"><?php echo $isOpen ? 'ওপেন' : 'আসন্ন'; ?></span>
-                            <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>"
+                            <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']); ?>"
                                 alt="<?php echo $book['title']; ?>"
                                 class="w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-700">
 
@@ -612,9 +616,9 @@ function bn_num($num)
                                 <div>
                                     <div class="flex items-baseline gap-3">
                                         <span
-                                            class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
+                                            class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int)$book['discount_price']); ?></span>
                                         <span
-                                            class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
+                                            class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int)$book['price']); ?></span>
                                     </div>
                                 </div>
 
@@ -627,7 +631,8 @@ function bn_num($num)
                             </div>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php
+endforeach; ?>
             </div>
         </div>
 

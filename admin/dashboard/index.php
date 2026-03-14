@@ -19,7 +19,7 @@ $categories = $cats_stmt->fetchAll();
 
 // Inventory Filter Logic - Use prepared statement
 $search = isset($_GET['search']) ? '%' . trim($_GET['search']) . '%' : '%';
-$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int) $_GET['category'] : '%';
+$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int)$_GET['category'] : '%';
 
 $inv_stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
                           FROM books b 
@@ -70,7 +70,7 @@ $preorders_stmt = $pdo->query("SELECT * FROM pre_orders ORDER BY release_date AS
 $admin_preorders = $preorders_stmt->fetchAll();
 
 // Fetch Pre-order Bookings (New)
-$po_bookings_stmt = $pdo->query("SELECT oi.*, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, 
+$po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, 
                                           COALESCE(m.full_name, o.guest_name) as full_name, 
                                           COALESCE(m.phone, o.guest_phone) as phone, 
                                           COALESCE(m.email, o.guest_email) as email,
@@ -91,13 +91,15 @@ $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
 $payment_methods = $payments_stmt->fetchAll();
 
 // Helper to get settings
-function getSetting($pdo, $key, $default = '') {
+function getSetting($pdo, $key, $default = '')
+{
     try {
         $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
         $stmt->execute([$key]);
         $val = $stmt->fetchColumn();
         return $val !== false ? $val : $default;
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         return $default;
     }
 }
@@ -419,20 +421,20 @@ function bn_num($num)
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php foreach ($admin_orders as $order):
-                                $items = getOrderItems($order['id'], $order_items_by_order);
-                                $items_list = implode(', ', array_column($items, 'title'));
-                                $status_color = 'bg-gray-100 text-gray-600';
-                                if ($order['order_status'] == 'Processing')
-                                    $status_color = 'bg-orange-100 text-orange-600';
-                                if ($order['order_status'] == 'Confirmed')
-                                    $status_color = 'bg-amber-100 text-amber-600';
-                                if ($order['order_status'] == 'Shipped')
-                                    $status_color = 'bg-blue-100 text-blue-600';
-                                if ($order['order_status'] == 'Delivered')
-                                    $status_color = 'bg-green-100 text-green-600';
-                                if ($order['order_status'] == 'Cancelled')
-                                    $status_color = 'bg-red-100 text-red-600';
-                                ?>
+    $items = getOrderItems($order['id'], $order_items_by_order);
+    $items_list = implode(', ', array_column($items, 'title'));
+    $status_color = 'bg-gray-100 text-gray-600';
+    if ($order['order_status'] == 'Processing')
+        $status_color = 'bg-orange-100 text-orange-600';
+    if ($order['order_status'] == 'Confirmed')
+        $status_color = 'bg-amber-100 text-amber-600';
+    if ($order['order_status'] == 'Shipped')
+        $status_color = 'bg-blue-100 text-blue-600';
+    if ($order['order_status'] == 'Delivered')
+        $status_color = 'bg-green-100 text-green-600';
+    if ($order['order_status'] == 'Cancelled')
+        $status_color = 'bg-red-100 text-red-600';
+?>
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-10 py-6 text-sm font-bold text-brand-900">
                                         #<?php echo $order['invoice_no']; ?></td>
@@ -448,10 +450,12 @@ function bn_num($num)
                                         <?php if ($order['notes'] == 'Borrow Order'): ?>
                                             <span
                                                 class="px-2 py-1 bg-purple-100 text-purple-600 rounded text-[9px] font-bold uppercase">Borrow</span>
-                                        <?php else: ?>
+                                        <?php
+    else: ?>
                                             <span
                                                 class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[9px] font-bold uppercase">Buy</span>
-                                        <?php endif; ?>
+                                        <?php
+    endif; ?>
                                     </td>
                                     <td class="px-10 py-6 text-sm font-bold text-brand-900">
                                         ৳<?php echo bn_num(number_format($order['total_amount'])); ?></td>
@@ -481,34 +485,35 @@ function bn_num($num)
                                             <span
                                                 class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
                                                 <?php
-                                                $st = $order['order_status'];
-                                                if ($st == 'Delivered')
-                                                    echo 'ডেলিভারড';
-                                                else if ($st == 'Cancelled')
-                                                    echo 'বাতিল';
-                                                ?>
+        $st = $order['order_status'];
+        if ($st == 'Delivered')
+            echo 'ডেলিভারড';
+        else if ($st == 'Cancelled')
+            echo 'বাতিল';
+?>
                                             </span>
-                                        <?php else: ?>
+                                        <?php
+    else: ?>
                                             <button onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
                                                 class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php
-                                                    if ($order['order_status'] == 'Processing')
-                                                        echo 'hover:ring-orange-200';
-                                                    else if ($order['order_status'] == 'Confirmed')
-                                                        echo 'hover:ring-amber-200';
-                                                    else if ($order['order_status'] == 'Shipped')
-                                                        echo 'hover:ring-blue-200';
-                                                    ?>">
+        if ($order['order_status'] == 'Processing')
+            echo 'hover:ring-orange-200';
+        else if ($order['order_status'] == 'Confirmed')
+            echo 'hover:ring-amber-200';
+        else if ($order['order_status'] == 'Shipped')
+            echo 'hover:ring-blue-200';
+?>">
                                                 <?php
-                                                $st = $order['order_status'];
-                                                if ($st == 'Processing')
-                                                    echo 'পেন্ডিং';
-                                                else if ($st == 'Confirmed')
-                                                    echo 'কনফার্মড';
-                                                else if ($st == 'Shipped')
-                                                    echo 'শিপড';
-                                                else
-                                                    echo $st;
-                                                ?>
+        $st = $order['order_status'];
+        if ($st == 'Processing')
+            echo 'পেন্ডিং';
+        else if ($st == 'Confirmed')
+            echo 'কনফার্মড';
+        else if ($st == 'Shipped')
+            echo 'শিপড';
+        else
+            echo $st;
+?>
                                             </button>
 
                                             <!-- Order Status Dropdown -->
@@ -525,7 +530,8 @@ function bn_num($num)
                                                 <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
                                                     class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
                                             </div>
-                                        <?php endif; ?>
+                                        <?php
+    endif; ?>
                                     </td>
                                     <td class="px-10 py-6 text-right">
                                         <div class="flex justify-end items-center gap-2">
@@ -556,37 +562,43 @@ function bn_num($num)
                                                             onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট
                                                             পেড</button>
-                                                    <?php endif; ?>
+                                                    <?php
+    endif; ?>
                                                     <?php if ($order['order_status'] == 'Processing'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম
                                                             করুন</button>
-                                                    <?php endif; ?>
+                                                    <?php
+    endif; ?>
                                                     <?php if (in_array($order['order_status'], ['Processing', 'Confirmed'])): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:bg-blue-50">শিপড
                                                             করুন</button>
-                                                    <?php endif; ?>
+                                                    <?php
+    endif; ?>
                                                     <?php if ($order['order_status'] == 'Shipped'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50">ডেলিভারড
                                                             করুন</button>
-                                                    <?php endif; ?>
+                                                    <?php
+    endif; ?>
                                                     <?php if ($order['order_status'] != 'Delivered' && $order['order_status'] != 'Cancelled'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50">বাতিল
                                                             করুন</button>
-                                                    <?php endif; ?>
+                                                    <?php
+    endif; ?>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php
+endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -628,10 +640,11 @@ function bn_num($num)
                         class="bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 appearance-none min-w-[150px] shadow-inner">
                         <option value="all">সব ক্যাটাগরি</option>
                         <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>" <?php echo (isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo(isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
                                 <?php echo $cat['name']; ?>
                             </option>
-                        <?php endforeach; ?>
+                        <?php
+endforeach; ?>
                     </select>
                     <button type="submit"
                         class="px-6 py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold hover:bg-white border border-transparent hover:border-brand-gold transition-all shadow-sm">বই
@@ -687,9 +700,9 @@ function bn_num($num)
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-3">
                                             <?php
-                                            $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
-                                            $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
-                                            ?>
+    $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
+    $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
+?>
                                             <div class="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
                                                 <div class="<?php echo $stock_color; ?> h-full"
                                                     style="width: <?php echo $stock_percent; ?>%"></div>
@@ -698,8 +711,8 @@ function bn_num($num)
                                                 class="text-xs font-bold text-brand-900"><?php echo bn_num($book['stock_qty']); ?>টি</span>
                                         </div>
                                         <p
-                                            class="text-[9px] <?php echo ($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
-                                            <?php echo ($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
+                                            class="text-[9px] <?php echo($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
+                                            <?php echo($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
                                         </p>
                                     </td>
                                     <td class="px-8 py-5 text-right">
@@ -721,7 +734,8 @@ function bn_num($num)
                                         </div>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php
+endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -787,12 +801,13 @@ function bn_num($num)
                                     <td colspan="5" class="px-10 py-20 text-center text-gray-400 font-anek">আপাতত কোনো
                                         মেম্বার পাওয়া যায়নি।</td>
                                 </tr>
-                            <?php else: ?>
+                            <?php
+else: ?>
                                 <?php foreach ($admin_members as $member):
-                                    $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
-                                    $join_date = date('d F, Y', strtotime($member['created_at']));
-                                    // Translate month to Bengali if needed, but standard date is fine for now
-                                    ?>
+        $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
+        $join_date = date('d F, Y', strtotime($member['created_at']));
+        // Translate month to Bengali if needed, but standard date is fine for now
+?>
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="px-10 py-6">
                                             <div class="flex items-center gap-4">
@@ -817,16 +832,16 @@ function bn_num($num)
                                             <span
                                                 class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
                                                 <?php
-                                                $plan = $member['membership_plan'] ?? 'None';
-                                                if ($plan == 'General')
-                                                    echo 'সাধারণ';
-                                                else if ($plan == 'BookLover')
-                                                    echo 'বইপ্রেমী';
-                                                else if ($plan == 'Collector')
-                                                    echo 'সংগ্রাহক';
-                                                else
-                                                    echo 'বেসিক';
-                                                ?>
+        $plan = $member['membership_plan'] ?? 'None';
+        if ($plan == 'General')
+            echo 'সাধারণ';
+        else if ($plan == 'BookLover')
+            echo 'বইপ্রেমী';
+        else if ($plan == 'Collector')
+            echo 'সংগ্রাহক';
+        else
+            echo 'বেসিক';
+?>
                                             </span>
                                         </td>
                                         <td class="px-10 py-6 text-sm text-gray-500">
@@ -849,8 +864,10 @@ function bn_num($num)
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                                <?php
+    endforeach; ?>
+                            <?php
+endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -887,11 +904,11 @@ function bn_num($num)
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php
-                            include '../../includes/db_connect.php';
-                            $stmt = $pdo->query("SELECT b.*, c.name as cat_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.is_suggested = 1");
-                            $suggested = $stmt->fetchAll();
-                            foreach ($suggested as $book):
-                                ?>
+include '../../includes/db_connect.php';
+$stmt = $pdo->query("SELECT b.*, c.name as cat_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.is_suggested = 1");
+$suggested = $stmt->fetchAll();
+foreach ($suggested as $book):
+?>
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-10 py-6">
                                         <div class="flex items-center gap-4">
@@ -921,7 +938,8 @@ function bn_num($num)
                                             class="px-3 py-1 bg-brand-gold/10 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">সাজেস্টেড</span>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php
+endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -969,51 +987,52 @@ function bn_num($num)
                                     <td colspan="6" class="text-center py-12 text-gray-400 font-anek">কোনো সক্রিয় বরো নেই।
                                     </td>
                                 </tr>
-                            <?php else: ?>
+                            <?php
+else: ?>
                                 <?php foreach ($active_borrows as $borrow):
-                                    // 1. Sync Service: If order is Shipped/Delivered, Borrow MUST be Active
-                                    if ($borrow['status'] === 'Processing' && in_array($borrow['order_status'], ['Shipped', 'Delivered'])) {
-                                        $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP WHERE id = ?")
-                                            ->execute([$borrow['id']]);
-                                        $borrow['status'] = 'Active';
-                                        $borrow['borrow_date'] = date('Y-m-d H:i:s');
-                                    }
+        // 1. Sync Service: If order is Shipped/Delivered, Borrow MUST be Active
+        if ($borrow['status'] === 'Processing' && in_array($borrow['order_status'], ['Shipped', 'Delivered'])) {
+            $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP WHERE id = ?")
+                ->execute([$borrow['id']]);
+            $borrow['status'] = 'Active';
+            $borrow['borrow_date'] = date('Y-m-d H:i:s');
+        }
 
-                                    // 2. Overdue Check
-                                    $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date'] . ' 23:59:59') < time();
-                                    if ($is_overdue) {
-                                        $pdo->prepare("UPDATE borrows SET status = 'Overdue' WHERE id = ?")->execute([$borrow['id']]);
-                                        $borrow['status'] = 'Overdue';
-                                    }
-                                    switch ($borrow['status']) {
-                                        case 'Processing':
-                                            $bstatus_color = 'bg-yellow-100 text-yellow-700';
-                                            break;
-                                        case 'Active':
-                                            $bstatus_color = 'bg-green-100 text-green-700';
-                                            break;
-                                        case 'Overdue':
-                                            $bstatus_color = 'bg-red-100 text-red-600';
-                                            break;
-                                        default:
-                                            $bstatus_color = 'bg-gray-100 text-gray-600';
-                                            break;
-                                    }
-                                    switch ($borrow['status']) {
-                                        case 'Processing':
-                                            $bstatus_label = 'প্রসেসিং';
-                                            break;
-                                        case 'Active':
-                                            $bstatus_label = 'সক্রিয়';
-                                            break;
-                                        case 'Overdue':
-                                            $bstatus_label = 'মেয়াদ পার';
-                                            break;
-                                        default:
-                                            $bstatus_label = $borrow['status'];
-                                            break;
-                                    }
-                                    ?>
+        // 2. Overdue Check
+        $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date'] . ' 23:59:59') < time();
+        if ($is_overdue) {
+            $pdo->prepare("UPDATE borrows SET status = 'Overdue' WHERE id = ?")->execute([$borrow['id']]);
+            $borrow['status'] = 'Overdue';
+        }
+        switch ($borrow['status']) {
+            case 'Processing':
+                $bstatus_color = 'bg-yellow-100 text-yellow-700';
+                break;
+            case 'Active':
+                $bstatus_color = 'bg-green-100 text-green-700';
+                break;
+            case 'Overdue':
+                $bstatus_color = 'bg-red-100 text-red-600';
+                break;
+            default:
+                $bstatus_color = 'bg-gray-100 text-gray-600';
+                break;
+        }
+        switch ($borrow['status']) {
+            case 'Processing':
+                $bstatus_label = 'প্রসেসিং';
+                break;
+            case 'Active':
+                $bstatus_label = 'সক্রিয়';
+                break;
+            case 'Overdue':
+                $bstatus_label = 'মেয়াদ পার';
+                break;
+            default:
+                $bstatus_label = $borrow['status'];
+                break;
+        }
+?>
                                     <tr class="hover:bg-gray-50/30 transition-colors">
                                         <td class="px-8 py-5">
                                             <div class="font-bold text-brand-900 text-sm">
@@ -1028,7 +1047,8 @@ function bn_num($num)
                                                         <img src="../../admin/assets/book-images/<?php echo htmlspecialchars($borrow['cover_image']); ?>"
                                                             class="w-full h-full object-cover"
                                                             onerror="this.style.display='none'; this.parentElement.style.background='#f3f4f6';">
-                                                    <?php else: ?>
+                                                    <?php
+        else: ?>
                                                         <div class="w-full h-full flex items-center justify-center bg-gray-200">
                                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                                                 viewBox="0 0 24 24">
@@ -1038,7 +1058,8 @@ function bn_num($num)
                                                                 </path>
                                                             </svg>
                                                         </div>
-                                                    <?php endif; ?>
+                                                    <?php
+        endif; ?>
                                                 </div>
                                                 <span
                                                     class="text-sm font-bold text-brand-900"><?php echo htmlspecialchars($borrow['title']); ?></span>
@@ -1063,7 +1084,8 @@ function bn_num($num)
                                                     <div class="bg-brand-gold h-full"
                                                         style="width: <?php echo $borrow['reading_progress']; ?>%"></div>
                                                 </div>
-                                            <?php endif; ?>
+                                            <?php
+        endif; ?>
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <?php if ($borrow['status'] === 'Active' || $borrow['status'] === 'Overdue'): ?>
@@ -1071,13 +1093,17 @@ function bn_num($num)
                                                     class="px-4 py-2 bg-brand-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-brand-gold hover:text-brand-900 transition-all">
                                                     ফেরত নিন
                                                 </button>
-                                            <?php else: ?>
+                                            <?php
+        else: ?>
                                                 <span class="text-[10px] text-gray-400">অপেক্ষায়</span>
-                                            <?php endif; ?>
+                                            <?php
+        endif; ?>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                                <?php
+    endforeach; ?>
+                            <?php
+endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -1143,13 +1169,14 @@ function bn_num($num)
                                             পাওয়া
                                             যায়নি।</td>
                                     </tr>
-                                <?php else:
-                                    foreach ($admin_preorders as $po): ?>
+                                <?php
+else:
+    foreach ($admin_preorders as $po): ?>
                                         <tr class="hover:bg-gray-50/30 transition-colors">
                                             <td class="px-8 py-5">
                                                 <div class="flex items-center gap-4">
                                                     <div class="w-10 h-14 rounded bg-gray-100 overflow-hidden">
-                                                        <img src="<?php echo strpos($po['cover_image'], 'http') === 0 ? htmlspecialchars($po['cover_image']) : '../../assets/img/preorders/' . htmlspecialchars($po['cover_image']); ?>"
+                                                        <img src="<?php echo strpos($po['cover_image'], 'http') === 0 ? htmlspecialchars($po['cover_image']) : '../../assets/img/preorders/' . htmlspecialchars(trim($po['cover_image'])); ?>"
                                                             class="w-full h-full object-cover">
                                                     </div>
                                                     <div>
@@ -1164,18 +1191,18 @@ function bn_num($num)
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="text-sm font-bold text-brand-900">
-                                                    ৳<?php echo bn_num((int) $po['discount_price']); ?></div>
+                                                    ৳<?php echo bn_num((int)$po['discount_price']); ?></div>
                                                 <div class="text-[10px] text-gray-400 line-through">
-                                                    ৳<?php echo bn_num((int) $po['price']); ?></div>
+                                                    ৳<?php echo bn_num((int)$po['price']); ?></div>
                                             </td>
                                             <td class="px-8 py-5 text-sm text-gray-500">
                                                 <?php echo date('d M Y', strtotime($po['release_date'])); ?>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <?php
-                                                $po_status_class = $po['status'] == 'Open' ? 'bg-green-100 text-green-700' : ($po['status'] == 'Upcoming' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
-                                                $po_status_label = $po['status'] == 'Open' ? 'চলছে' : ($po['status'] == 'Upcoming' ? 'আসন্ন' : 'বন্ধ');
-                                                ?>
+        $po_status_class = $po['status'] == 'Open' ? 'bg-green-100 text-green-700' : ($po['status'] == 'Upcoming' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
+        $po_status_label = $po['status'] == 'Open' ? 'চলছে' : ($po['status'] == 'Upcoming' ? 'আসন্ন' : 'বন্ধ');
+?>
                                                 <span
                                                     class="px-3 py-1 <?php echo $po_status_class; ?> rounded-full text-[10px] font-bold uppercase tracking-widest">
                                                     <?php echo $po_status_label; ?>
@@ -1187,15 +1214,18 @@ function bn_num($num)
                                                         <span
                                                             class="w-fit text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">হট
                                                             ডিল</span>
-                                                    <?php endif; ?>
+                                                    <?php
+        endif; ?>
                                                     <?php if ($po['free_delivery']): ?>
                                                         <span
                                                             class="w-fit text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">ফ্রি
                                                             ডেলিভারি</span>
-                                                    <?php endif; ?>
+                                                    <?php
+        endif; ?>
                                                     <?php if (!$po['is_hot_deal'] && !$po['free_delivery']): ?>
                                                         <span class="text-xs text-gray-400">সাধারণ</span>
-                                                    <?php endif; ?>
+                                                    <?php
+        endif; ?>
                                                 </div>
                                             </td>
                                             <td class="px-8 py-5 text-right">
@@ -1223,7 +1253,9 @@ function bn_num($num)
                                                 </div>
                                             </td>
                                         </tr>
-                                    <?php endforeach; endif; ?>
+                                    <?php
+    endforeach;
+endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -1263,8 +1295,9 @@ function bn_num($num)
                                         <td colspan="6" class="px-8 py-20 text-center text-gray-400 font-anek">আপাতত কোনো
                                             প্রি-অর্ডার বুকিং নেই।</td>
                                     </tr>
-                                <?php else:
-                                    foreach ($admin_preorder_bookings as $booking): ?>
+                                <?php
+else:
+    foreach ($admin_preorder_bookings as $booking): ?>
                                         <tr class="hover:bg-gray-50/30 transition-colors border-b border-gray-50 last:border-0">
                                             <td class="px-8 py-5">
                                                 <div class="font-bold text-brand-900 text-xs">
@@ -1296,15 +1329,15 @@ function bn_num($num)
                                             </td>
                                             <td class="px-8 py-5">
                                                 <?php
-                                                $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
-                                                ?>
+        $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
+?>
                                                 <span
                                                     class="px-3 py-1 <?php echo $s_class; ?> rounded-full text-[10px] font-bold">
                                                     <?php echo $booking['order_status']; ?>
                                                 </span>
                                             </td>
                                             <td class="px-8 py-5 text-right">
-                                                <button onclick='viewPreOrderDetails(<?php echo json_encode($booking); ?>)'
+                                                <button onclick="viewPreOrderDetails(<?php echo htmlspecialchars(json_encode($booking), ENT_QUOTES, 'UTF-8'); ?>)"
                                                     class="p-2 text-brand-900 hover:bg-brand-gold/10 rounded-lg transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1316,8 +1349,10 @@ function bn_num($num)
                                                 </button>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                    <?php
+    endforeach; ?>
+                                <?php
+endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -1335,8 +1370,8 @@ function bn_num($num)
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($payment_methods as $method):
-                    $config = json_decode($method['config_json'], true) ?: [];
-                    ?>
+    $config = json_decode($method['config_json'], true) ?: [];
+?>
                     <div
                         class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
                         <div class="flex items-center justify-between mb-8">
@@ -1345,24 +1380,28 @@ function bn_num($num)
                                     <?php if ($method['method_key'] == 'bkash'): ?>
                                         <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
-                                    <?php elseif ($method['method_key'] == 'nagad'): ?>
+                                    <?php
+    elseif ($method['method_key'] == 'nagad'): ?>
                                         <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
-                                    <?php elseif ($method['method_key'] == 'cod'): ?>
+                                    <?php
+    elseif ($method['method_key'] == 'cod'): ?>
                                         <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
                                             </path>
                                         </svg>
-                                    <?php else: ?>
+                                    <?php
+    else: ?>
                                         <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                                             </path>
                                         </svg>
-                                    <?php endif; ?>
+                                    <?php
+    endif; ?>
                                 </div>
                                 <div>
                                     <h3 class="font-anek font-bold text-brand-900">
@@ -1389,13 +1428,16 @@ function bn_num($num)
                                     onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)'
                                     class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API
                                     কনফিগারেশন আপডেট করুন</button>
-                            <?php else: ?>
+                            <?php
+    else: ?>
                                 <p class="text-xs text-gray-400 font-anek leading-relaxed">এই মেথডটির জন্য কোনো বিশেষ API
                                     কনফিগারেশন প্রয়োজন নেই। এটি সরাসরি কাস্টমার চেকআউট পেজে প্রদর্শিত হবে।</p>
-                            <?php endif; ?>
+                            <?php
+    endif; ?>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                <?php
+endforeach; ?>
             </div>
 
             <div class="mt-12">
@@ -1493,7 +1535,8 @@ function bn_num($num)
                                         <option value="<?php echo $cat['id']; ?>">
                                             <?php echo htmlspecialchars($cat['name']); ?>
                                         </option>
-                                    <?php endforeach; ?>
+                                    <?php
+endforeach; ?>
                                     <option value="new">-- নতুন ক্যাটাগরি যোগ করুন --</option>
                                 </select>
                             </div>
@@ -2339,7 +2382,7 @@ function bn_num($num)
                 itemsHtml += `
                     <div class="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
                         <div class="w-10 h-14 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                            <img src="../../admin/assets/book-images/${item.cover_image || ''}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100x140?text=Book'">
+                            <img src="${item.cover_image ? (item.cover_image.startsWith('http') ? item.cover_image : (item.preorder_id ? '../../assets/img/preorders/' + item.cover_image.trim() : '../../admin/assets/book-images/' + item.cover_image.trim())) : 'https://via.placeholder.com/100x140?text=Book'}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100x140?text=Book'">
                         </div>
                         <div class="flex-1">
                             <p class="font-bold text-brand-900 leading-tight text-sm">${item.title}</p>
@@ -2430,7 +2473,7 @@ function bn_num($num)
                         <div class="space-y-1">
                             <div class="flex items-center gap-3">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ইনভয়েস নং</p>
-                                ${parseInt(booking.is_hot_deal) === 1
+                                ${parseInt(booking.is_hot_deal || 0) === 1
                     ? '<span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">🔥 Hot Deal</span>'
                     : '<span class="bg-brand-gold/10 text-brand-900 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter">Pre-Order</span>'}
                             </div>
@@ -2658,7 +2701,7 @@ function bn_num($num)
             const preview = document.getElementById('po-cover-preview');
             const img = preview.querySelector('img');
             if (po.cover_image) {
-                img.src = po.cover_image.startsWith('http') ? po.cover_image : '../../assets/img/preorders/' + po.cover_image;
+                img.src = po.cover_image.startsWith('http') ? po.cover_image : '../../assets/img/preorders/' + po.cover_image.trim();
                 preview.classList.remove('hidden');
             } else {
                 preview.classList.add('hidden');
@@ -2668,7 +2711,7 @@ function bn_num($num)
             const secondPreview = document.getElementById('po-second-cover-preview');
             const secondImg = secondPreview.querySelector('img');
             if (po.second_cover_image) {
-                secondImg.src = po.second_cover_image.startsWith('http') ? po.second_cover_image : '../../assets/img/preorders/' + po.second_cover_image;
+                secondImg.src = po.second_cover_image.startsWith('http') ? po.second_cover_image : '../../assets/img/preorders/' + po.second_cover_image.trim();
                 secondPreview.classList.remove('hidden');
             } else {
                 secondPreview.classList.add('hidden');
