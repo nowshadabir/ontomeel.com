@@ -398,14 +398,15 @@ endif; ?>
                         <p class="text-3xl font-anek font-bold text-brand-gold">৳
                             <?php echo number_format($wallet_balance); ?>
                         </p>
-                        <button onclick="openAddFundModal()"
+                        <!-- <button onclick="openAddFundModal()"
                             class="w-full py-2 bg-brand-gold text-brand-900 rounded-xl font-anek font-bold transition-all hover:bg-white text-xs shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             তহবিল যোগ করুন
-                        </button>
+                        </button> -->
+                        <div class="py-2 text-[10px] text-brand-gold/50 font-anek font-bold border border-brand-gold/20 rounded-xl text-center uppercase tracking-widest">তহবিল যোগ করা সাময়িকভাবে বন্ধ আছে</div>
                         <a href="#"
                             class="text-[10px] text-white/50 font-bold uppercase tracking-widest mt-2 hover:text-brand-gold transition-colors block text-center leading-none">লেনদেন
                             দেখুন →</a>
@@ -906,8 +907,8 @@ endif; ?>
         </div>
     </main>
 
-    <!-- Add Fund Modal -->
-    <div id="add-fund-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <!-- Add Fund Modal (Disabled) -->
+    <!-- <div id="add-fund-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-md transition-opacity" onclick="closeAddFundModal()">
         </div>
         <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-slide-up">
@@ -955,7 +956,7 @@ endif; ?>
                 </form>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Success Message Toast (Optional but good) -->
     <?php if (isset($_GET['update']) && $_GET['update'] == 'success'): ?>
@@ -968,8 +969,32 @@ endif; ?>
         </div>
         <script>
             setTimeout(() => {
-                document.getElementById('success-toast').classList.add('opacity-0', 'transition-opacity', 'duration-500');
-                setTimeout(() => document.getElementById('success-toast').remove(), 500);
+                const toast = document.getElementById('success-toast');
+                if (toast) {
+                    toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 3000);
+        </script>
+    <?php
+endif; ?>
+
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div id="error-toast"
+            class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 z-[200] animate-slide-up">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-anek font-bold"><?php echo $_SESSION['error_message'];
+    unset($_SESSION['error_message']); ?></span>
+        </div>
+        <script>
+            setTimeout(() => {
+                const toast = document.getElementById('error-toast');
+                if (toast) {
+                    toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                    setTimeout(() => toast.remove(), 500);
+                }
             }, 3000);
         </script>
     <?php
