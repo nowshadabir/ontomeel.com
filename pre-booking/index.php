@@ -65,27 +65,7 @@ $additional_head = '
         }
 
         /* Dual Book Animation Container */
-        @keyframes swapPosition {
-            0%, 100% {
-                transform: translateX(0) rotateY(-20deg);
-                z-index: 10;
-            }
-            50% {
-                transform: translateX(120px) rotateY(20deg);
-                z-index: 5;
-            }
-        }
 
-        @keyframes swapPositionSecond {
-            0%, 100% {
-                transform: translateX(0) rotateY(20deg);
-                z-index: 5;
-            }
-            50% {
-                transform: translateX(-120px) rotateY(-20deg);
-                z-index: 10;
-            }
-        }
 
         .dual-book-container {
             position: relative;
@@ -98,21 +78,54 @@ $additional_head = '
         .dual-book-container .book-3d-hot {
             position: absolute;
             left: 50%;
-            margin-left: -100px;
-            animation: swapPosition 2.4s ease-in-out infinite;
+            margin-left: -180px;
+            transform: perspective(1500px) rotateY(-20deg) rotateX(5deg);
+            z-index: 20;
+            filter: drop-shadow(30px 40px 60px rgba(0,0,0,0.2));
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .dual-book-container .book-3d-hot-second {
             position: absolute;
             left: 50%;
-            margin-left: -100px;
-            animation: swapPositionSecond 2.4s ease-in-out infinite;
+            margin-left: -20px;
+            transform: perspective(1500px) rotateY(-20deg) rotateX(5deg) scale(0.95);
+            z-index: 10;
+            opacity: 0.9;
+            filter: drop-shadow(15px 20px 30px rgba(0,0,0,0.15));
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .dual-book-container:hover .book-3d-hot,
-        .dual-book-container:hover .book-3d-hot-second {
-            animation-play-state: paused;
+        @media (max-width: 768px) {
+            .dual-book-container {
+                height: 480px !important;
+                margin-top: 2.5rem !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            .dual-book-container .book-3d-hot,
+            .dual-book-container .book-3d-hot-second {
+                position: absolute !important;
+                left: 50% !important;
+                right: auto !important;
+                margin-right: 0 !important;
+            }
+            .dual-book-container .book-3d-hot {
+                margin-left: -180px !important;
+                transform: perspective(1000px) rotateY(-15deg) rotateX(5deg) !important;
+                width: 260px !important;
+                z-index: 20 !important;
+            }
+            .dual-book-container .book-3d-hot-second {
+                margin-left: -80px !important;
+                transform: perspective(1000px) rotateY(-15deg) rotateX(5deg) scale(0.95) !important;
+                width: 260px !important;
+                z-index: 10 !important;
+            }
         }
+
+
 
         .reveal {
             opacity: 0;
@@ -292,8 +305,15 @@ $additional_head = '
             .book-3d-hot {
                 transform: none !important;
                 filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));
-                width: 200px !important;
+                width: 250px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                left: 0 !important;
+                right: 0 !important;
+                position: relative !important;
             }
+
+
             .mockup-card {
                 padding: 20px;
                 border-radius: 24px;
@@ -444,7 +464,7 @@ function bn_num($num)
                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none">
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center relative z-10">
                     <div class="space-y-8">
                         <div class="badge-limited">
                             <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
