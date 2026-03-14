@@ -6,6 +6,7 @@
 *.env
 config.php
 credentials.json
+includes/db_connect.php
 
 # --- Database & Backups ---
 # Ignore database dumps which may contain user data
