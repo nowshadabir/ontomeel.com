@@ -64,6 +64,41 @@ $additional_head = '
             transform: perspective(1000px) rotateY(-10deg) rotateX(5deg) scale(1.02);
         }
 
+        .book-3d-hot-second {
+            transform: perspective(1000px) rotateY(25deg) rotateX(10deg) translateX(-60px);
+            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            filter: drop-shadow(20px 30px 50px rgba(0,0,0,0.2));
+            z-index: -1;
+        }
+
+        .book-3d-hot-second:hover {
+            transform: perspective(1000px) rotateY(35deg) rotateX(5deg) translateX(-50px) scale(1.02);
+        }
+
+        .dual-book-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 60px;
+        }
+
+        .dual-book-container .book-3d-hot {
+            position: relative;
+            z-index: 10;
+        }
+
+        .dual-book-container .book-3d-hot-second {
+            position: absolute;
+            left: 50%;
+            margin-left: -20px;
+        }
+
+        .dual-book-container:hover .book-3d-hot-second {
+            transform: perspective(1000px) rotateY(35deg) rotateX(5deg) translateX(-50px) scale(1.02);
+        }
+
         .reveal {
             opacity: 0;
             transform: translateY(30px);
@@ -443,10 +478,25 @@ function bn_num($num)
                     </div>
 
                     <div class="relative flex justify-center lg:justify-end">
-                        <div class="book-3d-hot w-[280px] md:w-[400px]">
-                            <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
-                        </div>
+                        <?php if (!empty($hot_deal['second_cover_image'])): ?>
+                            <!-- Dual Book Display -->
+                            <div class="dual-book-container w-[320px] md:w-[480px]">
+                                <div class="book-3d-hot w-[200px] md:w-[300px]">
+                                    <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
+                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                                </div>
+                                <div class="book-3d-hot-second w-[180px] md:w-[270px]">
+                                    <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['second_cover_image']; ?>"
+                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Back Cover">
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <!-- Single Book Display -->
+                            <div class="book-3d-hot w-[280px] md:w-[400px]">
+                                <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
+                                    class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </section>
