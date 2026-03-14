@@ -64,15 +64,27 @@ $additional_head = '
             transform: perspective(1000px) rotateY(-10deg) rotateX(5deg) scale(1.02);
         }
 
-        .book-3d-hot-second {
-            transform: perspective(1000px) rotateY(25deg) rotateX(10deg) translateX(-60px);
-            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
-            filter: drop-shadow(20px 30px 50px rgba(0,0,0,0.2));
-            z-index: -1;
+        /* Dual Book Animation Container */
+        @keyframes swapPosition {
+            0%, 100% {
+                transform: translateX(0) rotateY(-20deg);
+                z-index: 10;
+            }
+            50% {
+                transform: translateX(120px) rotateY(20deg);
+                z-index: 5;
+            }
         }
 
-        .book-3d-hot-second:hover {
-            transform: perspective(1000px) rotateY(35deg) rotateX(5deg) translateX(-50px) scale(1.02);
+        @keyframes swapPositionSecond {
+            0%, 100% {
+                transform: translateX(0) rotateY(20deg);
+                z-index: 5;
+            }
+            50% {
+                transform: translateX(-120px) rotateY(-20deg);
+                z-index: 10;
+            }
         }
 
         .dual-book-container {
@@ -81,22 +93,25 @@ $additional_head = '
             display: flex;
             justify-content: center;
             align-items: center;
-            padding-left: 60px;
         }
 
         .dual-book-container .book-3d-hot {
-            position: relative;
-            z-index: 10;
+            position: absolute;
+            left: 50%;
+            margin-left: -100px;
+            animation: swapPosition 2.4s ease-in-out infinite;
         }
 
         .dual-book-container .book-3d-hot-second {
             position: absolute;
             left: 50%;
-            margin-left: -20px;
+            margin-left: -100px;
+            animation: swapPositionSecond 2.4s ease-in-out infinite;
         }
 
+        .dual-book-container:hover .book-3d-hot,
         .dual-book-container:hover .book-3d-hot-second {
-            transform: perspective(1000px) rotateY(35deg) rotateX(5deg) translateX(-50px) scale(1.02);
+            animation-play-state: paused;
         }
 
         .reveal {
@@ -477,15 +492,15 @@ function bn_num($num)
                         </div>
                     </div>
 
-                    <div class="relative flex justify-center lg:justify-end">
+                    <div class="relative flex justify-center lg:justify-end" style="min-height: 450px;">
                         <?php if (!empty($hot_deal['second_cover_image'])): ?>
-                            <!-- Dual Book Display -->
-                            <div class="dual-book-container w-[320px] md:w-[480px]">
-                                <div class="book-3d-hot w-[200px] md:w-[300px]">
+                            <!-- Dual Book Display with Animation -->
+                            <div class="dual-book-container w-[500px] md:w-[700px] h-[350px] md:h-[450px]">
+                                <div class="book-3d-hot w-[220px] md:w-[300px]">
                                     <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
                                         class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
                                 </div>
-                                <div class="book-3d-hot-second w-[180px] md:w-[270px]">
+                                <div class="book-3d-hot-second w-[220px] md:w-[300px]">
                                     <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['second_cover_image']; ?>"
                                         class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Back Cover">
                                 </div>
