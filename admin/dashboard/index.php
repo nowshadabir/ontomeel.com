@@ -267,7 +267,7 @@ function bn_num($num)
     </aside>
     <!-- Sidebar Overlay -->
     <div id="sidebar-overlay" onclick="toggleSidebar()"
-        class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300"></div>
+        class="fixed inset-0 bg-brand-900/40 z-40 hidden lg:hidden transition-all duration-300"></div>
 
     <!-- Main Content -->
     <main class="lg:ml-72 min-h-screen">
@@ -1495,7 +1495,7 @@ endforeach; ?>
 
     <!-- Add Book Modal -->
     <div id="add-book-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closeAddBookModal()"></div>
+        <div class="absolute inset-0 bg-brand-900/40" onclick="closeAddBookModal()"></div>
         <div
             class="bg-white w-full max-w-4xl max-h-[90vh] rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20 flex flex-col">
             <!-- Modal Header -->
@@ -1918,7 +1918,7 @@ endforeach; ?>
 
     <!-- Order Details Modal -->
     <div id="order-details-modal"
-        class="fixed inset-0 bg-brand-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        class="fixed inset-0 bg-brand-900/60 z-[100] hidden items-center justify-center p-4">
         <div class="bg-white rounded-[40px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <button onclick="closeOrderDetailsModal()"
                 class="absolute top-8 right-8 text-gray-400 hover:text-brand-900 transition-colors z-10">
@@ -1935,7 +1935,7 @@ endforeach; ?>
 
     <!-- Pre-order Modal -->
     <div id="preorder-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closePreorderModal()"></div>
+        <div class="absolute inset-0 bg-brand-900/40" onclick="closePreorderModal()"></div>
         <div
             class="bg-white w-full max-w-4xl max-h-[90vh] rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20 flex flex-col">
             <!-- Modal Header -->
@@ -2139,7 +2139,7 @@ endforeach; ?>
 
     <!-- Upload Progress Modal -->
     <div id="upload-progress-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 bg-brand-900/60"></div>
         <div class="bg-white w-full max-w-sm rounded-[40px] shadow-2xl relative z-10 p-10 text-center space-y-8 border border-white/20">
             <div class="relative w-32 h-32 mx-auto">
                 <svg class="w-full h-full">
@@ -2164,7 +2164,7 @@ endforeach; ?>
 
     <!-- Payment Config Modal -->
     <div id="payment-config-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closePaymentConfigModal()"></div>
+        <div class="absolute inset-0 bg-brand-900/40" onclick="closePaymentConfigModal()"></div>
         <div
             class="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20">
             <div class="bg-brand-900 p-8 flex justify-between items-center">

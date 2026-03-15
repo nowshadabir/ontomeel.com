@@ -82,7 +82,7 @@ function removeSkeleton(img) {
     }
 }
 
-// Global Image Observer
+// Global Image Observer - Optimized for fast loading
 const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -109,7 +109,7 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
             }
         }
     });
-}, { rootMargin: '600px 0px', threshold: 0.01 });
+}, { rootMargin: '200px 0px', threshold: 0.01 });
 
 // Safety utility to observe images
 function observeImages() {

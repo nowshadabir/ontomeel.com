@@ -48,13 +48,15 @@ $payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE is_active = 1 
 $active_payment_methods = $payments_stmt->fetchAll();
 
 // Helper to get settings
-function getSetting($pdo, $key, $defaultValue = '') {
+function getSetting($pdo, $key, $defaultValue = '')
+{
     try {
         $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
         $stmt->execute([$key]);
         $val = $stmt->fetchColumn();
         return $val !== false ? $val : $defaultValue;
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         return $defaultValue;
     }
 }
@@ -153,7 +155,8 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                         class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
                                         onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
                                 </div>
-                            <?php elseif ($method['method_key'] == 'nagad'): ?>
+                            <?php
+        elseif ($method['method_key'] == 'nagad'): ?>
                                 <!-- Option: Nagad -->
                                 <div onclick="selectPayment('nagad')" id="pay-nagad"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#EF1F23]/50 transition-all flex items-center justify-between group">
@@ -169,7 +172,8 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                         class="h-8 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100"
                                         onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
                                 </div>
-                            <?php elseif ($method['method_key'] == 'cod'): ?>
+                            <?php
+        elseif ($method['method_key'] == 'cod'): ?>
                                 <!-- Option: COD -->
                                 <div onclick="selectPayment('cod')" id="pay-cod"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-900/50 transition-all flex items-center justify-between group">
@@ -186,7 +190,8 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                         </path>
                                     </svg>
                                 </div>
-                            <?php elseif ($method['method_key'] == 'fund'): ?>
+                            <?php
+        elseif ($method['method_key'] == 'fund'): ?>
                                 <!-- Option: Account Fund -->
                                 <div onclick="selectPayment('fund')" id="pay-fund"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
@@ -210,18 +215,22 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                         </path>
                                     </svg>
                                 </div>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
+                            <?php
+        endif; ?>
+                        <?php
+    endforeach; ?>
 
                         <?php if (empty($active_payment_methods)): ?>
                             <div class="p-6 bg-red-50 border border-red-100 rounded-3xl col-span-2">
                                 <p class="text-sm text-red-600 font-anek text-center">আপাতত পেমেন্ট গেটওয়ে বন্ধ আছে। অনুগ্রহ করে
                                     পরে চেষ্টা করুন।</p>
                             </div>
-                        <?php endif; ?>
+                        <?php
+    endif; ?>
                     </div>
                 </section>
-            <?php else: ?>
+            <?php
+else: ?>
                 <input type="hidden" id="borrow-mode" value="true">
                 <section class="bg-brand-900 p-8 rounded-[32px] text-white">
                     <h2 class="text-xl font-anek font-bold mb-4 flex items-center gap-3 text-brand-gold">
@@ -238,7 +247,8 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                         মেম্বার হিসেবে এই বইগুলো বিনামূল্যে ধার নিতে পারছেন। ৩০ দিন পর বইগুলো ফেরত দিতে হবে।
                     </p>
                 </section>
-            <?php endif; ?>
+            <?php
+endif; ?>
         </div>
 
         <!-- Right: Order Summary -->
@@ -261,7 +271,8 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                             <span class="text-gray-400 font-anek">ডেলিভারি চার্জ</span>
                             <span id="display-delivery" class="font-bold text-brand-900 font-anek">৳<?php echo $inside_charge; ?></span>
                         </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                     <div class="flex justify-between text-xl pt-4">
                         <span class="font-anek font-bold text-brand-900">সর্বমোট</span>
                         <span id="grand-total" class="font-bold text-brand-gold">৳০</span>
@@ -270,7 +281,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
 
                 <button onclick="confirmOrder()"
                     class="w-full mt-10 bg-brand-900 text-white py-5 rounded-[20px] font-anek font-bold text-lg hover:bg-brand-gold hover:text-brand-900 transition-all duration-500 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-3">
-                    <span><?php echo ($checkout_type == 'borrow') ? 'ধার নিশ্চিত করুন' : 'অর্ডার কনফার্ম করুন'; ?></span>
+                    <span><?php echo($checkout_type == 'borrow') ? 'ধার নিশ্চিত করুন' : 'অর্ডার কনফার্ম করুন'; ?></span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -286,7 +297,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
 
 <!-- Success Modal -->
 <div id="success-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-6">
-    <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-xl opacity-0 transition-opacity duration-700"
+    <div class="absolute inset-0 bg-brand-900/60"
         id="modal-overlay"></div>
 
     <div class="bg-white w-full max-w-lg rounded-[60px] p-12 text-center relative z-10 scale-90 opacity-0 transition-all duration-700"
@@ -333,7 +344,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
 
 <script>
     const checkoutType = "<?php echo $checkout_type; ?>";
-    const currentUserFund = <?php echo (int) $user_balance; ?>;
+    const currentUserFund = <?php echo (int)$user_balance; ?>;
     const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
 

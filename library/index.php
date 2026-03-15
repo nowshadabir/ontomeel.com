@@ -16,9 +16,11 @@ $all_temp = $stmt->fetchAll();
 
 // Separate in-stock and out-of-stock
 $in_stock = array_filter($all_temp, function ($b) {
-    return $b['stock_qty'] > 0; });
+    return $b['stock_qty'] > 0;
+});
 $out_of_stock = array_filter($all_temp, function ($b) {
-    return $b['stock_qty'] <= 0; });
+    return $b['stock_qty'] <= 0;
+});
 
 // Keep top 12 recent IN-STOCK books, shuffle the rest of IN-STOCK
 $in_stock_recent = array_slice($in_stock, 0, 12);
@@ -51,7 +53,7 @@ function getBookImage($image)
         <div class="max-w-3xl mx-auto relative group">
             <input type="text" id="librarySearchInput" onkeyup="searchBooksLibrary(event)"
                 placeholder="বইয়ের নাম অথবা লেখকের নাম দিয়ে খুঁজুন..."
-                class="w-full bg-white/10 border border-white/20 rounded-2xl px-8 py-5 text-white focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white/20 transition-all font-anek text-lg backdrop-blur-md">
+                class="w-full bg-white/80 border border-gray-200 rounded-2xl px-8 py-5 text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all font-anek text-lg">
             <div class="absolute right-6 top-1/2 -translate-y-1/2 text-brand-gold">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -98,7 +100,7 @@ function getBookImage($image)
     <!-- Library Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12" id="library-book-grid">
         <!-- Skeletons shown initially, then JS replaces them -->
-        <?php for($i=0; $i<12; $i++): ?>
+        <?php for ($i = 0; $i < 12; $i++): ?>
             <div class="book-card reveal active">
                 <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
                 <div class="px-1 flex flex-col items-center">
@@ -107,7 +109,8 @@ function getBookImage($image)
                     <div class="skeleton skeleton-text skeleton-author"></div>
                 </div>
             </div>
-        <?php endfor; ?>
+        <?php
+endfor; ?>
     </div>
 </section>
 
@@ -127,7 +130,8 @@ function getBookImage($image)
                 is_suggested: <?php echo $book['is_suggested'] ?? 0; ?>,
                 stock_qty: <?php echo $book['stock_qty'] ?? 0; ?>
             },
-        <?php endforeach; ?>
+        <?php
+endforeach; ?>
     ];
 
     // Initial render for library

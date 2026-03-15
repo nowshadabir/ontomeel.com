@@ -54,7 +54,7 @@
         <!-- Signup Card -->
         <div class="w-full md:w-[500px] reveal" style="animation-delay: 300ms;">
             <div
-                class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-white/20 md:border-gray-100 backdrop-blur-3xl">
+                class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-gray-200 md:border-gray-100">
                 <!-- Mobile Logo -->
                 <div class="md:hidden flex flex-col items-center mb-10">
                     <img src="../assets/img/logo.webp" alt="logo" class="w-12 h-auto mb-4">

@@ -28,7 +28,7 @@ if (isset($_SESSION['user_id'])) {
         </p>
 
         <!-- Closure Notice -->
-        <div class="mt-10 inline-flex items-center gap-4 px-6 py-4 bg-red-500/10 border border-red-500/20 backdrop-blur-md rounded-2xl animate-pulse">
+        <div class="mt-10 inline-flex items-center gap-4 px-6 py-4 bg-red-50 border border-red-200 rounded-2xl">
             <span class="w-3 h-3 bg-red-500 rounded-full"></span>
             <p class="text-white font-anek font-bold">বর্তমানে আমাদের মেম্বারশিপ প্রোগ্রামটি সাময়িকভাবে বন্ধ আছে।</p>
         </div>
@@ -39,22 +39,23 @@ if (isset($_SESSION['user_id'])) {
 
         <?php if ($current_user_plan != 'None'): ?>
             <div
-                class="mt-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 max-w-lg mx-auto animate-slide-up">
+                class="mt-12 bg-gray-50 border border-gray-200 rounded-3xl p-6 max-w-lg mx-auto">
                 <span class="text-brand-gold text-xs font-bold uppercase tracking-widest mb-1 block">আপনার বর্তমান
                     প্ল্যান</span>
                 <h3 class="text-2xl font-anek font-bold text-white">
                     <?php
-                    $plan_names = [
-                        'General' => 'সাধারণ পাঠক (৳২০০)',
-                        'BookLover' => 'বইপ্রেমী (৳৫০০)',
-                        'Collector' => 'সংগ্রাহক (৳১০০০)'
-                    ];
-                    echo $plan_names[$current_user_plan] ?? $current_user_plan;
-                    ?>
+    $plan_names = [
+        'General' => 'সাধারণ পাঠক (৳২০০)',
+        'BookLover' => 'বইপ্রেমী (৳৫০০)',
+        'Collector' => 'সংগ্রাহক (৳১০০০)'
+    ];
+    echo $plan_names[$current_user_plan] ?? $current_user_plan;
+?>
                 </h3>
                 <p class="text-gray-300 text-sm mt-1">সবুজ বাতির মতো আপনার মেম্বারশিপ এখন সক্রিয় আছে।</p>
             </div>
-        <?php endif; ?>
+        <?php
+endif; ?>
     </div>
 </div>
 
@@ -251,7 +252,7 @@ if (isset($_SESSION['user_id'])) {
 
 <!-- Membership Registration Modal -->
 <div id="registration-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-brand-900/80 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
+    <div class="absolute inset-0 bg-brand-900/80" onclick="closeModal()"></div>
     <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden animate-slide-up">
         <div class="bg-brand-gold p-6 flex justify-between items-center">
             <h3 class="text-2xl font-anek font-bold text-brand-900">
@@ -280,7 +281,8 @@ if (isset($_SESSION['user_id'])) {
                     class="block w-full py-4 bg-brand-900 text-white font-anek font-bold rounded-xl">ড্যাশবোর্ডে ফিরে
                     যান</a>
             </div>
-        <?php else: ?>
+        <?php
+else: ?>
             <form
                 action="<?php echo isset($_SESSION['user_id']) ? 'process_subscription.php' : '../signup/process_signup.php'; ?>"
                 method="POST" id="membership-form" class="p-8 space-y-4">
@@ -312,7 +314,8 @@ if (isset($_SESSION['user_id'])) {
                         <input type="password" name="password" required placeholder="••••••••"
                             class="w-full bg-brand-light border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-gold font-anek">
                     </div>
-                <?php endif; ?>
+                <?php
+    endif; ?>
 
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Selected
@@ -329,12 +332,15 @@ if (isset($_SESSION['user_id'])) {
                 <?php if (!isset($_SESSION['user_id'])): ?>
                     <p class="text-[10px] text-gray-400 text-center uppercase tracking-wider">তথ্যগুলো আপনার লগইন এবং মেম্বারশিপ
                         আইডিতে ব্যবহৃত হবে</p>
-                <?php else: ?>
+                <?php
+    else: ?>
                     <p class="text-[10px] text-gray-400 text-center uppercase tracking-wider">এই প্ল্যানটি ৩০ দিনের জন্য কার্যকর
                         হবে</p>
-                <?php endif; ?>
+                <?php
+    endif; ?>
             </form>
-        <?php endif; ?>
+        <?php
+endif; ?>
     </div>
 </div>
 

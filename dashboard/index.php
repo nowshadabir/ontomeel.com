@@ -304,14 +304,14 @@ function getDaysRemaining($due_date)
     </aside>
     <!-- Sidebar Overlay -->
     <div id="sidebar-overlay" onclick="toggleSidebar()"
-        class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300"></div>
+        class="fixed inset-0 bg-brand-900/40 z-40 hidden lg:hidden transition-all duration-300"></div>
 
     <!-- Main Content -->
     <main class="lg:ml-72 min-h-screen">
 
         <!-- Top Navbar -->
         <header
-            class="bg-white border-b border-gray-100 px-8 py-5 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md bg-white/80">
+            class="bg-white border-b border-gray-100 px-8 py-5 flex items-center justify-between sticky top-0 z-40 bg-white/80">
             <button onclick="toggleSidebar()" class="lg:hidden text-brand-900">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

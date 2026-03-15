@@ -57,7 +57,7 @@
         <!-- Login Card -->
         <div class="w-full md:w-[450px] reveal" style="animation-delay: 300ms;">
             <div
-                class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-white/20 md:border-gray-100 backdrop-blur-3xl">
+                class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-gray-200 md:border-gray-100">
                 <!-- Mobile Logo -->
                 <div class="md:hidden flex flex-col items-center mb-10">
                     <img src="../assets/img/logo.webp" alt="logo" class="w-12 h-auto mb-4">
@@ -69,15 +69,20 @@
                     <?php if (isset($_GET['signup']) && $_GET['signup'] == 'success'): ?>
                         <p class="text-green-600 text-sm font-bold mt-2 bg-green-50 py-2 rounded-xl">নিবন্ধন সফল হয়েছে! এখন
                             লগইন করুন।</p>
-                    <?php elseif (isset($_GET['error'])): ?>
+                    <?php
+elseif (isset($_GET['error'])): ?>
                         <?php if ($_GET['error'] == 'invalid'): ?>
                             <p class="text-red-600 text-sm font-bold mt-2 bg-red-50 py-2 rounded-xl">ভুল ইমেইল বা পাসওয়ার্ড!</p>
-                        <?php elseif ($_GET['error'] == 'empty'): ?>
+                        <?php
+    elseif ($_GET['error'] == 'empty'): ?>
                             <p class="text-red-600 text-sm font-bold mt-2 bg-red-50 py-2 rounded-xl">সবগুলো ঘর পূরণ করুন।</p>
-                        <?php endif; ?>
-                    <?php else: ?>
+                        <?php
+    endif; ?>
+                    <?php
+else: ?>
                         <p class="text-gray-400 text-sm mt-2">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
 
                 <form action="process_login.php" method="POST" class="space-y-6">

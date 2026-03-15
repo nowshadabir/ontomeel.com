@@ -134,7 +134,7 @@ function bn_num($num)
                     </div>
 
                     <!-- Floating Badge on Book -->
-                    <div class="absolute -top-6 -right-10 glass px-6 py-4 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-md animate-float"
+                    <div class="absolute -top-6 -right-10 glass px-6 py-4 rounded-2xl shadow-2xl border border-white/20 animate-float"
                         style="animation-delay: -2s;">
                         <div class="flex items-center gap-3">
                             <div class="bg-brand-gold p-2 rounded-full">
@@ -153,7 +153,7 @@ function bn_num($num)
                 </div>
 
                 <!-- Decorative Elements -->
-                <div class="absolute -bottom-10 -right-20 w-64 glass p-6 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-xl animate-slide-up"
+                <div class="absolute -bottom-10 -right-20 w-64 glass p-6 rounded-3xl shadow-2xl border border-white/20 animate-slide-up"
                     style="animation-delay: 1s;">
                     <span class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block">বিশেষ
                         কালেকশন</span>
@@ -200,13 +200,13 @@ function bn_num($num)
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <?php foreach ($categories as $index => $cat):
-            $cat_images = [
-                'ফিকশন' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=60&w=600',
-                'নন-ফিকশন' => 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?q=60&w=600',
-                'শিল্প ও লাইফস্টাইল' => 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=60&w=600',
-            ];
-            $img = $cat_images[$cat['name']] ?? 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=60&w=600';
-            ?>
+    $cat_images = [
+        'ফিকশন' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=60&w=600',
+        'নন-ফিকশন' => 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?q=60&w=600',
+        'শিল্প ও লাইফস্টাইল' => 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=60&w=600',
+    ];
+    $img = $cat_images[$cat['name']] ?? 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=60&w=600';
+?>
             <div onclick="filterByCategory('<?php echo $cat['name']; ?>')"
                 class="group relative h-64 md:h-80 rounded-2xl overflow-hidden cursor-pointer reveal shadow-md"
                 style="transition-delay: <?php echo $index * 100; ?>ms;">
@@ -222,7 +222,8 @@ function bn_num($num)
                     </p>
                 </div>
             </div>
-        <?php endforeach; ?>
+        <?php
+endforeach; ?>
     </div>
 </section>
 
@@ -257,7 +258,7 @@ function bn_num($num)
     <!-- Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10" id="book-grid">
         <!-- Skeletons shown initially, then JS replaces them -->
-        <?php for($i=0; $i<8; $i++): ?>
+        <?php for ($i = 0; $i < 8; $i++): ?>
             <div class="book-card reveal active">
                 <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
                 <div class="px-1 flex flex-col items-center">
@@ -266,7 +267,8 @@ function bn_num($num)
                     <div class="skeleton skeleton-text skeleton-author"></div>
                 </div>
             </div>
-        <?php endfor; ?>
+        <?php
+endfor; ?>
     </div>
 </section>
 </section>
@@ -481,7 +483,8 @@ function bn_num($num)
                 is_suggested: <?php echo $book['is_suggested'] ?? 0; ?>,
                 stock_qty: <?php echo $book['stock_qty'] ?? 0; ?>
             },
-        <?php endforeach; ?>
+        <?php
+endforeach; ?>
     ];
 
     // Initial Suggested books are now rendered by PHP directly.

@@ -16,18 +16,18 @@ if (session_status() == PHP_SESSION_NONE) {
     <meta name="keywords" content="<?php echo $page_keywords ?? 'বুকস্টোর, লাইব্রেরি, অনলাইন বুক শপ, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, Vivago Digital, অনলাইন লাইব্রেরি'; ?>">
     <meta name="author" content="Vivago Digital">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <link rel="canonical" href="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <meta property="og:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="og:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="og:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
     <meta property="og:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <meta property="twitter:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="twitter:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="twitter:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
     <meta property="twitter:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
@@ -56,33 +56,34 @@ if (session_status() == PHP_SESSION_NONE) {
     <link rel="icon" href="<?php echo $path_prefix ?? ''; ?>assets/img/logo.webp">
 
     <?php
-    $script_name = $_SERVER['SCRIPT_NAME'];
-    $p_prefix = $path_prefix ?? '';
-    $depth = substr_count($p_prefix, '../');
-    $path_array = explode('/', trim($script_name, '/'));
-    $parts_to_keep = count($path_array) - $depth - 1;
-    $project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
-    ?>
+$script_name = $_SERVER['SCRIPT_NAME'];
+$p_prefix = $path_prefix ?? '';
+$depth = substr_count($p_prefix, '../');
+$path_array = explode('/', trim($script_name, '/'));
+$parts_to_keep = count($path_array) - $depth - 1;
+$project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
+?>
     <?php
-    $m_plan = 'None';
-    if (isset($_SESSION['user_id'])) {
-        require_once $path_prefix . 'includes/db_connect.php';
-        $m_stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
-        $m_stmt->execute([$_SESSION['user_id']]);
-        $m_user = $m_stmt->fetch();
-        if ($m_user) {
-            $m_plan = $m_user['membership_plan'];
-            $_SESSION['membership_plan'] = $m_plan;
-        }
+$m_plan = 'None';
+if (isset($_SESSION['user_id'])) {
+    require_once $path_prefix . 'includes/db_connect.php';
+    $m_stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
+    $m_stmt->execute([$_SESSION['user_id']]);
+    $m_user = $m_stmt->fetch();
+    if ($m_user) {
+        $m_plan = $m_user['membership_plan'];
+        $_SESSION['membership_plan'] = $m_plan;
     }
-    ?>
+}
+?>
     <script>
         const PROJECT_ROOT = '<?php echo htmlspecialchars($project_root, ENT_QUOTES, 'UTF-8'); ?>';
         <?php if (isset($_SESSION['user_id'])): ?>
-            const user_id = <?php echo (int) $_SESSION['user_id']; ?>;
+            const user_id = <?php echo (int)$_SESSION['user_id']; ?>;
             const membership_plan = '<?php echo htmlspecialchars($m_plan, ENT_QUOTES, 'UTF-8'); ?>';
             localStorage.setItem('membership_plan', membership_plan);
-        <?php endif; ?>
+        <?php
+endif; ?>
     </script>
 
     <?php echo $additional_head ?? ''; ?>
@@ -110,7 +111,8 @@ if (session_status() == PHP_SESSION_NONE) {
                 </div>
             </div>
         </nav>
-    <?php else: ?>
+    <?php
+else: ?>
         <nav id="navbar" class="fixed w-full z-40 transition-all duration-300 py-4 <?php echo $nav_class ?? 'glass'; ?>">
             <div class="max-w-7xl mx-auto px-6 lg:px-8">
                 <div class="flex items-center justify-between gap-4">
@@ -120,20 +122,20 @@ if (session_status() == PHP_SESSION_NONE) {
                         <img src="<?php echo $path_prefix ?? ''; ?>assets/img/logo.webp" alt="logo of ontomeel"
                             class="w-12 h-auto">
                         <span
-                            class="font-serif text-2xl font-bold tracking-wide <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-900'; ?> mt-1">অন্ত্যমিল<span
+                            class="font-serif text-2xl font-bold tracking-wide <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-900'; ?> mt-1">অন্ত্যমিল<span
                                 class="text-brand-gold">.</span></span>
                     </a>
 
                     <!-- Desktop Menu -->
                     <div class="hidden md:flex items-center space-x-8">
                         <a href="<?php echo $path_prefix ?? ''; ?>category/index.php"
-                            class="text-[15px] font-medium <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">ক্যাটাগরি</a>
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">ক্যাটাগরি</a>
                         <a href="<?php echo $path_prefix ?? ''; ?>library/index.php"
-                            class="text-[15px] font-medium <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">লাইব্রেরি</a>
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">লাইব্রেরি</a>
                         <a href="<?php echo $path_prefix ?? ''; ?>membership/index.php"
-                            class="text-[15px] font-medium <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">মেম্বারশিপ</a>
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">মেম্বারশিপ</a>
                         <a href="<?php echo $path_prefix ?? ''; ?>pre-booking/index.php"
-                            class="text-[15px] font-medium <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-brand-gold border-b-2 border-brand-gold' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors font-bold">প্রি-বুকিং</a>
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-brand-gold border-b-2 border-brand-gold' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors font-bold">প্রি-বুকিং</a>
                     </div>
 
                     <!-- Search & Icons -->
@@ -152,7 +154,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
                         <!-- Borrow Cart Icon -->
                         <button
-                            class="relative <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors group p-2"
+                            class="relative <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors group p-2"
                             onclick="toggleBorrowCartDrawer()">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -165,7 +167,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
                         <!-- Purchase Cart Icon -->
                         <button
-                            class="relative <?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors group p-2"
+                            class="relative <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors group p-2"
                             onclick="toggleCartDrawer()">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -177,7 +179,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
                         <!-- Mobile Menu Button -->
                         <button
-                            class="<?php echo ($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-900'; ?> md:hidden focus:outline-none p-2"
+                            class="<?php echo($nav_class ?? '') == 'glass-dark' ? 'text-white' : 'text-brand-900'; ?> md:hidden focus:outline-none p-2"
                             onclick="toggleMobileMenu()">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -191,12 +193,14 @@ if (session_status() == PHP_SESSION_NONE) {
                                 class="hidden md:flex items-center gap-2 px-6 py-2 bg-brand-gold text-brand-900 rounded-full font-anek font-bold transition-all hover:bg-white text-sm shadow-lg shadow-brand-gold/20">
                                 ড্যাশবোর্ড
                             </a>
-                        <?php else: ?>
+                        <?php
+    else: ?>
                             <a href="<?php echo $path_prefix ?? ''; ?>login/index.php"
                                 class="hidden md:flex items-center gap-2 px-6 py-2 bg-brand-gold text-brand-900 rounded-full font-anek font-bold transition-all hover:bg-white text-sm shadow-lg shadow-brand-gold/20">
                                 লগইন
                             </a>
-                        <?php endif; ?>
+                        <?php
+    endif; ?>
                     </div>
                 </div>
             </div>
@@ -205,7 +209,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
         <!-- Mobile Menu Slider -->
         <div id="mobile-menu-overlay"
-            class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-[70] hidden opacity-0 transition-opacity duration-500 ease-in-out md:hidden"
+            class="fixed inset-0 bg-brand-900/40 z-[70] hidden opacity-0 transition-opacity duration-500 ease-in-out md:hidden"
             onclick="toggleMobileMenu()"></div>
 
         <div id="mobile-menu"
@@ -319,7 +323,8 @@ if (session_status() == PHP_SESSION_NONE) {
                         </span>
                         <span class="font-anek font-bold italic">আমার ড্যাশবোর্ড</span>
                     </a>
-                <?php else: ?>
+                <?php
+    else: ?>
                     <a href="<?php echo $path_prefix ?? ''; ?>login/index.php" onclick="toggleMobileMenu()"
                         class="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-brand-gold text-brand-900 transition-all shadow-lg shadow-brand-gold/20">
                         <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20">
@@ -331,7 +336,8 @@ if (session_status() == PHP_SESSION_NONE) {
                         </span>
                         <span class="font-anek font-bold items-center">লগইন করুন</span>
                     </a>
-                <?php endif; ?>
+                <?php
+    endif; ?>
             </div>
 
             <!-- Footer of the drawer -->
@@ -358,7 +364,8 @@ if (session_status() == PHP_SESSION_NONE) {
                 </p>
             </div>
         </div>
-    <?php endif; ?>
+    <?php
+endif; ?>
 
     <!-- Cart Drawer Slider -->
     <div id="cart-overlay" class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity opacity-0 backdrop-blur-sm"
@@ -404,7 +411,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
     <!-- Borrow Cart Drawer Slider -->
     <div id="borrow-cart-overlay"
-        class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity opacity-0 backdrop-blur-sm"
+        class="fixed inset-0 bg-black/40 z-50 hidden transition-opacity opacity-0"
         onclick="toggleBorrowCartDrawer()"></div>
     <div id="borrow-cart-drawer"
         class="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-white shadow-2xl z-[60] transform translate-x-full transition-transform duration-500 ease-in-out flex flex-col">

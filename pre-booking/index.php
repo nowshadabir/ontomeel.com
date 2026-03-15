@@ -440,7 +440,7 @@ function bn_num($num)
                             অফার দেখুন
                         </a>
                         <div
-                            class="flex items-center gap-4 px-6 py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white">
+                            class="flex items-center gap-4 px-6 py-4 bg-white/80 rounded-2xl border border-white">
                             <div class="flex -space-x-3">
                                 <?php for ($i = 1; $i <= 3; $i++): ?>
                                     <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
@@ -667,7 +667,7 @@ endforeach; ?>
         const navbar = document.getElementById('navbar');
         if (navbar) {
             if (window.scrollY > 50) {
-                navbar.classList.add('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'py-3');
+                navbar.classList.add('bg-white/90', 'shadow-sm', 'py-3');
             } else {
                 navbar.classList.remove('bg-white/90', 'backdrop-blur-xl', 'shadow-sm', 'py-3');
             }
