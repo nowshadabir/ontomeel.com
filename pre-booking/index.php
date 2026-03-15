@@ -468,10 +468,10 @@ endfor; ?>
                             </div>
 
                             <!-- Hero Image Main -->
-                            <div class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden">
+                            <div class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden skeleton">
                                 <img data-src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
                                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" 
-                                    alt="Premium Book Collection" class="lazy-image w-full h-auto rounded-[30px] object-cover">
+                                    alt="Premium Book Collection" class="lazy-image w-full h-auto rounded-[30px] object-cover" fetchpriority="high">
                             </div>
                         </div>
                     </div>
@@ -542,7 +542,7 @@ endfor; ?>
                         <?php if (!empty($hot_deal['second_cover_image'])): ?>
                             <!-- Dual Book Display with Animation -->
                             <div class="dual-book-container w-full h-[450px]">
-                                <div class="book-wrapper book-1 w-[220px] md:w-[280px]">
+                                <div class="book-wrapper book-1 w-[220px] md:w-[280px] skeleton rounded-r-xl">
                                     <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
                                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
                                         class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
@@ -551,7 +551,7 @@ endfor; ?>
                                         প্রি-অর্ডার চলছে
                                     </div>
                                 </div>
-                                <div class="book-wrapper book-2 w-[220px] md:w-[280px]">
+                                <div class="book-wrapper book-2 w-[220px] md:w-[280px] skeleton rounded-r-xl">
                                     <img data-src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
                                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
                                         class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
@@ -564,7 +564,7 @@ endfor; ?>
                         <?php
     else: ?>
                             <!-- Single Book Display -->
-                            <div class="book-3d-hot w-[280px] md:w-[400px]">
+                            <div class="book-3d-hot w-[280px] md:w-[400px] skeleton rounded-r-xl">
                                 <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
                                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
                                      class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
@@ -591,7 +591,7 @@ endif; ?>
                     <div onclick="window.location.href='book-details.php?id=<?php echo $book['id']; ?>'"
                         class="mockup-card reveal group">
 
-                        <div class="mockup-img-wrapper mb-8">
+                        <div class="mockup-img-wrapper mb-8 skeleton rounded-xl">
                             <span class="mockup-badge"><?php echo $isOpen ? 'ওপেন' : 'আসন্ন'; ?></span>
                             <img data-src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']); ?>"
                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
@@ -647,22 +647,12 @@ endforeach; ?>
 </div>
 
 <script>
-    // Generic image observer for pre-booking images
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                    img.onload = () => img.classList.add('loaded');
-                    observer.unobserve(img);
-                }
-            }
-        });
-    }, { rootMargin: '50px 0px', threshold: 0.01 });
-
-    document.querySelectorAll('.lazy-image').forEach(img => imageObserver.observe(img));
+    // Use the global imageObserver system defined in script.js
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof observeImages === 'function') {
+            observeImages();
+        }
+    });
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {

@@ -188,25 +188,51 @@
      animation: skeleton-loading 1.2s infinite linear;
  }
 
-@keyframes skeleton-loading {
-    from {
-        background-position: 200% 0;
-    }
-    to {
-        background-position: -200% 0;
+/* Progressive Image Loading & Skeletons */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: #f1f1f1 !important;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.3) 30%,
+        rgba(255, 255, 255, 0.6) 50%,
+        rgba(255, 255, 255, 0.3) 70%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
     }
 }
 
-/* Progressive Image Loading */
 .lazy-image {
     opacity: 0;
-    filter: blur(10px);
-    transition: opacity 0.8s ease-out, filter 1.2s ease-out, transform 0.6s ease-out;
+    filter: blur(5px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.8s ease-out;
 }
 
 .lazy-image.loaded {
     opacity: 1;
     filter: blur(0);
+}
+
+.skeleton-container {
+    background-color: #f1f1f1;
 }
 
  .skeleton-text {

@@ -69,20 +69,72 @@ function showSkeletons() {
     }
 }
 
-// Image observer for progressive loading
+// Helper to remove skeleton from any image parent
+function removeSkeleton(img) {
+    img.classList.add('loaded');
+    let skeletonParent = img.parentElement;
+    while (skeletonParent && skeletonParent !== document.body) {
+        if (skeletonParent.classList.contains('skeleton')) {
+            skeletonParent.classList.remove('skeleton');
+            break;
+        }
+        skeletonParent = skeletonParent.parentElement;
+    }
+}
+
+// Global Image Observer
 const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const img = entry.target;
             if (img.dataset.src) {
                 img.src = img.dataset.src;
-                img.removeAttribute('data-src');
-                img.onload = () => img.classList.add('loaded');
+                if (img.complete) {
+                    removeSkeleton(img);
+                    img.removeAttribute('data-src');
+                } else {
+                    img.onload = () => {
+                        removeSkeleton(img);
+                        img.removeAttribute('data-src');
+                    };
+                    img.onerror = () => {
+                        let currentPrefix = typeof PROJECT_ROOT !== 'undefined' ? PROJECT_ROOT : '/';
+                        img.src = currentPrefix + 'assets/img/logo.webp';
+                        removeSkeleton(img);
+                        img.classList.add('grayscale', 'opacity-50');
+                        img.removeAttribute('data-src');
+                    };
+                }
                 observer.unobserve(img);
             }
         }
     });
-}, { rootMargin: '50px 0px', threshold: 0.01 });
+}, { rootMargin: '400px 0px', threshold: 0.01 });
+
+// Safety utility to observe images
+function observeImages() {
+    document.querySelectorAll('.lazy-image').forEach(img => {
+        if (img.dataset.src) {
+            imageObserver.observe(img);
+            // Instant check for cached images - force the swap
+            if (img.complete) {
+                if (img.src !== img.dataset.src) {
+                    img.src = img.dataset.src;
+                }
+                removeSkeleton(img);
+                img.removeAttribute('data-src');
+                imageObserver.unobserve(img);
+            }
+        }
+    });
+}
+
+// Auto-init on script load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeImages);
+} else {
+    observeImages();
+}
 
 // Render Books
 function renderBooks(booksToRender) {
@@ -125,7 +177,7 @@ function renderBooks(booksToRender) {
         const bookHTML = `
                     <div class="book-card group reveal active ${isOutOfStock ? 'opacity-80' : ''}" style="transition-delay: ${delay}ms;">
                         <!-- Cover -->
-                        <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-100 mb-4 shadow-sm border border-gray-100">
+                        <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-100 mb-4 shadow-sm border border-gray-100 skeleton">
                             <img data-src="${book.img}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E" alt="${book.title}" class="lazy-image object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}">
                             
                             ${isOutOfStock ? `
