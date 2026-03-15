@@ -165,7 +165,17 @@ function send_notification_instantly($to, $type, $data)
     </html>
     ";
 
-    return send_smtp_email($to, $subject, $html_message, $config, true);
+    $result = send_smtp_email($to, $subject, $html_message, $config, true);
+    
+    // Log the result for debugging
+    $status = $result['success'] ? "SUCCESS" : "FAILED";
+    $log_message = "[" . date('Y-m-d H:i:s') . "] Type: $type | To: $to | Status: $status";
+    if (!$result['success']) {
+        $log_message .= " | Error: " . ($result['message'] ?? 'Unknown Error');
+    }
+    file_put_contents(__DIR__ . '/../mail_debug.log', $log_message . "\n", FILE_APPEND);
+
+    return $result;
 }
 
 /**
