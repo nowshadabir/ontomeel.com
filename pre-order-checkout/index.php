@@ -61,14 +61,14 @@ $total_amount = $price + $delivery_charge;
 
         <!-- Pre-order Item Summary -->
         <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mt-8 p-5 sm:p-6 bg-brand-light/20 rounded-3xl mb-8 border border-brand-gold/20 text-center sm:text-left">
-            <div class="relative flex-shrink-0 <?php echo (!empty($pre_order['second_cover_image'])) ? 'mr-4' : ''; ?>">
-                <div class="w-20 h-28 bg-gray-100 rounded-xl overflow-hidden shadow-md relative z-10">
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <div class="w-20 h-28 bg-gray-100 rounded-xl overflow-hidden shadow-md">
                     <img src="<?php echo htmlspecialchars(strpos($pre_order['cover_image'], 'http') !== false ? $pre_order['cover_image'] : '../assets/img/preorders/' . trim($pre_order['cover_image'])); ?>"
                         onerror="this.src='../assets/img/book-placeholder.jpg'"
                         alt="<?php echo htmlspecialchars($pre_order['title']); ?>" class="w-full h-full object-cover">
                 </div>
                 <?php if (!empty($pre_order['second_cover_image'])): ?>
-                    <div class="absolute -bottom-2 -right-4 w-14 h-20 bg-gray-100 rounded-lg overflow-hidden shadow-lg border-2 border-white z-20">
+                    <div class="w-16 h-24 bg-gray-100 rounded-lg overflow-hidden shadow-md border-2 border-white">
                         <img src="<?php echo htmlspecialchars(strpos($pre_order['second_cover_image'], 'http') !== false ? $pre_order['second_cover_image'] : '../assets/img/preorders/' . trim($pre_order['second_cover_image'])); ?>"
                             onerror="this.src='../assets/img/book-placeholder.jpg'"
                             alt="Combo Book" class="w-full h-full object-cover">

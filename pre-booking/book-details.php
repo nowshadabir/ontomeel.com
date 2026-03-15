@@ -298,7 +298,7 @@ endif; ?>
                 <!-- Titles and Authors -->
                 <div class="space-y-8">
                     <?php
-$titles = explode(',', $book['title']);
+$titles = preg_split('/\s*(?:,|এবং|ও)\s*/u', $book['title']);
 ?>
                     
                     <div class="space-y-4">
