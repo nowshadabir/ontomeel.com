@@ -187,6 +187,19 @@ try {
                     'status' => $status
                 ];
 
+                // Check if this is a pre-order and get book details
+                $bookStmt = $pdo->prepare("SELECT po.title, po.author FROM order_items oi 
+                                            JOIN pre_orders po ON oi.preorder_id = po.id 
+                                            WHERE oi.order_id = ? LIMIT 1");
+                $bookStmt->execute([$order_id]);
+                $book_info = $bookStmt->fetch();
+                
+                if ($book_info) {
+                    $notif_data['book_title'] = $book_info['title'];
+                    $notif_data['book_author'] = $book_info['author'];
+                    $notif_data['is_preorder'] = true;
+                }
+
                 if ($status === 'Cancelled') {
                     $type = 'order_cancelled';
                 } elseif ($status === 'Shipped' && $details['notes'] === 'Borrow Order') {

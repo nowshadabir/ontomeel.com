@@ -18,8 +18,9 @@ function send_notification_instantly($to, $type, $data)
         if ($member && $member['email_unsubscribed']) {
             return ['success' => false, 'message' => 'User has unsubscribed from emails'];
         }
-    } catch (Exception $e) {
-        // Continue if check fails
+    }
+    catch (Exception $e) {
+    // Continue if check fails
     }
 
     // SMTP configuration
@@ -45,15 +46,26 @@ function send_notification_instantly($to, $type, $data)
             $subject = "Order Confirmed - #" . $data['invoice_no'];
             $title = "Thank You for Your Order!";
             $color = "#16a34a";
+
+            $book_info_html = '';
+            if (isset($data['is_preorder']) && $data['is_preorder']) {
+                $book_info_html = "
+                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #fcd34d;'>
+                    <p style='margin: 0; color: #92400e; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Pre-Order Book</p>
+                    <p style='margin: 5px 0 0 0; font-size: 15px; font-weight: bold; color: #78350f;'>" . htmlspecialchars($data['book_title']) . "</p>
+                </div>";
+            }
+
             $content = "
                 <p>Dear <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
                 <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been successfully placed and is being processed.</p>
+                " . $book_info_html . "
                 <div style='background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #e2e8f0;'>
                     <p style='margin: 0 0 10px 0; color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Order Details</p>
                     <p style='margin: 5px 0;'><strong>Amount:</strong> BDT " . number_format($data['amount'], 2) . "</p>
                     <p style='margin: 5px 0;'><strong>Shipping Address:</strong> " . htmlspecialchars($data['address']) . "</p>
                 </div>
-                <p>We will notify you once your order is shipped.</p>
+                <p>We will notify you once your order is confirmed and shipped.</p>
             ";
             if (isset($data['guest']) && $data['guest']) {
                 $content .= "<p style='color: #ef4444; font-weight: bold;'>As a guest customer, please save your order number <strong>#" . $data['invoice_no'] . "</strong> for tracking.</p>";
@@ -83,9 +95,20 @@ function send_notification_instantly($to, $type, $data)
             $subject = "Order Update - #" . $data['invoice_no'];
             $title = "Your Order Status Has Been Updated";
             $color = "#2563eb";
+
+            $book_info_html = '';
+            if (isset($data['is_preorder']) && $data['is_preorder']) {
+                $book_info_html = "
+                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #fcd34d;'>
+                    <p style='margin: 0; color: #92400e; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Pre-Order Book</p>
+                    <p style='margin: 5px 0 0 0; font-size: 15px; font-weight: bold; color: #78350f;'>" . htmlspecialchars($data['book_title']) . "</p>
+                </div>";
+            }
+
             $content = "
                 <p>Dear " . htmlspecialchars($data['name']) . ",</p>
                 <p>Your order <strong>#" . $data['invoice_no'] . "</strong> status has been updated.</p>
+                " . $book_info_html . "
                 <p style='margin: 20px 0;'><span style='background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 5px; font-weight: bold; font-size: 14px;'>Current Status: " . $display_status . "</span></p>
             ";
             break;
@@ -125,9 +148,11 @@ function send_notification_instantly($to, $type, $data)
     // Professional From Name
     if (strpos($type, 'order') !== false) {
         $from_name = "Ontomeel Orders";
-    } elseif (strpos($type, 'otp') !== false || strpos($type, 'auth') !== false) {
+    }
+    elseif (strpos($type, 'otp') !== false || strpos($type, 'auth') !== false) {
         $from_name = "Ontomeel";
-    } else {
+    }
+    else {
         $from_name = "Ontomeel Bookshop";
     }
 
@@ -199,7 +224,8 @@ function send_notification($to, $type, $data)
     try {
         $stmt = $pdo->prepare("INSERT INTO email_queue (recipient, type, payload) VALUES (?, ?, ?)");
         $stmt->execute([$to, $type, json_encode($data)]);
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         error_log("Queue Failed, falling back to instant send: " . $e->getMessage());
         return send_notification_instantly($to, $type, $data);
     }

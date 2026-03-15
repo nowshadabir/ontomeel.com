@@ -108,11 +108,10 @@ endif; ?></p>
                         class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold tracking-wider focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার ইমেইল
-                        (ঐচ্ছিক)</label>
-                    <input type="email" id="po-email" <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আপনার ইমেইল *</label>
+                    <input type="email" id="po-email" required <?php echo isset($_SESSION['user_id']) ? 'readonly' : ''; ?>
                         value="<?php echo htmlspecialchars($user_data['email'] ?? ''); ?>"
-                        placeholder="আপনার ইমেইল এড্রেস লিখুন (যদি থাকে)"
+                        placeholder="আপনার ইমেইল এড্রেস লিখুন"
                         class="w-full <?php echo isset($_SESSION['user_id']) ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'; ?> border border-gray-200 rounded-2xl px-6 py-4 text-brand-900 font-bold focus:outline-none focus:border-brand-gold transition-all">
                 </div>
                 <div class="md:col-span-2 space-y-2">
@@ -329,6 +328,7 @@ endif; ?>
     function goToStep2() {
         const name = document.getElementById('po-name').value.trim();
         const phone = document.getElementById('po-phone').value.trim();
+        const email = document.getElementById('po-email').value.trim();
         const addr = document.getElementById('po-address').value.trim();
 
         if (!name || !phone || !addr) {
@@ -338,6 +338,13 @@ endif; ?>
 
         if (phone.length < 11) {
             showError('সঠিক মোবাইল নম্বর দিন');
+            return;
+        }
+
+        // Validate email is provided and is valid
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+            showError('সঠিক ইমেইল এড্রেস দিন');
             return;
         }
 

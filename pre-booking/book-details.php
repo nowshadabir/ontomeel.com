@@ -22,7 +22,8 @@ $nav_class = 'glass';
 
 function bn_date($date)
 {
-    if (!$date) return '';
+    if (!$date)
+        return '';
     $months = [
         'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
         'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
@@ -31,16 +32,17 @@ function bn_date($date)
     ];
     $month_en = date('F', strtotime($date));
     $year_en = date('Y', strtotime($date));
-    
+
     $month_bn = $months[$month_en] ?? $month_en;
     $year_bn = bn_num($year_en);
-    
+
     return $month_bn . ' ' . $year_bn;
 }
 
 function bn_num($num)
 {
-    if ($num === null || $num === '') return '০';
+    if ($num === null || $num === '')
+        return '০';
     $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
     return str_replace(range(0, 9), $bn_digits, $num);
 }
@@ -56,7 +58,7 @@ $additional_head = '
         font-family: "Anek Bangla", sans-serif;
     }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700;800&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
     <style>
     .main-container {
         padding-top: 120px;
@@ -67,7 +69,6 @@ $additional_head = '
     }
     .image-container {
         position: relative;
-        perspective: 2000px;
     }
     .prime-cover {
         width: 100%;
@@ -76,27 +77,27 @@ $additional_head = '
         object-fit: cover;
         border-radius: 20px;
         box-shadow: 20px 40px 60px rgba(0,0,0,0.15);
-        transform: rotateY(-10deg) rotateX(5deg);
         transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        z-index: 20;
     }
     .second-cover {
         position: absolute;
-        bottom: -30px;
-        right: -30px;
-        width: 180px;
+        bottom: -120px;
+        right: -60px;
+        width: 150px;
         aspect-ratio: 2/3;
         object-fit: cover;
         border-radius: 12px;
         box-shadow: 10px 20px 30px rgba(0,0,0,0.2);
         z-index: 10;
         border: 4px solid white;
-        transform: rotateY(-5deg) translateZ(50px);
         transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .coming-soon-tag {
         position: absolute;
         top: 20px;
-        left: -10px;
+        left: -15px;
         background: #ef4444;
         color: white;
         padding: 5px 15px;
@@ -109,11 +110,34 @@ $additional_head = '
         z-index: 30;
         transform: rotate(-2deg);
     }
+    .award-seal {
+        position: absolute;
+        top: -20px;
+        right: -30px;
+        width: 110px;
+        height: 110px;
+        background: radial-gradient(circle at center, #059669, #065f46);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 10px;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.2;
+        box-shadow: 0 15px 30px rgba(5, 150, 105, 0.3), inset 0 0 0 4px rgba(255, 255, 255, 0.1);
+        z-index: 40;
+        transform: rotate(15deg);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        font-family: "Tiro Bangla", serif;
+    }
     .image-container:hover .prime-cover {
-        transform: rotateY(-5deg) rotateX(2deg) scale(1.02);
+        transform: scale(1.02);
     }
     .image-container:hover .second-cover {
-        transform: rotateY(0deg) translateZ(80px) translateX(10px);
+        transform: translateX(30px) translateY(20px);
     }
 
     .badge-label {
@@ -146,10 +170,56 @@ $additional_head = '
     }
     .author-pill:hover { background: #e2e8f0; }
 
+    @media (min-width: 1025px) {
+        .status-grid {
+            margin-top: 180px !important;
+        }
+    }
+
     @media (max-width: 1024px) {
-        .book-showcase { position: static; margin-bottom: 40px; }
-        .prime-cover { max-width: 300px; margin: 0 auto; }
-        .second-cover { width: 140px; right: 10%; }
+        .book-showcase { 
+            position: static; 
+            margin-bottom: 40px; 
+            padding: 0 45px;
+        }
+        .image-container {
+            justify-content: center !important;
+            perspective: 2000px;
+        }
+        .prime-cover { 
+            max-width: 260px; 
+            margin: 0 auto; 
+            transform: rotateY(-15deg) rotateX(5deg) translateZ(20px);
+            z-index: 20;
+        }
+        .second-cover { 
+            width: 140px; 
+            right: -5%; 
+            bottom: -60px; 
+            left: auto;
+            z-index: 10;
+            transform: rotateY(-25deg) rotateX(2deg) translateZ(-30px);
+            box-shadow: -15px 15px 30px rgba(0,0,0,0.3);
+        }
+        .image-container:hover .prime-cover {
+            transform: rotateY(-10deg) rotateX(2deg) scale(1.02);
+        }
+        .image-container:hover .second-cover {
+            transform: rotateY(-15deg) translateZ(-10px) translateX(15px);
+        }
+        .coming-soon-tag {
+            left: 20px;
+            top: 10px;
+            font-size: 8px;
+            padding: 4px 10px;
+        }
+        .award-seal { 
+            width: 85px; 
+            height: 85px; 
+            font-size: 8px; 
+            right: 10px; 
+            top: -20px; 
+        }
         .main-container { padding-top: 100px; }
     }
     .combo-suffix {
@@ -176,16 +246,18 @@ include '../includes/header.php';
                 <div class="book-showcase">
                     <div class="image-container flex justify-center lg:justify-start">
                         <div class="coming-soon-tag">Coming Soon</div>
+                        <div class="award-seal">ইন্টারন্যাশনাল বুকার প্রাইজ ২০২৫ প্রাপ্ত</div>
                         <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
                              class="prime-cover" alt="Main Book">
                         
                         <?php if (!empty($book['second_cover_image'])): ?>
                             <img src="<?php echo strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['second_cover_image']; ?>" 
                                  class="second-cover" alt="Combo Book">
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                     </div>
 
-                    <div class="mt-12 grid grid-cols-2 gap-4">
+                    <div class="mt-12 grid grid-cols-2 gap-4 status-grid">
                         <div class="p-6 bg-white rounded-3xl text-center border border-slate-100">
                             <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">প্রকাশের মাস</span>
                             <span class="text-sm font-bold text-slate-700"><?php echo bn_date($book['release_date']); ?></span>
@@ -205,14 +277,15 @@ include '../includes/header.php';
                     <span class="badge-label badge-primary">নতুন প্রকাশনী অফার</span>
                     <?php if (!empty($book['second_cover_image'])): ?>
                         <span class="badge-label badge-gold">কম্বো বই সেট</span>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- Titles and Authors -->
                 <div class="space-y-8">
-                    <?php 
-                        $titles = explode(',', $book['title']);
-                    ?>
+                    <?php
+$titles = explode(',', $book['title']);
+?>
                     
                     <div class="space-y-4">
                         <div class="flex items-center gap-3 text-red-500 mb-2">
@@ -228,14 +301,15 @@ include '../includes/header.php';
                         <div class="relative py-4">
                             <div class="absolute inset-y-0 left-0 w-1 bg-slate-200 rounded-full"></div>
                             <div class="pl-8 space-y-3">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">উপহার হিসেবে থাকছে</span>
+                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">সাথে থাকছে</span>
                                 <h3 class="text-2xl md:text-3xl font-bold text-slate-500">
                                     <?php echo str_replace('(কম্বো)', '', trim($titles[1])); ?>
                                 </h3>
                                 <p class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- Price Section -->
@@ -243,8 +317,8 @@ include '../includes/header.php';
                     <div>
                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">অফার মূল্য</span>
                         <div class="flex items-baseline gap-4">
-                            <span class="text-5xl font-black text-slate-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
-                            <span class="text-xl text-slate-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
+                            <span class="text-5xl font-black text-slate-900">৳<?php echo bn_num((int)$book['discount_price']); ?></span>
+                            <span class="text-xl text-slate-300 line-through">৳<?php echo bn_num((int)$book['price']); ?></span>
                         </div>
                     </div>
                     
@@ -255,9 +329,11 @@ include '../includes/header.php';
                                 <span>বুকিং করুন</span>
                                 <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
-                        <?php else: ?>
+                        <?php
+else: ?>
                             <button disabled class="bg-slate-200 text-slate-400 px-10 py-5 rounded-2xl font-black uppercase tracking-widest cursor-not-allowed">বুকিং আসছে</button>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                         <p class="text-center text-[10px] text-slate-400 font-bold tracking-widest italic">সীমিত সময়ের অফার!</p>
                     </div>
                 </div>
