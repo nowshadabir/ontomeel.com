@@ -12,5 +12,7 @@ if (file_exists($log_file)) {
 }
 
 echo "\n\n--- ENVIRONMENT CHECK ---\n";
-echo "SMTP_USER: " . (getenv('SMTP_USER') ?: 'NOT SET') . "\n";
-echo "Working User (Hardcoded Fallback): auth@ontomeel.com\n";
+$config = require __DIR__ . '/includes/smtp_config.php';
+echo "Configured SMTP_USER: " . $config['user'] . "\n";
+echo "Configured SMTP_HOST: " . $config['host'] . "\n";
+echo "\n";

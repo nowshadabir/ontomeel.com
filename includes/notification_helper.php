@@ -28,14 +28,13 @@ function send_notification_instantly($to, $type, $data)
     // Load SMTP configuration
     $smtp_config = require __DIR__ . '/smtp_config.php';
     
-    // Force use auth@ontomeel.com for higher deliverability if info@ is suspected to fail
     $config = [
         'host' => $smtp_config['host'],
         'port' => $smtp_config['port'],
-        'user' => 'auth@ontomeel.com', // Using verified working account
-        'pass' => $smtp_config['pass'] ?: 'Giggly5-Spokesman7-Slinging8-Hardcopy3-Union9',
+        'user' => $smtp_config['user'],
+        'pass' => $smtp_config['pass'],
         'from_name' => $smtp_config['from_name'],
-        'reply_to' => 'auth@ontomeel.com'
+        'reply_to' => $smtp_config['reply_to'] ?: $smtp_config['user']
     ];
 
     $subject = "";

@@ -22,7 +22,7 @@ if (!getenv('SMTP_PASS') && file_exists(__DIR__ . '/../.env')) {
 // Check for environment variables first
 $smtp_host = getenv('SMTP_HOST') ?: 'ontomeel.com';
 $smtp_port = getenv('SMTP_PORT') ?: 465;
-$smtp_user = getenv('SMTP_USER') ?: 'auth@ontomeel.com';
+$smtp_user = getenv('SMTP_USER') ?: 'info@ontomeel.com';
 $smtp_pass = getenv('SMTP_PASS');
 
 
