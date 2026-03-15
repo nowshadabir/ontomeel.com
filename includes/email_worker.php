@@ -26,17 +26,14 @@ function process_email_queue() {
             $result = send_notification_instantly($email['recipient'], $email['type'], $data);
 
             if ($result['success']) {
-                $pdo->prepare("UPDATE email_queue SET status = 'sent', sent_at = CURRENT_TIMESTAMP WHERE id = ?")
+                $pdo->prepare("UPDATE email_queue SET status = 'sent', sent_at = CURRENT_TIMESTAMP, error_message = NULL WHERE id = ?")
                     ->execute([$email['id']]);
             } else {
                 // If failed, mark back to pending if attempts < 3
-                if ($email['attempts'] < 3) {
-                    $pdo->prepare("UPDATE email_queue SET status = 'pending' WHERE id = ?")
-                        ->execute([$email['id']]);
-                } else {
-                    $pdo->prepare("UPDATE email_queue SET status = 'failed' WHERE id = ?")
-                        ->execute([$email['id']]);
-                }
+                $status = ($email['attempts'] < 3) ? 'pending' : 'failed';
+                $pdo->prepare("UPDATE email_queue SET status = ?, error_message = ? WHERE id = ?")
+                    ->execute([$status, $result['message'], $email['id']]);
+                
                 error_log("Worker Mail Error (ID: {$email['id']}): " . $result['message']);
             }
         }

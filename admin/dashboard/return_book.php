@@ -55,7 +55,7 @@ try {
 
     // Send Notification Email
     try {
-        $dataStmt = $pdo->prepare("SELECT b.member_id, b.order_id, m.full_name, m.email, bk.title 
+        $dataStmt = $pdo->prepare("SELECT b.member_id, b.order_id, m.full_name, m.email, bk.title, bk.title_en, bk.author, bk.author_en
                                    FROM borrows b 
                                    JOIN members m ON b.member_id = m.id 
                                    JOIN books bk ON b.book_id = bk.id 
@@ -74,7 +74,10 @@ try {
             $notif_data = [
                 'name' => $details['full_name'],
                 'invoice_no' => $inv_no,
-                'book_title' => $details['title']
+                'book_title' => $details['title'],
+                'book_title_en' => $details['title_en'],
+                'book_author' => $details['author'],
+                'book_author_en' => $details['author_en']
             ];
             send_notification($details['email'], 'borrow_returned', $notif_data);
         }

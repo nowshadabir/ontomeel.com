@@ -41,6 +41,10 @@ function send_notification_instantly($to, $type, $data)
     $content = "";
     $color = "#2563eb"; // Professional blue
 
+    // Use English title/author if provided, otherwise fallback to generic English to avoid spam
+    $book_display_title = (!empty($data['book_title_en'])) ? $data['book_title_en'] : 'a book from our collection';
+    $book_display_author = (!empty($data['book_author_en'])) ? $data['book_author_en'] : '';
+
     switch ($type) {
         case 'order_placed':
             $subject = "Order Confirmed - #" . $data['invoice_no'];
@@ -48,27 +52,25 @@ function send_notification_instantly($to, $type, $data)
             $color = "#16a34a";
 
             $book_info_html = '';
-            if (isset($data['is_preorder']) && $data['is_preorder']) {
+            if (isset($data['book_title']) || isset($data['book_title_en'])) {
                 $book_info_html = "
-                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #fcd34d;'>
-                    <p style='margin: 0; color: #92400e; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Pre-Order Book</p>
-                    <p style='margin: 5px 0 0 0; font-size: 15px; font-weight: bold; color: #78350f;'>" . htmlspecialchars($data['book_title']) . "</p>
+                <div style=\"background: #f0f0f0; padding: 15px; margin: 15px 0;\">
+                    <p style=\"margin: 0; font-weight: bold;\">" . (isset($data['is_preorder']) ? 'Pre-Order' : 'Book') . " Details</p>
+                    <p style=\"margin: 5px 0; font-weight: bold;\">" . htmlspecialchars($book_display_title) . "</p>
+                    " . ($book_display_author ? "<p style=\"margin: 0;\">by " . htmlspecialchars($book_display_author) . "</p>" : "") . "
                 </div>";
             }
 
             $content = "
-                <p>Dear <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
-                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been successfully placed and is being processed.</p>
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been received and is being processed.</p>
                 " . $book_info_html . "
-                <div style='background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #e2e8f0;'>
-                    <p style='margin: 0 0 10px 0; color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Order Details</p>
-                    <p style='margin: 5px 0;'><strong>Amount:</strong> BDT " . number_format($data['amount'], 2) . "</p>
-                    <p style='margin: 5px 0;'><strong>Shipping Address:</strong> " . htmlspecialchars($data['address']) . "</p>
-                </div>
-                <p>We will notify you once your order is confirmed and shipped.</p>
+                <p><strong>Total Amount:</strong> BDT " . number_format($data['amount'], 2) . "</p>
+                <p><strong>Shipping Address:</strong> " . htmlspecialchars($data['address']) . "</p>
+                <p>We will notify you once your order has been shipped!</p>
             ";
             if (isset($data['guest']) && $data['guest']) {
-                $content .= "<p style='color: #ef4444; font-weight: bold;'>As a guest customer, please save your order number <strong>#" . $data['invoice_no'] . "</strong> for tracking.</p>";
+                $content .= "<p><strong>Note:</strong> Please keep your order number <strong>#" . $data['invoice_no'] . "</strong> for tracking.</p>";
             }
             break;
 
@@ -77,10 +79,9 @@ function send_notification_instantly($to, $type, $data)
             $title = "Order Cancellation Notice";
             $color = "#dc2626";
             $content = "
-                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
                 <p>Your order <strong>#" . $data['invoice_no'] . "</strong> has been cancelled.</p>
-                <p>If you have made any payment, it will be refunded to your account balance within 3-5 business days.</p>
-                <p>If you did not request this cancellation, please contact our support team immediately.</p>
+                <p>If any payment was made, it will be credited back within 3-5 business days.</p>
             ";
             break;
 
@@ -96,117 +97,70 @@ function send_notification_instantly($to, $type, $data)
             $title = "Your Order Status Has Been Updated";
             $color = "#2563eb";
 
-            $book_info_html = '';
-            if (isset($data['is_preorder']) && $data['is_preorder']) {
-                $book_info_html = "
-                <div style='background: #fef3c7; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #fcd34d;'>
-                    <p style='margin: 0; color: #92400e; font-size: 12px; text-transform: uppercase; font-weight: bold;'>Pre-Order Book</p>
-                    <p style='margin: 5px 0 0 0; font-size: 15px; font-weight: bold; color: #78350f;'>" . htmlspecialchars($data['book_title']) . "</p>
-                </div>";
-            }
-
             $content = "
-                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
-                <p>Your order <strong>#" . $data['invoice_no'] . "</strong> status has been updated.</p>
-                " . $book_info_html . "
-                <p style='margin: 20px 0;'><span style='background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 5px; font-weight: bold; font-size: 14px;'>Current Status: " . $display_status . "</span></p>
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
+                <p>The status of your order <strong>#" . $data['invoice_no'] . "</strong> has changed.</p>
+                <p><strong>New Status:</strong> " . $display_status . "</p>
             ";
             break;
 
         case 'borrow_active':
             $subject = "Book Borrowed - #" . $data['invoice_no'];
-            $title = "Book Borrowing Confirmed";
+            $title = "Borrow Confirmation";
             $color = "#7c3aed";
             $content = "
-                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
-                <p>You have successfully borrowed the book <strong>'" . htmlspecialchars($data['book_title']) . "'</strong>.</p>
-                <div style='background: #f5f3ff; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #ddd6fe;'>
-                    <p style='margin: 0; color: #7c3aed; font-weight: bold; font-size: 16px;'>Return Due Date: " . htmlspecialchars($data['due_date']) . "</p>
-                    <p style='margin: 10px 0 0 0; font-size: 13px; color: #6b7280;'>Please return the book on time so others can enjoy it too.</p>
-                </div>
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
+                <p>You have borrowed <strong>\"" . htmlspecialchars($book_display_title) . "\"</strong>.</p>
+                <p><strong>Return Due Date:</strong> " . htmlspecialchars($data['due_date']) . "</p>
+                <p>Please return the book by the due date to avoid late fees.</p>
             ";
             break;
 
         case 'borrow_returned':
             $subject = "Book Returned - #" . $data['invoice_no'];
-            $title = "Book Return Confirmed";
+            $title = "Return Confirmation";
             $color = "#059669";
             $content = "
-                <p>Dear " . htmlspecialchars($data['name']) . ",</p>
-                <p>Thank you for returning the book <strong>'" . htmlspecialchars($data['book_title']) . "'</strong> on time.</p>
-                <p>We hope you enjoyed reading it!</p>
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
+                <p>Thank you for returning <strong>\"" . htmlspecialchars($book_display_title) . "\"</strong>.</p>
+                <p>We hope you enjoyed the read!</p>
             ";
             break;
 
         default:
-            $subject = "Ontomeel Bookshop - Notification";
-            $title = "Account Update";
-            $content = "<p>You have a new update on your Ontomeel Bookshop account. Please log in to your dashboard to view details.</p>";
+            $subject = "Ontomeel Bookshop Notification";
+            $title = "Account Notification";
+            $content = "<p>There is a new update regarding your Ontomeel Bookshop account.</p>";
             break;
     }
 
     // Professional From Name
-    if (strpos($type, 'order') !== false) {
-        $from_name = "Ontomeel Orders";
-    }
-    elseif (strpos($type, 'otp') !== false || strpos($type, 'auth') !== false) {
-        $from_name = "Ontomeel";
-    }
-    else {
-        $from_name = "Ontomeel Bookshop";
-    }
+    $from_name = "Ontomeel Bookshop";
 
     $config['from_name'] = $from_name;
     $config['reply_to'] = $config['user'];
 
-    // Clean, professional HTML template in English
+    // Minimalist HTML template - avoids 'high-probability spam' by mimicking simple OTP emails
     $html_message = "
     <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset='UTF-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    </head>
-    <body style='margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #333333;'>
-        <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>
-            <tr>
-                <td align='center'>
-                    <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden;'>
-                        <!-- Header -->
-                        <tr>
-                            <td style='background: " . $color . "; color: #ffffff; padding: 30px; text-align: center;'>
-                                <h1 style='margin: 0; font-size: 24px; font-weight: bold;'>" . $title . "</h1>
-                            </td>
-                        </tr>
-                        <!-- Content -->
-                        <tr>
-                            <td style='padding: 30px;'>
-                                " . $content . "
-                                <div style='text-align: center; margin-top: 25px;'>
-                                    <a href='https://ontomeel.com/dashboard' style='display: inline-block; padding: 12px 30px; background: " . $color . "; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;'>View Dashboard</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <!-- Footer -->
-                        <tr>
-                            <td style='background: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #e9ecef;'>
-                                <p style='margin: 0 0 10px 0; font-size: 14px; color: #6c757d;'>&copy; " . date('Y') . " Ontomeel Bookshop. All rights reserved.</p>
-                                <p style='margin: 0 0 10px 0; font-size: 12px; color: #adb5bd;'>This is an automated message. Please do not reply to this email.</p>
-                                <p style='margin: 0 0 15px 0; font-size: 12px; color: #adb5bd;'>
-                                    Need help? <a href='mailto:support@ontomeel.com' style='color: " . $color . ";'>Contact Support</a>
-                                </p>
-                                <div style='border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;'>
-                                    <a href='https://ontomeel.com/unsubscribe' style='color: #adb5bd; font-size: 11px; text-decoration: underline;'>Unsubscribe</a>
-                                    <span style='color: #adb5bd; font-size: 11px;'> | </span>
-                                    <a href='https://ontomeel.com/privacy' style='color: #adb5bd; font-size: 11px; text-decoration: underline;'>Privacy Policy</a>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                    <p style='margin: 20px 0 0 0; font-size: 11px; color: #999999;'>Ontomeel Bookshop | Online Book Store | Bangladesh</p>
-                </td>
-            </tr>
-        </table>
+    <html lang=\"bn\">
+    <head><meta charset=\"UTF-8\"></head>
+    <body style=\"font-family: sans-serif; line-height: 1.5; color: #333333; margin: 0; padding: 20px;\">
+        <div style=\"max-width: 600px; border: 1px solid #eeeeee; padding: 20px;\">
+            <h2 style=\"color: $color; margin-top: 0;\">$title</h2>
+            <hr style=\"border: none; border-top: 1px solid #eeeeee; margin: 20px 0;\">
+            <div style=\"font-size: 16px;\">
+                $content
+            </div>
+            <p style=\"margin-top: 30px; text-align: center;\">
+                <a href=\"https://ontomeel.com/dashboard\" style=\"background-color: $color; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">View Your Order</a>
+            </p>
+            <div style=\"margin-top: 40px; border-top: 1px solid #eeeeee; padding-top: 15px; font-size: 12px; color: #888888; text-align: center;\">
+                <p><strong>Ontomeel Bookshop</strong><br>Online Store</p>
+                <p>&copy; " . date('Y') . " All Rights Reserved.</p>
+                <p><a href=\"https://ontomeel.com/unsubscribe.php?email=" . urlencode($to) . "\" style=\"color: #888888;\">Unsubscribe</a></p>
+            </div>
+        </div>
     </body>
     </html>
     ";
@@ -227,12 +181,12 @@ function send_notification_with_fallback($to, $type, $data)
 
         // Try with info@ontomeel.com as fallback
         $fallback_config = [
-            'host' => 'ontomeel.com',
-            'port' => 465,
-            'user' => 'info@ontomeel.com',
-            'pass' => 'REDACTED_PASSWORD',
+            'host' => getenv('SMTP_HOST') ?: 'ontomeel.com',
+            'port' => getenv('SMTP_PORT') ?: 465,
+            'user' => getenv('SMTP_USER') ?: 'info@ontomeel.com',
+            'pass' => getenv('SMTP_PASS'),
             'from_name' => 'Ontomeel Bookshop',
-            'reply_to' => 'info@ontomeel.com'
+            'reply_to' => getenv('SMTP_USER') ?: 'info@ontomeel.com'
         ];
 
         // Get the email content (reconstruct from type and data)
@@ -261,59 +215,39 @@ function send_notification_with_fallback($to, $type, $data)
 }
 
 /**
- * Queue-based notification (not used for critical emails)
+ * Send notification - sends immediately for reliability
  */
 function send_notification($to, $type, $data)
 {
-    global $pdo;
-
-    try {
-        $stmt = $pdo->prepare("INSERT INTO email_queue (recipient, type, payload) VALUES (?, ?, ?)");
-        $stmt->execute([$to, $type, json_encode($data)]);
-    }
-    catch (Exception $e) {
-        error_log("Queue Failed, falling back to instant send: " . $e->getMessage());
-        return send_notification_with_fallback($to, $type, $data);
-    }
-
-    // Try to trigger worker, but send directly if it fails
-    $worker_result = trigger_worker();
-
-    // If worker failed to trigger, send directly with fallback
-    if (!$worker_result) {
-        error_log("Worker trigger failed, sending directly with fallback");
-        return send_notification_with_fallback($to, $type, $data);
-    }
-
-    return ['success' => true, 'message' => 'Email queued'];
+    // Send immediately instead of queuing for reliable delivery
+    return send_notification_instantly($to, $type, $data);
 }
 
 function trigger_worker()
 {
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
     // Determine the correct path - works for both localhost and production
-    $script_path = dirname($_SERVER['SCRIPT_NAME']);
+    $script_path = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
     if ($script_path === '\\' || $script_path === '/') {
         $script_path = '';
     }
     $worker_path = $script_path . '/includes/email_worker.php';
-
     $url = $protocol . "://" . $host . $worker_path;
 
-    $parts = parse_url($url);
-    $port = isset($parts['port']) ? $parts['port'] : ($parts['scheme'] === 'https' ? 443 : 80);
-    $host_conn = ($parts['scheme'] === 'https' ? "ssl://" : "") . $parts['host'];
+    // Use cURL for a more robust non-blocking trigger
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 1); // Only wait 1 second
+    curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
 
-    $fp = @fsockopen($host_conn, $port, $errno, $errstr, 2);
-    if ($fp) {
-        $out = "GET " . $parts['path'] . " HTTP/1.1\r\n";
-        $out .= "Host: " . $parts['host'] . "\r\n";
-        $out .= "Connection: Close\r\n\r\n";
-        fwrite($fp, $out);
-        fclose($fp);
-        return true;
-    }
-    return false;
+    // SSL Verification bypass for local/dev
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    curl_exec($ch);
+    curl_close($ch);
+    return true; // Assume triggered successfully
 }

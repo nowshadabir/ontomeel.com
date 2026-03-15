@@ -234,6 +234,31 @@ try {
                 'amount' => $total_amount,
                 'address' => $shipping_addr
             ];
+
+            // Try to get the first item's English details for the email
+            if (!empty($cart)) {
+                $firstItem = $cart[0];
+                $itemId = $firstItem['id'];
+                $isPreorder = (strpos($itemId, 'pre_') === 0);
+                
+                if ($isPreorder) {
+                    $realId = substr($itemId, 4);
+                    $stmt = $pdo->prepare("SELECT title_en, author_en FROM pre_orders WHERE id = ?");
+                    $stmt->execute([$realId]);
+                    $info = $stmt->fetch();
+                    $notif_data['is_preorder'] = true;
+                } else {
+                    $stmt = $pdo->prepare("SELECT title_en, author_en FROM books WHERE id = ?");
+                    $stmt->execute([$itemId]);
+                    $info = $stmt->fetch();
+                }
+
+                if ($info) {
+                    $notif_data['book_title_en'] = $info['title_en'];
+                    $notif_data['book_author_en'] = $info['author_en'];
+                }
+            }
+
             send_notification($user_email, 'order_placed', $notif_data);
         }
     } catch (Exception $e) {

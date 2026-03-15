@@ -101,11 +101,13 @@ try {
 
     // 3. Prepare Data
     $title = $_POST['title'] ?? '';
+    $title_en = $_POST['title_en'] ?? '';
     $subtitle = $_POST['subtitle'] ?? null;
     $description = $_POST['description'] ?? null;
     $genre = $_POST['genre'] ?? null;
     $language = $_POST['language'] ?? null;
     $author = $_POST['author'] ?? '';
+    $author_en = $_POST['author_en'] ?? '';
     $co_author = $_POST['co_author'] ?? null;
     $publisher = $_POST['publisher'] ?? null;
     $publish_year = $_POST['publish_year'] ?? null;
@@ -125,8 +127,8 @@ try {
     $supplier_name = $_POST['supplier_name'] ?? null;
     $supplier_contact = $_POST['supplier_contact'] ?? null;
 
-    if (empty($title) || empty($author) || empty($sell_price)) {
-        throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, লেখক, দাম) পূরণ করুন');
+    if (empty($title) || empty($title_en) || empty($author) || empty($author_en) || empty($sell_price)) {
+        throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, ইংরেজি নাম, লেখক, ইংরেজি লেখক, দাম) পূরণ করুন');
     }
 
     // 4. INSERT or UPDATE
@@ -135,20 +137,22 @@ try {
 
         // Build Dynamic SQL for Update
         $sql = "UPDATE books SET 
-            title=?, subtitle=?, description=?, category_id=?, genre=?, language=?, 
-            author=?, co_author=?, publisher=?, publish_year=?, edition=?, isbn=?, 
+            title=?, title_en=?, subtitle=?, description=?, category_id=?, genre=?, language=?, 
+            author=?, author_en=?, co_author=?, publisher=?, publish_year=?, edition=?, isbn=?, 
             format=?, page_count=?, book_condition=?, shelf_location=?, rack_number=?, 
             stock_qty=?, min_stock_level=?, is_borrowable=?, is_suggested=?, 
             purchase_price=?, sell_price=?, supplier_name=?, supplier_contact=?";
 
         $params = [
             $title,
+            $title_en,
             $subtitle,
             $description,
             $category_id,
             $genre,
             $language,
             $author,
+            $author_en,
             $co_author,
             $publisher,
             $publish_year,
@@ -190,15 +194,15 @@ try {
         $message = "বইটির তথ্য সফলভাবে আপডেট করা হয়েছে।";
     } else {
         $sql = "INSERT INTO books (
-            title, subtitle, description, category_id, genre, language, 
-            author, co_author, publisher, publish_year, edition, isbn, 
+            title, title_en, subtitle, description, category_id, genre, language, 
+            author, author_en, co_author, publisher, publish_year, edition, isbn, 
             format, page_count, book_condition, shelf_location, rack_number, 
             stock_qty, min_stock_level, is_borrowable, is_suggested, 
             purchase_price, sell_price, supplier_name, supplier_contact, 
             cover_image, photo_2, photo_3, is_active, created_at
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, 
             ?, ?, ?, ?, 
@@ -208,12 +212,14 @@ try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $title,
+            $title_en,
             $subtitle,
             $description,
             $category_id,
             $genre,
             $language,
             $author,
+            $author_en,
             $co_author,
             $publisher,
             $publish_year,

@@ -1535,6 +1535,12 @@ endforeach; ?>
                         </div>
                         <div class="space-y-2">
                             <label
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Book Title (English) *</label>
+                            <input type="text" name="title_en" required placeholder="Book title in English"
+                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                        </div>
+                        <div class="space-y-2">
+                            <label
                                 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">উপ-শিরোনাম
                                 (Subtitle)</label>
                             <input type="text" name="subtitle" placeholder="যদি থাকে"
@@ -1600,6 +1606,12 @@ endforeach; ?>
                                 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">প্রধান
                                 লেখক (Author) *</label>
                             <input type="text" name="author" required placeholder="লেখকের নাম"
+                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Author (English) *</label>
+                            <input type="text" name="author_en" required placeholder="Author name in English"
                                 class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
                         </div>
                         <div class="space-y-2">
@@ -1967,6 +1979,11 @@ endforeach; ?>
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Book Title (English) *</label>
+                            <input type="text" name="title_en" required placeholder="Book title in English"
+                                class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
+                        </div>
+                        <div class="space-y-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">সাব-টাইটেল
                                 (Sub-title)</label>
                             <input type="text" name="sub_title" placeholder="যেমন: কম্বো প্যাকে বিশেষ ছাড়!"
@@ -1976,6 +1993,11 @@ endforeach; ?>
                             <label
                                 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">লেখক</label>
                             <input type="text" name="author" required placeholder="লেখকের নাম লিখুন"
+                                class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Author (English) *</label>
+                            <input type="text" name="author_en" required placeholder="Author name in English"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">

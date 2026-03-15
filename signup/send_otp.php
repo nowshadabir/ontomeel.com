@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $smtp_config = [
         'host' => getenv('SMTP_HOST') ?: 'ontomeel.com',
         'port' => getenv('SMTP_PORT') ?: 465,
-        'user' => getenv('SMTP_AUTH_USER') ?: 'auth@ontomeel.com',
-        'pass' => getenv('SMTP_AUTH_PASS') ?: getenv('SMTP_PASS'),
+        'user' => getenv('SMTP_USER') ?: 'auth@ontomeel.com',
+        'pass' => getenv('SMTP_PASS'),
         'from_name' => 'Ontomeel Verification'
     ];
 
@@ -49,16 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     require_once '../includes/smtp_client.php';
 
     $subject = "Verification Code: $otp - Ontomeel";
-    $message = "Your 6-digit verification code is: $otp\r\n\r\nThis code will expire in 10 minutes.";
+    $message = "Your verification code is: $otp\r\n\r\nThis code will expire in 10 minutes. Please enter it on the signup page to verify your account.";
 
     $result = send_smtp_email($email, $subject, $message, $smtp_config);
 
     if ($result['success']) {
         echo json_encode([
             'success' => true,
-            'message' => 'ওটিপি আপনার ইমেইলে পাঠানো হয়েছে।'
+            'message' => 'OTP has been sent to your email.'
         ]);
-    } else {
+    }
+    else {
         // Log the error for debugging
         error_log("SMTP Error: " . $result['message']);
 
@@ -68,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
     }
 
-} else {
+}
+else {
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
 }

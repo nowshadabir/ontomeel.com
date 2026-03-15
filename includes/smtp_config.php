@@ -7,26 +7,24 @@
  * ======================================================
  */
 
-// Check for environment variables first (for hosting control panels)
-$smtp_host = getenv('SMTP_HOST');
-$smtp_port = getenv('SMTP_PORT');
-$smtp_user = getenv('SMTP_USER');
+// Simple .env loader for credentials if not already loaded
+if (!getenv('SMTP_PASS') && file_exists(__DIR__ . '/../.env')) {
+    $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2) {
+            putenv(trim($parts[0]) . "=" . trim($parts[1]));
+        }
+    }
+}
+
+// Check for environment variables first
+$smtp_host = getenv('SMTP_HOST') ?: 'ontomeel.com';
+$smtp_port = getenv('SMTP_PORT') ?: 465;
+$smtp_user = getenv('SMTP_USER') ?: 'auth@ontomeel.com';
 $smtp_pass = getenv('SMTP_PASS');
 
-// Fallback to hardcoded credentials if environment variables not set
-if (empty($smtp_host)) {
-    $smtp_host = 'ontomeel.com';
-}
-if (empty($smtp_port)) {
-    $smtp_port = 465;
-}
-if (empty($smtp_user)) {
-    $smtp_user = 'auth@ontomeel.com';
-}
-if (empty($smtp_pass)) {
-    // Production credentials - DO NOT SHARE
-    $smtp_pass = 'REDACTED_PASSWORD';
-}
 
 return [
     // SMTP Server Settings

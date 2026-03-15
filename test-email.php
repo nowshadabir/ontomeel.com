@@ -42,15 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['test_email'])) {
         <!DOCTYPE html>
         <html>
         <head><meta charset="UTF-8"></head>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2 style="color: #2563eb;">Test Email Successful!</h2>
-            <p>This is a test email from <strong>Ontomeel Bookshop</strong>.</p>
-            <p>If you received this email, your email configuration is working correctly.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #666; font-size: 12px;">
-                Ontomeel Bookshop | Online Book Store<br>
-                This is an automated message.
-            </p>
+        <body style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+            <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+                <h1 style="margin: 0;">Test Email Successful!</h1>
+            </div>
+            <div style="padding: 20px; background: #f9f9f9;">
+                <p>This is a test email from <strong>Ontomeel Bookshop</strong>.</p>
+                <p>If you received this email, your email configuration is working correctly.</p>
+            </div>
+            <div style="padding: 15px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd;">
+                <p>Ontomeel Bookshop | Online Book Store</p>
+            </div>
         </body>
         </html>';
 

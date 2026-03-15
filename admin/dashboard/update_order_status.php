@@ -188,7 +188,7 @@ try {
                 ];
 
                 // Check if this is a pre-order and get book details
-                $bookStmt = $pdo->prepare("SELECT po.title, po.author FROM order_items oi 
+                $bookStmt = $pdo->prepare("SELECT po.title, po.title_en, po.author, po.author_en FROM order_items oi 
                                             JOIN pre_orders po ON oi.preorder_id = po.id 
                                             WHERE oi.order_id = ? LIMIT 1");
                 $bookStmt->execute([$order_id]);
@@ -196,7 +196,9 @@ try {
                 
                 if ($book_info) {
                     $notif_data['book_title'] = $book_info['title'];
+                    $notif_data['book_title_en'] = $book_info['title_en'];
                     $notif_data['book_author'] = $book_info['author'];
+                    $notif_data['book_author_en'] = $book_info['author_en'];
                     $notif_data['is_preorder'] = true;
                 }
 
@@ -204,12 +206,17 @@ try {
                     $type = 'order_cancelled';
                 } elseif ($status === 'Shipped' && $details['notes'] === 'Borrow Order') {
                     // Fetch book title for borrow
-                    $bookStmt = $pdo->prepare("SELECT b.title FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ? LIMIT 1");
+                    $bookStmt = $pdo->prepare("SELECT b.title, b.title_en, b.author, b.author_en FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ? LIMIT 1");
                     $bookStmt->execute([$order_id]);
-                    $book_title = $bookStmt->fetchColumn();
+                    $book_info = $bookStmt->fetch();
                     
                     $type = 'borrow_active';
-                    $notif_data['book_title'] = $book_title;
+                    if ($book_info) {
+                        $notif_data['book_title'] = $book_info['title'];
+                        $notif_data['book_title_en'] = $book_info['title_en'];
+                        $notif_data['book_author'] = $book_info['author'];
+                        $notif_data['book_author_en'] = $book_info['author_en'];
+                    }
                     $notif_data['due_date'] = date('Y-m-d', strtotime('+30 days'));
                 }
 
