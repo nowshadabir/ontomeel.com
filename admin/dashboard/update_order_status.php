@@ -188,7 +188,7 @@ try {
                 ];
 
                 // Check if this is a pre-order and get book details
-                $bookStmt = $pdo->prepare("SELECT po.title, po.title_en, po.author, po.author_en FROM order_items oi 
+                $bookStmt = $pdo->prepare("SELECT po.title, po.author FROM order_items oi 
                                             JOIN pre_orders po ON oi.preorder_id = po.id 
                                             WHERE oi.order_id = ? LIMIT 1");
                 $bookStmt->execute([$order_id]);
@@ -196,9 +196,9 @@ try {
                 
                 if ($book_info) {
                     $notif_data['book_title'] = $book_info['title'];
-                    $notif_data['book_title_en'] = $book_info['title_en'];
+                    $notif_data['book_title_en'] = $book_info['title'];
                     $notif_data['book_author'] = $book_info['author'];
-                    $notif_data['book_author_en'] = $book_info['author_en'];
+                    $notif_data['book_author_en'] = $book_info['author'];
                     $notif_data['is_preorder'] = true;
                 }
 

@@ -247,19 +247,19 @@ try {
                 
                 if ($isPreorder) {
                     $realId = substr($itemId, 4);
-                    $stmt = $pdo->prepare("SELECT title_en, author_en FROM pre_orders WHERE id = ?");
+                    $stmt = $pdo->prepare("SELECT title, author FROM pre_orders WHERE id = ?");
                     $stmt->execute([$realId]);
                     $info = $stmt->fetch();
                     $notif_data['is_preorder'] = true;
                 } else {
-                    $stmt = $pdo->prepare("SELECT title_en, author_en FROM books WHERE id = ?");
+                    $stmt = $pdo->prepare("SELECT title, author FROM books WHERE id = ?");
                     $stmt->execute([$itemId]);
                     $info = $stmt->fetch();
                 }
 
                 if ($info) {
-                    $notif_data['book_title_en'] = $info['title_en'];
-                    $notif_data['book_author_en'] = $info['author_en'];
+                    $notif_data['book_title_en'] = $info['title']; // Using title as fallback
+                    $notif_data['book_author_en'] = $info['author'];
                 }
             }
 
