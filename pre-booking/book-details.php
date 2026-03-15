@@ -113,7 +113,7 @@ $additional_head = '
     .award-seal {
         position: absolute;
         top: -20px;
-        right: -30px;
+        right: -25px;
         width: 110px;
         height: 110px;
         background: radial-gradient(circle at center, #059669, #065f46);
@@ -132,6 +132,10 @@ $additional_head = '
         transform: rotate(15deg);
         border: 2px dashed rgba(255, 255, 255, 0.2);
         font-family: "Tiro Bangla", serif;
+    }
+    .book-wrapper {
+        position: relative;
+        display: inline-block;
     }
     .image-container:hover .prime-cover {
         transform: scale(1.02);
@@ -174,51 +178,59 @@ $additional_head = '
         .status-grid {
             margin-top: 180px !important;
         }
+        .award-seal {
+            right: -5px !important;
+        }
     }
 
     @media (max-width: 1024px) {
         .book-showcase { 
             position: static; 
             margin-bottom: 40px; 
-            padding: 0 45px;
+            padding: 0 15px;
         }
         .image-container {
+            display: flex !important;
+            align-items: center !important;
             justify-content: center !important;
+            gap: 15px;
             perspective: 2000px;
+            padding: 40px 0;
         }
         .prime-cover { 
-            max-width: 260px; 
-            margin: 0 auto; 
-            transform: rotateY(-15deg) rotateX(5deg) translateZ(20px);
+            max-width: 200px; 
+            margin: 0; 
+            transform: rotateY(-10deg);
             z-index: 20;
         }
         .second-cover { 
-            width: 140px; 
-            right: -5%; 
-            bottom: -60px; 
-            left: auto;
+            width: 110px; 
+            position: relative !important;
+            right: auto !important;
+            bottom: auto !important;
+            margin: 0;
             z-index: 10;
-            transform: rotateY(-25deg) rotateX(2deg) translateZ(-30px);
-            box-shadow: -15px 15px 30px rgba(0,0,0,0.3);
+            transform: rotateY(-15deg);
+            box-shadow: -10px 10px 20px rgba(0,0,0,0.2);
         }
         .image-container:hover .prime-cover {
-            transform: rotateY(-10deg) rotateX(2deg) scale(1.02);
+            transform: rotateY(-5deg) scale(1.05);
         }
         .image-container:hover .second-cover {
-            transform: rotateY(-15deg) translateZ(-10px) translateX(15px);
+            transform: rotateY(-10deg) scale(1.05);
         }
         .coming-soon-tag {
-            left: 20px;
-            top: 10px;
+            left: -10px;
+            top: 15px;
             font-size: 8px;
             padding: 4px 10px;
         }
         .award-seal { 
-            width: 85px; 
-            height: 85px; 
-            font-size: 8px; 
-            right: 10px; 
-            top: -20px; 
+            width: 75px; 
+            height: 75px; 
+            font-size: 7px; 
+            right: -10px; 
+            top: -15px; 
         }
         .main-container { padding-top: 100px; }
     }
@@ -245,10 +257,12 @@ include '../includes/header.php';
             <div class="lg:col-span-5">
                 <div class="book-showcase">
                     <div class="image-container flex justify-center lg:justify-start">
-                        <div class="coming-soon-tag">Coming Soon</div>
-                        <div class="award-seal">ইন্টারন্যাশনাল বুকার প্রাইজ ২০২৫ প্রাপ্ত</div>
-                        <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
-                             class="prime-cover" alt="Main Book">
+                        <div class="book-wrapper">
+                            <div class="coming-soon-tag">Coming Soon</div>
+                            <div class="award-seal">ইন্টারন্যাশনাল বুকার প্রাইজ ২০২৫ প্রাপ্ত</div>
+                            <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
+                                 class="prime-cover" alt="Main Book">
+                        </div>
                         
                         <?php if (!empty($book['second_cover_image'])): ?>
                             <img src="<?php echo strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['second_cover_image']; ?>" 
