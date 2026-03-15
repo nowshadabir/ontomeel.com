@@ -74,18 +74,25 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
 
     // Header Encoding
     $encoded_subject = "=?UTF-8?B?" . base64_encode($subject) . "?=";
-    $encoded_name = "=?UTF-8?B?" . base64_encode($from_name) . "?=";
     $msg_id = "<" . time() . "." . bin2hex(random_bytes(8)) . "@" . $domain . ">";
     $date = date('r');
 
+    // Only encode name if it contains non-ASCII characters
+    $from_header = (preg_match('/[^\x00-\x7F]/', $from_name)) 
+        ? "=?UTF-8?B?" . base64_encode($from_name) . "?= <$user>"
+        : "$from_name <$user>";
+
     // Headers
     $headers = "Date: $date\r\n";
-    $headers .= "To: <$to>\r\n";
-    $headers .= "From: $encoded_name <$user>\r\n";
+    $headers .= "To: $to\r\n";
+    $headers .= "From: $from_header\r\n";
     $headers .= "Reply-To: <$reply_to>\r\n";
+    $headers .= "Return-Path: <$user>\r\n";
     $headers .= "Subject: $encoded_subject\r\n";
     $headers .= "Message-ID: $msg_id\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "X-Priority: 3 (Normal)\r\n";
     $headers .= "Content-Language: en-US, bn\r\n";
     $headers .= "Auto-Submitted: auto-generated\r\n";
     $headers .= "List-Unsubscribe: <https://$domain/unsubscribe.php?email=" . urlencode($to) . ">, <mailto:unsubscribe@$domain?subject=unsubscribe>\r\n";
@@ -100,12 +107,12 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
         $body = "--$boundary\r\n";
         $body .= "Content-Type: text/plain; charset=UTF-8\r\n";
         $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
-        $body .= quoted_printable_encode($txt_body) . "\r\n";
+        $body .= quoted_printable_encode($txt_body) . "\r\n\r\n";
 
         $body .= "--$boundary\r\n";
         $body .= "Content-Type: text/html; charset=UTF-8\r\n";
         $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
-        $body .= quoted_printable_encode($message) . "\r\n";
+        $body .= quoted_printable_encode($message) . "\r\n\r\n";
         $body .= "--$boundary--\r\n";
     } else {
         $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
@@ -114,7 +121,7 @@ function send_smtp_email($to, $subject, $message, $config, $is_html = false)
     }
 
     // SMTP Data Termination
-    fwrite($socket, $headers . $body . ".\r\n");
+    fwrite($socket, $headers . $body . "\r\n.\r\n");
 
     $data_res = get_smtp_response($socket);
     
