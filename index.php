@@ -71,7 +71,7 @@ function bn_num($num)
 
                 <p class="text-gray-300 text-lg md:text-xl font-light mb-12 max-w-xl mx-auto lg:mx-0 animate-slide-up leading-relaxed"
                     style="animation-delay: 0.5s;">
-                    অন্ত্যমিল — একটি প্রিমিয়াম বুকস্টোর এবং আধুনিক লাইব্রেরির এক অপূর্ব মেলবন্ধন। আমাদের বাছাইকৃত
+                    অন্ত্যমিল, একটি প্রিমিয়াম বুকস্টোর এবং আধুনিক লাইব্রেরির এক অপূর্ব মেলবন্ধন। আমাদের বাছাইকৃত
                     সংগ্রহে খুঁজে পান সাহিত্যের অমূল্য সম্পদ।
                 </p>
 
