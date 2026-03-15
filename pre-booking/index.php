@@ -468,9 +468,10 @@ endfor; ?>
                             </div>
 
                             <!-- Hero Image Main -->
-                            <div class="relative hero-glass p-4 rounded-[40px] shadow-2xl overflow-hidden">
-                                <img src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
-                                    alt="Premium Book Collection" class="w-full h-auto rounded-[30px] object-cover">
+                            <div class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden">
+                                <img data-src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
+                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" 
+                                    alt="Premium Book Collection" class="lazy-image w-full h-auto rounded-[30px] object-cover">
                             </div>
                         </div>
                     </div>
@@ -542,16 +543,18 @@ endfor; ?>
                             <!-- Dual Book Display with Animation -->
                             <div class="dual-book-container w-full h-[450px]">
                                 <div class="book-wrapper book-1 w-[220px] md:w-[280px]">
-                                    <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                                    <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
+                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
+                                        class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
                                     <div class="status-label label-preorder">
                                         <span class="inline-block w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
                                         প্রি-অর্ডার চলছে
                                     </div>
                                 </div>
                                 <div class="book-wrapper book-2 w-[220px] md:w-[280px]">
-                                    <img src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
-                                        class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
+                                    <img data-src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
+                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
+                                        class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
                                     <div class="status-label label-released">
                                         <span class="inline-block w-2 h-2 bg-white rounded-full mr-2"></span>
                                         সদ্য প্রকাশিত
@@ -562,8 +565,9 @@ endfor; ?>
     else: ?>
                             <!-- Single Book Display -->
                             <div class="book-3d-hot w-[280px] md:w-[400px]">
-                                <img src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                    class="rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                                <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
+                                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
+                                     class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
                             </div>
                         <?php
     endif; ?>
@@ -589,9 +593,10 @@ endif; ?>
 
                         <div class="mockup-img-wrapper mb-8">
                             <span class="mockup-badge"><?php echo $isOpen ? 'ওপেন' : 'আসন্ন'; ?></span>
-                            <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']); ?>"
+                            <img data-src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']); ?>"
+                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
                                 alt="<?php echo $book['title']; ?>"
-                                class="w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-700">
+                                class="lazy-image w-full h-full object-cover transform scale-105 group-hover:scale-110 transition-transform duration-700">
 
                             <!-- Detailed Preview Overlay (Subtle) -->
                             <div
@@ -642,6 +647,23 @@ endforeach; ?>
 </div>
 
 <script>
+    // Generic image observer for pre-booking images
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    img.onload = () => img.classList.add('loaded');
+                    observer.unobserve(img);
+                }
+            }
+        });
+    }, { rootMargin: '50px 0px', threshold: 0.01 });
+
+    document.querySelectorAll('.lazy-image').forEach(img => imageObserver.observe(img));
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {

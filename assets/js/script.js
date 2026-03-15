@@ -69,6 +69,21 @@ function showSkeletons() {
     }
 }
 
+// Image observer for progressive loading
+const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+                img.onload = () => img.classList.add('loaded');
+                observer.unobserve(img);
+            }
+        }
+    });
+}, { rootMargin: '50px 0px', threshold: 0.01 });
+
 // Render Books
 function renderBooks(booksToRender) {
     const bookGrid = document.getElementById('book-grid');
@@ -101,7 +116,7 @@ function renderBooks(booksToRender) {
 
     booksToRender.forEach((book, index) => {
         const isSubscribed = localStorage.getItem('is_subscribed') === 'true';
-        const delay = (index % 4) * 100;
+        const delay = (index % 4) * 80;
 
         // Check stock and borrow status
         const isOutOfStock = parseInt(book.stock_qty) <= 0;
@@ -110,29 +125,29 @@ function renderBooks(booksToRender) {
         const bookHTML = `
                     <div class="book-card group reveal active ${isOutOfStock ? 'opacity-80' : ''}" style="transition-delay: ${delay}ms;">
                         <!-- Cover -->
-                        <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-200 mb-4 shadow-sm border border-gray-100">
-                            <img src="${book.img}" alt="${book.title}" loading="lazy" class="object-cover w-full h-full ${isOutOfStock ? 'grayscale' : ''}">
+                        <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-100 mb-4 shadow-sm border border-gray-100">
+                            <img data-src="${book.img}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E" alt="${book.title}" class="lazy-image object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}">
                             
                             ${isOutOfStock ? `
-                            <div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20">
+                            <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">
                                 স্টক আউট
                             </div>` : ''}
 
                         <!-- Overlay Actions -->
-                        <div class="absolute inset-x-0 bottom-0 md:inset-0 bg-brand-900/90 md:bg-brand-900/70 md:opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-row md:flex-col justify-center items-center gap-2 md:gap-3 backdrop-blur-md md:backdrop-blur-sm p-2 md:p-0">
+                        <div class="absolute inset-x-0 bottom-0 md:inset-0 bg-brand-900/95 md:bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-row md:flex-col justify-center items-center gap-2 md:gap-3 backdrop-blur-md md:backdrop-blur-sm p-2 md:p-0 z-30">
                             ${isOutOfStock ? `
-                            <button disabled class="flex-1 md:flex-none md:w-3/4 bg-gray-600 text-gray-300 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed">
+                            <button disabled class="flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10">
                                 স্টকে নেই
                             </button>` : `
                             <button onclick="addToCart({id: ${book.id}, title: '${book.title.replace(/'/g, "\\'")}', price: ${book.price}, img: '${book.img}', author: '${book.author.replace(/'/g, "\\'")}'})" 
-                                    class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-lg font-sans">
+                                     class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-xl font-sans">
                                 <span class="md:hidden">কিনুন</span>
                                 <span class="hidden md:block">কিনুন ৳${convertToBengaliNumber(book.price)}</span>
                             </button>`}
                             
                             ${canBorrow ? `
                             <button onclick="borrowBook({id: ${book.id}, title: '${book.title.replace(/'/g, "\\'")}', price: 0, img: '${book.img}', author: '${book.author.replace(/'/g, "\\'")}'})" 
-                                    class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1">
+                                    class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white/30 text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1 backdrop-blur-sm">
                                 <span class="borrow-icon">
                                     <svg class="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -144,21 +159,24 @@ function renderBooks(booksToRender) {
                         </div>
                         
                         <!-- Premium Shine Effect on hover -->
-                        <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-in-out"></div>
+                        <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-in-out pointer-events-none"></div>
                     </div>
                         
                         <!-- Details -->
                         <div class="text-center px-1">
                             <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${book.category}</span>
                             <a href="${prefix}book-details.php?id=${book.id}" class="block hover:text-brand-gold">
-                                <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold">${book.title}</h3>
+                                <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${book.title}</h3>
                             </a>
                             <p class="text-gray-500 text-xs md:text-sm font-light mt-1">${book.author}</p>
                         </div>
                     </div>
                 `;
-        targetGrid.innerHTML += bookHTML;
+        targetGrid.insertAdjacentHTML('beforeend', bookHTML);
     });
+
+    // Observe newly added images
+    targetGrid.querySelectorAll('.lazy-image').forEach(img => imageObserver.observe(img));
 }
 
 // Initialize with all books

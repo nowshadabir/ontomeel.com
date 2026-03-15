@@ -268,7 +268,6 @@ function bn_num($num)
             </div>
         <?php endfor; ?>
     </div>
-    </div>
 </section>
 </section>
 

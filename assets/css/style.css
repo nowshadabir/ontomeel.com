@@ -188,14 +188,26 @@
      animation: skeleton-loading 1.2s infinite linear;
  }
 
- @keyframes skeleton-loading {
-     from {
-         background-position: 200% 0;
-     }
-     to {
-         background-position: -200% 0;
-     }
- }
+@keyframes skeleton-loading {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* Progressive Image Loading */
+.lazy-image {
+    opacity: 0;
+    filter: blur(10px);
+    transition: opacity 0.8s ease-out, filter 1.2s ease-out, transform 0.6s ease-out;
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+    filter: blur(0);
+}
 
  .skeleton-text {
      height: 1rem;
