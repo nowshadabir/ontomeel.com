@@ -125,9 +125,9 @@ function bn_num($num)
                 <div class="relative z-20 w-[320px] book-3d floating-card">
                     <!-- Book Cover -->
                     <div
-                        class="relative aspect-[2/3] rounded-r-lg overflow-hidden shadow-[20px_20px_50px_rgba(0,0,0,0.5)] border-l-2 border-white/20">
+                        class="relative aspect-[2/3] rounded-r-lg overflow-hidden shadow-[20px_20px_50px_rgba(0,0,0,0.5)] border-l-2 border-white/20 skeleton">
                         <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000&auto=format&fit=crop"
-                            alt="Featured Book" class="w-full h-full object-cover">
+                            alt="Featured Book" class="w-full h-full object-cover" fetchpriority="high" loading="eager" onload="this.parentElement.classList.remove('skeleton')">
                         <!-- Shine effect on cover -->
                         <div class="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent">
                         </div>

@@ -109,7 +109,7 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
             }
         }
     });
-}, { rootMargin: '400px 0px', threshold: 0.01 });
+}, { rootMargin: '600px 0px', threshold: 0.01 });
 
 // Safety utility to observe images
 function observeImages() {

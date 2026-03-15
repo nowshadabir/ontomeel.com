@@ -469,9 +469,8 @@ endfor; ?>
 
                             <!-- Hero Image Main -->
                             <div class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden skeleton">
-                                <img data-src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" 
-                                    alt="Premium Book Collection" class="lazy-image w-full h-auto rounded-[30px] object-cover" fetchpriority="high">
+                                <img src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
+                                    alt="Premium Book Collection" class="w-full h-auto rounded-[30px] object-cover" fetchpriority="high" loading="eager" onload="this.parentElement.classList.remove('skeleton')">
                             </div>
                         </div>
                     </div>
