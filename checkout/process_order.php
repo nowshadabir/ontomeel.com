@@ -227,6 +227,10 @@ try {
         $emailStmt->execute([$user_id]);
         $user_email = $emailStmt->fetchColumn();
 
+        // Breadcrumb Log
+        $log_id = $invoice_no ?? 'UNKNOWN';
+        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: Order #$log_id | User ID: $user_id | Email: " . ($user_email ?: 'EMPTY') . "\n", FILE_APPEND);
+
         if ($user_email) {
             $notif_data = [
                 'name' => $name,
@@ -234,8 +238,8 @@ try {
                 'amount' => $total_amount,
                 'address' => $shipping_addr
             ];
-
-            // Try to get the first item's English details for the email
+            
+            // ... (rest of book detail logic) ...
             if (!empty($cart)) {
                 $firstItem = $cart[0];
                 $itemId = $firstItem['id'];
@@ -259,9 +263,11 @@ try {
                 }
             }
 
-            send_notification($user_email, 'order_placed', $notif_data);
+            $result = send_notification($user_email, 'order_placed', $notif_data);
+            file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: send_notification triggered. Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
         }
     } catch (Exception $e) {
+        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
         error_log("Mail Error in Checkout: " . $e->getMessage());
     }
 

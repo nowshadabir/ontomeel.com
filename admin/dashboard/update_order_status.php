@@ -205,7 +205,7 @@ try {
                 if ($status === 'Cancelled') {
                     $type = 'order_cancelled';
                 } elseif ($status === 'Shipped' && $details['notes'] === 'Borrow Order') {
-                    // Fetch book title for borrow
+                    // ... (borrow logic) ...
                     $bookStmt = $pdo->prepare("SELECT b.title, b.title_en, b.author, b.author_en FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = ? LIMIT 1");
                     $bookStmt->execute([$order_id]);
                     $book_info = $bookStmt->fetch();
@@ -220,10 +220,17 @@ try {
                     $notif_data['due_date'] = date('Y-m-d', strtotime('+30 days'));
                 }
 
-                send_notification($cust_email, $type, $notif_data);
+                // Breadcrumb Log
+                file_put_contents(__DIR__ . '/../../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE: Invoice #" . $details['invoice_no'] . " | Status: $status | Target: $cust_email\n", FILE_APPEND);
+
+                $result = send_notification($cust_email, $type, $notif_data);
+                file_put_contents(__DIR__ . '/../../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE: Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
+            } else {
+                file_put_contents(__DIR__ . '/../../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE: SKIPPED - No email found for order #" . $order_id . "\n", FILE_APPEND);
             }
         }
     } catch (Exception $e) {
+        file_put_contents(__DIR__ . '/../../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] STATUS_UPDATE ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
         error_log("Mail Error in Status Update: " . $e->getMessage());
     }
 
