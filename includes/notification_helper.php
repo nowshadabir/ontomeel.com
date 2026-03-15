@@ -189,14 +189,14 @@ function send_notification_with_fallback($to, $type, $data)
     if (!$result['success']) {
         error_log("Primary SMTP failed, trying fallback: " . $result['message']);
 
-        // Try with info@ontomeel.com as fallback
+        // Try with auth@ontomeel.com as fallback since it's verified working
         $fallback_config = [
             'host' => getenv('SMTP_HOST') ?: 'ontomeel.com',
             'port' => getenv('SMTP_PORT') ?: 465,
-            'user' => getenv('SMTP_USER') ?: 'info@ontomeel.com',
-            'pass' => getenv('SMTP_PASS'),
+            'user' => 'auth@ontomeel.com',
+            'pass' => getenv('SMTP_PASS') ?: getenv('SMTP_AUTH_PASS'),
             'from_name' => 'Ontomeel Bookshop',
-            'reply_to' => getenv('SMTP_USER') ?: 'info@ontomeel.com'
+            'reply_to' => 'auth@ontomeel.com'
         ];
 
         // Get the email content (reconstruct from type and data)
