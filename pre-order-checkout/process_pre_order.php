@@ -62,8 +62,8 @@ try {
     $stmt = $pdo->prepare("
         INSERT INTO orders (
             invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, 
-            payment_status, payment_method, trx_id, order_status, shipping_address
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?)
+            payment_status, payment_method, trx_id, order_status, shipping_address, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?, 'Pre-order Booking')
     ");
 
     // Fetch free_delivery status for this pre-order

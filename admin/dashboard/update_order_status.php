@@ -146,9 +146,19 @@ try {
             ->execute([$order_id]);
 
     } elseif ($status === 'Confirmed' && $prev_status === 'Processing') {
-        // Just move to confirmed state, wait for Shipped
+        // Just move to confirmed state
         $pdo->prepare("UPDATE orders SET order_status = 'Confirmed' WHERE id = ?")
             ->execute([$order_id]);
+        
+        // If it's a pre-order, mark as Paid (as user likely sent bKash/Nagad info which admin verified)
+        $checkPO = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ? AND preorder_id IS NOT NULL");
+        $checkPO->execute([$order_id]);
+        $is_preorder = $checkPO->fetchColumn() > 0;
+        
+        if ($is_preorder) {
+            $pdo->prepare("UPDATE orders SET payment_status = 'Paid' WHERE id = ?")
+                ->execute([$order_id]);
+        }
     } else {
         // For any other manual status change (e.g. Processing → Delivered directly)
         $pdo->prepare("UPDATE orders SET order_status = ? WHERE id = ?")
