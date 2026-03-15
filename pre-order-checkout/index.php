@@ -78,7 +78,9 @@ $total_amount = $price + $delivery_charge;
             </div>
             <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
                 <p class="text-xl md:text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
-                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek"><?php if($is_free_delivery): ?>ফ্রি ডেলিভারি<?php else: ?>+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি<?php endif; ?></p>
+                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek"><?php if ($is_free_delivery): ?>ফ্রি ডেলিভারি<?php
+else: ?>+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি<?php
+endif; ?></p>
                 <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block">
                     মোট: ৳<span id="display-total"><?php echo number_format($total_amount); ?></span></div>
             </div>
@@ -128,7 +130,8 @@ $total_amount = $price + $delivery_charge;
                             </div>
                             <input type="hidden" name="location" value="inside">
                         </div>
-                    <?php else: ?>
+                    <?php
+else: ?>
                     <div class="flex gap-4">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
@@ -145,7 +148,8 @@ $total_amount = $price + $delivery_charge;
                             </div>
                         </label>
                     </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি ঠিকানা
