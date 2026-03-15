@@ -73,7 +73,7 @@ $total_amount = $price + $delivery_charge;
                 <h3 class="font-anek font-bold text-xl md:text-2xl text-brand-900 leading-tight">
                     <?php echo htmlspecialchars($pre_order['title']); ?>
                 </h3>
-                <p class="text-xs md:text-sm text-gray-500 font-anek mt-1">লেখক: <?php echo htmlspecialchars($pre_order['author']); ?>
+                <p class="text-xs md:text-sm text-gray-500 font-anek mt-1 hidden">লেখক: <?php echo htmlspecialchars($pre_order['author']); ?>
                 </p>
             </div>
             <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
