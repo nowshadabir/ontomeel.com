@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/smtp_client.php';
+require_once __DIR__ . '/smtp_config.php';
 
 /**
  * Send notifications instantly - all content in English to avoid spam
@@ -23,17 +24,16 @@ function send_notification_instantly($to, $type, $data)
     // Continue if check fails
     }
 
-    // SMTP configuration
-    $user = getenv('SMTP_USER') ?: 'auth@ontomeel.com';
-    $pass = getenv('SMTP_PASS');
-    $host = getenv('SMTP_HOST') ?: 'ontomeel.com';
-    $port = getenv('SMTP_PORT') ?: 465;
+    // Load SMTP configuration
+    $smtp_config = require __DIR__ . '/smtp_config.php';
 
     $config = [
-        'host' => $host,
-        'port' => $port,
-        'user' => $user,
-        'pass' => $pass
+        'host' => $smtp_config['host'],
+        'port' => $smtp_config['port'],
+        'user' => $smtp_config['user'],
+        'pass' => $smtp_config['pass'],
+        'from_name' => $smtp_config['from_name'],
+        'reply_to' => $smtp_config['reply_to']
     ];
 
     $subject = "";
@@ -157,7 +157,7 @@ function send_notification_instantly($to, $type, $data)
     }
 
     $config['from_name'] = $from_name;
-    $config['reply_to'] = $user;
+    $config['reply_to'] = $config['user'];
 
     // Clean, professional HTML template in English
     $html_message = "
@@ -215,6 +215,52 @@ function send_notification_instantly($to, $type, $data)
 }
 
 /**
+ * Fallback: Try alternative SMTP credentials if primary fails
+ */
+function send_notification_with_fallback($to, $type, $data)
+{
+    // Try primary credentials first
+    $result = send_notification_instantly($to, $type, $data);
+
+    if (!$result['success']) {
+        error_log("Primary SMTP failed, trying fallback: " . $result['message']);
+
+        // Try with info@ontomeel.com as fallback
+        $fallback_config = [
+            'host' => 'ontomeel.com',
+            'port' => 465,
+            'user' => 'info@ontomeel.com',
+            'pass' => 'REDACTED_PASSWORD',
+            'from_name' => 'Ontomeel Bookshop',
+            'reply_to' => 'info@ontomeel.com'
+        ];
+
+        // Get the email content (reconstruct from type and data)
+        $subject = "Ontomeel Bookshop Notification";
+        $title = "Account Update";
+        $content = "<p>You have a new update on your Ontomeel Bookshop account.</p>";
+        $color = "#2563eb";
+
+        // Build the HTML message (simplified version for fallback)
+        $html_message = "
+        <!DOCTYPE html>
+        <html><head><meta charset='UTF-8'></head>
+        <body style='font-family: Arial, sans-serif; padding: 20px;'>
+            <div style='background: $color; color: white; padding: 20px; text-align: center;'>
+                <h1 style='margin: 0;'>$title</h1>
+            </div>
+            <div style='padding: 20px; background: #f9f9f9;'>
+                $content
+            </div>
+        </body></html>";
+
+        return send_smtp_email($to, $subject, $html_message, $fallback_config, true);
+    }
+
+    return $result;
+}
+
+/**
  * Queue-based notification (not used for critical emails)
  */
 function send_notification($to, $type, $data)
@@ -227,10 +273,18 @@ function send_notification($to, $type, $data)
     }
     catch (Exception $e) {
         error_log("Queue Failed, falling back to instant send: " . $e->getMessage());
-        return send_notification_instantly($to, $type, $data);
+        return send_notification_with_fallback($to, $type, $data);
     }
 
-    trigger_worker();
+    // Try to trigger worker, but send directly if it fails
+    $worker_result = trigger_worker();
+
+    // If worker failed to trigger, send directly with fallback
+    if (!$worker_result) {
+        error_log("Worker trigger failed, sending directly with fallback");
+        return send_notification_with_fallback($to, $type, $data);
+    }
+
     return ['success' => true, 'message' => 'Email queued'];
 }
 
@@ -238,7 +292,15 @@ function trigger_worker()
 {
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
     $host = $_SERVER['HTTP_HOST'];
-    $url = $protocol . "://" . $host . "/bookshop/includes/email_worker.php";
+
+    // Determine the correct path - works for both localhost and production
+    $script_path = dirname($_SERVER['SCRIPT_NAME']);
+    if ($script_path === '\\' || $script_path === '/') {
+        $script_path = '';
+    }
+    $worker_path = $script_path . '/includes/email_worker.php';
+
+    $url = $protocol . "://" . $host . $worker_path;
 
     $parts = parse_url($url);
     $port = isset($parts['port']) ? $parts['port'] : ($parts['scheme'] === 'https' ? 443 : 80);
@@ -251,5 +313,7 @@ function trigger_worker()
         $out .= "Connection: Close\r\n\r\n";
         fwrite($fp, $out);
         fclose($fp);
+        return true;
     }
+    return false;
 }
