@@ -483,7 +483,7 @@ endfor; ?>
 
         <?php if ($hot_deal): ?>
             <!-- Modern Hot Deal Section -->
-            <section onclick="window.location.href='book-details.php?id=<?php echo $hot_deal['id']; ?>'"
+            <section onclick="window.location.href='<?php echo !empty($hot_deal['slug']) ? 'book/' . $hot_deal['slug'] : 'book-details.php?id=' . $hot_deal['id']; ?>'"
                 class="hot-deal-container p-10 md:p-20 mb-24 reveal active cursor-pointer group">
                 <div
                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none">
@@ -587,7 +587,7 @@ endif; ?>
                 <?php foreach ($preorders as $index => $book):
     $isOpen = $book['status'] == 'Open';
 ?>
-                    <div onclick="window.location.href='book-details.php?id=<?php echo $book['id']; ?>'"
+                    <div onclick="window.location.href='<?php echo !empty($book['slug']) ? 'book/' . $book['slug'] : 'book-details.php?id=' . $book['id']; ?>'"
                         class="mockup-card reveal group">
 
                         <div class="mockup-img-wrapper mb-8 skeleton rounded-xl">

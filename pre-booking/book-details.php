@@ -1,15 +1,20 @@
 <?php
 include '../includes/db_connect.php';
 
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+if (isset($_GET['slug']) && !empty($_GET['slug'])) {
+    $slug = $_GET['slug'];
+    $stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE slug = ?");
+    $stmt->execute([$slug]);
+    $book = $stmt->fetch();
+} elseif (isset($_GET['id']) && !empty($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE id = ?");
+    $stmt->execute([$id]);
+    $book = $stmt->fetch();
+} else {
     header('Location: index.php');
     exit();
 }
-
-$id = (int)$_GET['id'];
-$stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE id = ?");
-$stmt->execute([$id]);
-$book = $stmt->fetch();
 
 if (!$book) {
     header('Location: index.php');
@@ -17,7 +22,7 @@ if (!$book) {
 }
 
 $page_title = $book['title'] . ' - প্রি-বুকিং | অন্ত্যমিল';
-$path_prefix = '../';
+$path_prefix = (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../../' : '../';
 $nav_class = 'glass';
 
 function bn_date($date)
@@ -338,7 +343,7 @@ endif; ?>
                     
                     <div class="flex flex-col gap-4">
                         <?php if ($book['status'] == 'Open'): ?>
-                            <a href="../pre-order-checkout/index.php?id=<?php echo $book['id']; ?>" 
+                            <a href="<?php echo $path_prefix; ?>pre-order-checkout/index.php?id=<?php echo $book['id']; ?>" 
                                class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-brand-gold transition-all shadow-2xl flex items-center justify-center gap-4">
                                 <span>বুকিং করুন</span>
                                 <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
@@ -361,7 +366,7 @@ endif; ?>
                 </div>
 
                 <div class="pt-20 text-center lg:text-left">
-                    <a href="index.php" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
+                    <a href="<?php echo (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         ফিরে যান
                     </a>

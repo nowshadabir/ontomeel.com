@@ -54,13 +54,14 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
         </url>
     <?php } ?>
 
-    <!-- Dynamic Pre-order Details Pages (if they use the same details page) -->
+    <!-- Dynamic Pre-order Details Pages -->
     <?php
-    $stmt = $pdo->query("SELECT id FROM pre_orders WHERE status != 'Closed'");
+    $stmt = $pdo->query("SELECT id, slug FROM pre_orders WHERE status != 'Closed'");
     while ($row = $stmt->fetch()) {
+        $url = !empty($row['slug']) ? $base_url . 'pre-booking/book/' . $row['slug'] : $base_url . 'pre-booking/book-details.php?id=' . $row['id'];
         ?>
         <url>
-            <loc><?php echo $base_url; ?>book-details.php?id=<?php echo $row['id']; ?></loc>
+            <loc><?php echo $url; ?></loc>
             <lastmod><?php echo date('Y-m-d'); ?></lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.6</priority>
