@@ -29,11 +29,13 @@ function bn_date($date)
         'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
         'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর'
     ];
-    $date_str = date('d F, Y', strtotime($date));
-    foreach ($months as $en => $bn) {
-        $date_str = str_replace($en, $bn, $date_str);
-    }
-    return $date_str;
+    $month_en = date('F', strtotime($date));
+    $year_en = date('Y', strtotime($date));
+    
+    $month_bn = $months[$month_en] ?? $month_en;
+    $year_bn = bn_num($year_en);
+    
+    return $month_bn . ' ' . $year_bn;
 }
 
 function bn_num($num)
@@ -47,132 +49,117 @@ $additional_head = '
 <style>
     :root {
         --brand-gold: #cda873;
-        --brand-gold-light: #e6c89b;
+        --brand-900: #0f172a;
     }
     body {
-        background-color: #fafafe;
-        color: #1a1a1a;
+        background-color: #f8fafc;
+        font-family: "Anek Bangla", sans-serif;
     }
-    .primary-info-card {
-        background: #ffffff;
-        border-radius: 40px;
-        padding: 40px;
-        box-shadow: 0 40px 80px -20px rgba(0,0,0,0.03);
-        border: 1px solid rgba(0,0,0,0.02);
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+    .main-container {
+        padding-top: 120px;
     }
-    .secondary-info-card {
-        background: #ffffff;
-        border-radius: 40px;
-        padding: 60px;
-        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.02);
-        border: 1px solid rgba(0,0,0,0.01);
+    .book-showcase {
+        position: sticky;
+        top: 120px;
     }
-    @media (max-width: 768px) {
-        .primary-info-card {
-            border-radius: 24px;
-            padding: 24px;
-        }
-        .secondary-info-card {
-            border-radius: 24px;
-            padding: 30px;
-        }
-        .book-visual {
-            transform: none !important;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
-        }
-        .text-5xl {
-            font-size: 2.5rem;
-            line-height: 1.2;
-        }
-        .md\:text-7xl {
-            font-size: 2.5rem;
-        }
-        .text-6xl {
-            font-size: 3rem;
-        }
-    }
-    .book-visual {
-        transform: perspective(1000px) rotateY(-15deg) rotateX(5deg);
-        filter: drop-shadow(20px 30px 50px rgba(0,0,0,0.1));
-    }
-    .badge-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 99px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        background: rgba(205, 168, 115, 0.1);
-        color: var(--brand-gold);
-        border: 1px solid rgba(205, 168, 115, 0.2);
-    }
-    .btn-preorder {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        background: var(--brand-gold);
-        color: #ffffff;
-        padding: 18px 40px;
-        border-radius: 16px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        box-shadow: 0 15px 35px -5px rgba(205, 168, 115, 0.4);
-        width: 100%;
-    }
-    @media (min-width: 640px) {
-        .btn-preorder {
-            width: auto;
-        }
-    }
-    .btn-preorder:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 20px 45px -5px rgba(205, 168, 115, 0.6);
-        background: #1a1a1a;
-    }
-    .desc-wrapper {
-        line-height: 2;
-        font-size: 1.15rem;
-        color: #374151;
-        white-space: pre-line;
+    .image-container {
         position: relative;
+        perspective: 2000px;
     }
-    .desc-content.clamped {
-        display: -webkit-box;
-        -webkit-line-clamp: 6;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+    .prime-cover {
+        width: 100%;
+        max-width: 400px;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        border-radius: 20px;
+        box-shadow: 20px 40px 60px rgba(0,0,0,0.15);
+        transform: rotateY(-10deg) rotateX(5deg);
+        transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .read-more-btn {
-        margin-top: 20px;
-        color: var(--brand-gold);
+    .second-cover {
+        position: absolute;
+        bottom: -30px;
+        right: -30px;
+        width: 180px;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 10px 20px 30px rgba(0,0,0,0.2);
+        z-index: 10;
+        border: 4px solid white;
+        transform: rotateY(-5deg) translateZ(50px);
+        transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .coming-soon-tag {
+        position: absolute;
+        top: 20px;
+        left: -10px;
+        background: #ef4444;
+        color: white;
+        padding: 5px 15px;
+        font-size: 10px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 13px;
-        cursor: pointer;
+        letter-spacing: 2px;
+        border-radius: 4px;
+        box-shadow: 5px 5px 15px rgba(239, 68, 68, 0.3);
+        z-index: 30;
+        transform: rotate(-2deg);
+    }
+    .image-container:hover .prime-cover {
+        transform: rotateY(-5deg) rotateX(2deg) scale(1.02);
+    }
+    .image-container:hover .second-cover {
+        transform: rotateY(0deg) translateZ(80px) translateX(10px);
+    }
+
+    .badge-label {
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+    .badge-primary { background: #fee2e2; color: #991b1b; }
+    .badge-gold { background: #fef3c7; color: #92400e; }
+    
+    .price-card {
+        background: white;
+        border-radius: 32px;
+        padding: 32px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.02);
+    }
+
+    .author-pill {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border: 1px solid rgba(205, 168, 115, 0.2);
-        border-radius: 12px;
-        transition: all 0.3s ease;
+        gap: 12px;
+        padding: 10px 20px;
+        background: #f1f5f9;
+        border-radius: 16px;
+        transition: background 0.3s;
     }
-    .read-more-btn:hover {
-        background: rgba(205, 168, 115, 0.05);
-        border-color: var(--brand-gold);
+    .author-pill:hover { background: #e2e8f0; }
+
+    @media (max-width: 1024px) {
+        .book-showcase { position: static; margin-bottom: 40px; }
+        .prime-cover { max-width: 300px; margin: 0 auto; }
+        .second-cover { width: 140px; right: 10%; }
+        .main-container { padding-top: 100px; }
     }
-    .spec-item {
-        padding: 24px;
-        background: #f9f9fb;
-        border-radius: 20px;
-        border: 1px solid rgba(0,0,0,0.01);
+    .combo-suffix {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--brand-gold);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-weight: 700;
     }
 </style>
 ';
@@ -180,133 +167,116 @@ $additional_head = '
 include '../includes/header.php';
 ?>
 
-<main class="pt-24 pb-20">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 space-y-12">
-        
-        <!-- Primary Details Section -->
-        <div class="primary-info-card grid grid-cols-1 lg:grid-cols-12 gap-16 items-center mt-12">
+<main class="main-container pb-20">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
             
-            <!-- Book Visual Sidebar -->
-            <div class="lg:col-span-5 space-y-8">
-                <div class="book-visual rounded-2xl overflow-hidden aspect-[4/6]">
-                    <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
-                         class="w-full h-full object-cover" 
-                         alt="<?php echo $book['title']; ?>">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="spec-item text-center">
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">প্রকাশের তারিখ</p>
-                        <p class="text-sm font-bold text-gray-900"><?php echo bn_date($book['release_date']); ?></p>
+            <!-- Left: Visual Sticky -->
+            <div class="lg:col-span-5">
+                <div class="book-showcase">
+                    <div class="image-container flex justify-center lg:justify-start">
+                        <div class="coming-soon-tag">Coming Soon</div>
+                        <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
+                             class="prime-cover" alt="Main Book">
+                        
+                        <?php if (!empty($book['second_cover_image'])): ?>
+                            <img src="<?php echo strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['second_cover_image']; ?>" 
+                                 class="second-cover" alt="Combo Book">
+                        <?php endif; ?>
                     </div>
-                    <div class="spec-item text-center">
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">বুকিং স্ট্যাটাস</p>
-                        <p class="text-sm font-bold text-gray-900"><?php echo $book['status'] == 'Open' ? 'ওপেন' : ($book['status'] == 'Upcoming' ? 'আসন্ন' : 'বন্ধ'); ?></p>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Book Info Main Content (Right Side Primary) -->
-            <div class="lg:col-span-7 space-y-10">
-                <div class="space-y-4">
-                    <div class="badge-status">
-                        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
-                        ১ম মুদ্রণ প্রি-বুকিং
-                    </div>
-                    
-                    <h1 class="text-5xl md:text-7xl font-sans font-black text-gray-900 leading-tight">
-                        <?php echo $book['title']; ?>
-                    </h1>
-                    <h2 class="text-2xl font-serif italic text-brand-gold opacity-90">
-                        <?php echo $book['sub_title']; ?>
-                    </h2>
-                    <p class="text-2xl font-anek text-gray-400">লেখক: <span class="text-gray-900 font-bold"><?php echo $book['author']; ?></span></p>
-                </div>
-
-                <div class="flex flex-col sm:flex-row sm:items-center gap-8 sm:gap-10 py-8 sm:py-10 border-y border-gray-100">
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2 sm:mb-3">विशेष প্রি-অর্ডার মূল্য</p>
-                        <div class="flex items-baseline gap-4">
-                            <span class="text-4xl sm:text-5xl md:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
-                            <span class="text-lg sm:text-xl text-gray-400 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
+                    <div class="mt-12 grid grid-cols-2 gap-4">
+                        <div class="p-6 bg-white rounded-3xl text-center border border-slate-100">
+                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">প্রকাশের মাস</span>
+                            <span class="text-sm font-bold text-slate-700"><?php echo bn_date($book['release_date']); ?></span>
+                        </div>
+                        <div class="p-6 bg-white rounded-3xl text-center border border-slate-100">
+                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">বুকিং স্ট্যাটাস</span>
+                            <span class="text-sm font-bold text-emerald-600"><?php echo $book['status'] == 'Open' ? 'চলছে' : 'আসন্ন'; ?></span>
                         </div>
                     </div>
-                    <div class="h-16 sm:h-20 w-full sm:w-[1px] bg-gray-100 hidden sm:block"></div>
-                    <div>
-                        <p class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mb-2 sm:mb-3">আপনি সাশ্রয় করছেন</p>
-                        <p class="text-2xl sm:text-3xl md:text-4xl font-bold font-anek text-brand-gold">৳<?php echo bn_num((int)($book['price'] - $book['discount_price'])); ?></p>
-                    </div>
                 </div>
+            </div>
 
-                <div class="flex flex-wrap gap-6 pt-6">
-                    <?php if ($book['status'] == 'Open'): ?>
-                        <a href="../pre-order-checkout/index.php?id=<?php echo $book['id']; ?>" class="btn-preorder">
-                            <span>বুকিং নিশ্চিত করুন</span>
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                            </svg>
-                        </a>
-                    <?php else: ?>
-                        <button class="btn-preorder opacity-50 cursor-not-allowed grayscale" disabled>
-                            <span>বুকিং শীঘ্রই আসবে</span>
-                        </button>
+            <!-- Right: Content -->
+            <div class="lg:col-span-7 space-y-10">
+                <!-- Badges & Status -->
+                <div class="flex flex-wrap gap-3">
+                    <span class="badge-label badge-primary">নতুন প্রকাশনী অফার</span>
+                    <?php if (!empty($book['second_cover_image'])): ?>
+                        <span class="badge-label badge-gold">কম্বো বই সেট</span>
                     <?php endif; ?>
+                </div>
+
+                <!-- Titles and Authors -->
+                <div class="space-y-8">
+                    <?php 
+                        $titles = explode(',', $book['title']);
+                    ?>
                     
-                    <!-- Quick Stats Badges -->
-                    <div class="flex items-center gap-6 px-6 py-4 bg-gray-50 rounded-2xl border border-gray-100">
-                         <div class="flex items-center gap-2">
-                             <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">হোম ডেলিভারি</span>
-                         </div>
-                         <div class="flex items-center gap-2">
-                             <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">অটোগ্রাফ কার্ড</span>
-                         </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-red-500 mb-2">
+                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="text-[11px] font-black uppercase tracking-widest">খুব শীঘ্রই আসছে</span>
+                        </div>
+                        <h1 class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
+                            <?php echo trim($titles[0]); ?>
+                        </h1>
+                    </div>
+
+                    <?php if (isset($titles[1])): ?>
+                        <div class="relative py-4">
+                            <div class="absolute inset-y-0 left-0 w-1 bg-slate-200 rounded-full"></div>
+                            <div class="pl-8 space-y-3">
+                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">উপহার হিসেবে থাকছে</span>
+                                <h3 class="text-2xl md:text-3xl font-bold text-slate-500">
+                                    <?php echo str_replace('(কম্বো)', '', trim($titles[1])); ?>
+                                </h3>
+                                <p class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Price Section -->
+                <div class="price-card flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">অফার মূল্য</span>
+                        <div class="flex items-baseline gap-4">
+                            <span class="text-5xl font-black text-slate-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
+                            <span class="text-xl text-slate-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4">
+                        <?php if ($book['status'] == 'Open'): ?>
+                            <a href="../pre-order-checkout/index.php?id=<?php echo $book['id']; ?>" 
+                               class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-brand-gold transition-all shadow-2xl flex items-center justify-center gap-4">
+                                <span>বুকিং করুন</span>
+                                <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            </a>
+                        <?php else: ?>
+                            <button disabled class="bg-slate-200 text-slate-400 px-10 py-5 rounded-2xl font-black uppercase tracking-widest cursor-not-allowed">বুকিং আসছে</button>
+                        <?php endif; ?>
+                        <p class="text-center text-[10px] text-slate-400 font-bold tracking-widest italic">সীমিত সময়ের অফার!</p>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Secondary Detailed Description Section (Full Width) -->
-        <div class="secondary-info-card space-y-12">
-            <div class="flex items-center gap-6 mb-12">
-                <h3 class="text-3xl font-sans font-black text-gray-900">বইটির বিস্তারিত বর্ণনা</h3>
-                <div class="h-[2px] flex-1 bg-gray-100"></div>
-            </div>
-            
-            <div class="desc-wrapper font-anek max-w-4xl mx-auto">
-                <div id="desc-content" class="desc-content clamped">
-                    <?php echo $book['description']; ?>
-                </div>
-                <div class="flex justify-center md:justify-start">
-                    <button id="read-more-toggle" class="read-more-btn hidden">
-                        <span>বিস্তারিত পড়ুন</span>
-                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Trust Benefits -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-16 border-t border-gray-50">
-                <div class="space-y-3">
-                    <div class="w-12 h-12 bg-gold-50 text-brand-gold rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <!-- Description -->
+                <div class="space-y-6 pt-10">
+                    <h4 class="text-xl font-black text-slate-900 border-l-4 border-brand-gold pl-4">বিস্তারিত সারসংক্ষেপ</h4>
+                    <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
+                        <?php echo $book['description']; ?>
                     </div>
-                    <h5 class="font-bold text-sm">১০০% অরিজিনাল কপি</h5>
-                    <p class="text-xs text-gray-400">সরাসরি প্রকাশনী থেকে সংগৃহীত।</p>
                 </div>
-                <!-- Add more benefits if needed -->
-            </div>
-        </div>
 
-        <!-- Back Link -->
-        <div class="pt-10 text-center">
-            <a href="index.php" class="inline-flex items-center gap-2 text-gray-400 hover:text-brand-gold transition-colors font-bold uppercase tracking-widest text-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                ফিরে যান প্রি-বুকিং তালিকায়
-            </a>
+                <div class="pt-20 text-center lg:text-left">
+                    <a href="index.php" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        ফিরে যান
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </main>
