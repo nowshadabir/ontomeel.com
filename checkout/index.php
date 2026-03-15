@@ -93,6 +93,12 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                             class="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-brand-gold transition-all font-anek text-brand-900 font-medium tracking-wider">
                     </div>
                     <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">আপনার ইমেইল *</label>
+                        <input type="email" id="cust-email" required placeholder="email@example.com"
+                            value="<?php echo htmlspecialchars($user_data['email'] ?? ''); ?>"
+                            class="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-brand-gold transition-all font-anek text-brand-900 font-medium tracking-wide">
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">বিস্তারিত
                             ঠিকানা *</label>
                         <input type="text" id="cust-address" required placeholder="বাসা নং, রোড নং, এলাকা"
@@ -466,14 +472,21 @@ endif; ?>
     function confirmOrder() {
         const name = document.getElementById('cust-name').value;
         const phone = document.getElementById('cust-phone').value;
+        const email = document.getElementById('cust-email').value;
         const addr = document.getElementById('cust-address').value;
         const city = document.getElementById('cust-city').value;
 
-        if (!name || !phone || !addr) {
-            showToast('দয়া করে সব তথ্য পূরণ করুন।');
+        if (!name || !phone || !email || !addr) {
+            showToast('দয়া করে সব তথ্য পূরণ করুন (ইমেইল সহ)।');
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast('সঠিক ইমেইল এড্রেস প্রদান করুন।');
+            return;
+        }
+        
         // Calculate total amount
         let total = 0;
         cartItems.forEach(item => total += (checkoutType === 'borrow' ? 0 : item.price));
@@ -489,6 +502,7 @@ endif; ?>
         const formData = new FormData();
         formData.append('name', name);
         formData.append('phone', phone);
+        formData.append('email', email);
         formData.append('address', addr);
         formData.append('city', city);
         formData.append('location', location);

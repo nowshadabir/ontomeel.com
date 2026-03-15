@@ -117,8 +117,8 @@ try {
 
     // Send Notification Email
     try {
-        // Get pre-order book details
-        $poStmt = $pdo->prepare("SELECT title, title_en, author, author_en FROM pre_orders WHERE id = ?");
+        // Get pre-order book details - Database Safe (no _en columns)
+        $poStmt = $pdo->prepare("SELECT title, author FROM pre_orders WHERE id = ?");
         $poStmt->execute([$preorder_id]);
         $po_info = $poStmt->fetch();
 
@@ -133,12 +133,15 @@ try {
 
         if ($po_info) {
             $notif_data['book_title'] = $po_info['title'];
-            $notif_data['book_title_en'] = $po_info['title_en'];
+            $notif_data['book_title_en'] = $po_info['title']; // Fallback
             $notif_data['book_author'] = $po_info['author'];
-            $notif_data['book_author_en'] = $po_info['author_en'];
+            $notif_data['book_author_en'] = $po_info['author']; // Fallback
         }
 
-        send_notification($email, 'order_placed', $notif_data);
+        $result = send_notification($email, 'order_placed', $notif_data);
+        
+        // Log the trigger for debugging
+        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] PRE-ORDER: Invoice #$invoice_no | Email: $email | Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
     }
     catch (Exception $e) {
         // Log mail error but don't fail the order

@@ -28,16 +28,21 @@ if (!$user_id) {
 
 $name = trim($_POST['name'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
+$email = trim($_POST['email'] ?? '');
 $address = trim($_POST['address'] ?? '');
 $city = trim($_POST['city'] ?? '');
-$payment_method = $_POST['payment_method'] ?? 'cash';
-$checkout_type = $_POST['checkout_type'] ?? 'buy';
+$payment_method = $_POST['payment_method'] ?? 'cod';
+$checkout_type = $_POST['checkout_type'] ?? 'buy'; // 'buy' or 'borrow'
 $total_amount = (float) ($_POST['total_amount'] ?? 0);
-$cart_data = $_POST['cart'] ?? '[]';
-$cart = json_decode($cart_data, true);
+$cart_raw = $_POST['cart'] ?? '[]';
+$cart = json_decode($cart_raw, true);
 
-if (empty($cart)) {
-    sendResponse(false, 'কার্ট খালি।');
+if (empty($name) || empty($phone) || empty($email) || empty($address) || empty($cart)) {
+    sendResponse(false, 'সব তথ্য প্রদান করা আবশ্যক (নাম, ফোন, ইমেইল, ঠিকানা)।');
+}
+
+if ($checkout_type === 'borrow' && !$user_id) {
+    sendResponse(false, 'বই ধার নিতে হলে আপনাকে অবশ্যই লগইন করতে হবে।');
 }
 
 // Check if payment method is active (only for 'buy' or pre-order)
@@ -180,10 +185,13 @@ try {
     $notes = $hasPreorder ? 'Pre-order Booking' : (($checkout_type === 'borrow') ? 'Borrow Order' : 'Purchase Order');
     $shipping_addr = trim($address . ($city ? ', ' . $city : ''));
 
-    $orderStmt = $pdo->prepare("INSERT INTO orders (invoice_no, member_id, subtotal, shipping_cost, total_amount, payment_status, payment_method, order_status, shipping_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, 'Processing', ?, ?)");
+    $orderStmt = $pdo->prepare("INSERT INTO orders (invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, payment_status, payment_method, order_status, shipping_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing', ?, ?)");
     $orderStmt->execute([
         $invoice_no,
         $user_id,
+        $name,
+        $phone,
+        $email,
         $subtotal,
         $shipping_cost,
         $total_amount,
@@ -223,15 +231,14 @@ try {
 
     // Send Notification Email
     try {
-        $emailStmt = $pdo->prepare("SELECT email FROM members WHERE id = ?");
-        $emailStmt->execute([$user_id]);
-        $user_email = $emailStmt->fetchColumn();
+        // We use the email captured from the form ($email variable)
+        $target_email = $email;
 
         // Breadcrumb Log
         $log_id = $invoice_no ?? 'UNKNOWN';
-        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: Order #$log_id | User ID: $user_id | Email: " . ($user_email ?: 'EMPTY') . "\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: Order #$log_id | User ID: " . ($user_id ?: 'GUEST') . " | Email: $target_email\n", FILE_APPEND);
 
-        if ($user_email) {
+        if ($target_email) {
             $notif_data = [
                 'name' => $name,
                 'invoice_no' => $invoice_no,
@@ -263,7 +270,7 @@ try {
                 }
             }
 
-            $result = send_notification($user_email, 'order_placed', $notif_data);
+            $result = send_notification($target_email, 'order_placed', $notif_data);
             file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: send_notification triggered. Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
         }
     } catch (Exception $e) {
