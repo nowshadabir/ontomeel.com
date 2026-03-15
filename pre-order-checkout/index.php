@@ -48,8 +48,9 @@ function getSetting($pdo, $key, $default = '')
 $inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
 $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
 
-$price = $pre_order['discount_price'] > 0 ? $pre_order['discount_price'] : $pre_order['price'];
-$delivery_charge = $inside_charge; // Default
+$price = $pre_order['discount_price'] > 0 ? (int)$pre_order['discount_price'] : (int)$pre_order['price'];
+$is_free_delivery = (isset($pre_order['free_delivery']) && $pre_order['free_delivery'] == 1);
+$delivery_charge = $is_free_delivery ? 0 : $inside_charge;
 $total_amount = $price + $delivery_charge;
 ?>
 
@@ -77,7 +78,7 @@ $total_amount = $price + $delivery_charge;
             </div>
             <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
                 <p class="text-xl md:text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
-                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek">+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি</p>
+                <p class="text-[10px] md:text-xs text-brand-900/60 font-anek"><?php if($is_free_delivery): ?>ফ্রি ডেলিভারি<?php else: ?>+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি<?php endif; ?></p>
                 <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block">
                     মোট: ৳<span id="display-total"><?php echo number_format($total_amount); ?></span></div>
             </div>
@@ -114,22 +115,37 @@ $total_amount = $price + $delivery_charge;
                 </div>
                 <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি এরিয়া *</label>
+                    <?php if ($is_free_delivery): ?>
+                        <div class="p-5 bg-green-50 border border-green-200 rounded-3xl flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <div>
+                                    <p class="font-anek font-bold text-brand-900">ফ্রি ডেলিভারি সক্রিয়</p>
+                                    <p class="text-xs text-green-600 font-anek font-bold">সারা বাংলাদেশে হোম ডেলিভারি ফ্রি</p>
+                                </div>
+                            </div>
+                            <input type="hidden" name="location" value="inside">
+                        </div>
+                    <?php else: ?>
                     <div class="flex gap-4">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
                             <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
                                 <p class="text-sm font-anek font-bold text-brand-900">কক্সবাজার শহর</p>
-                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo($pre_order['free_delivery'] == 1) ? '০' : $inside_charge; ?></p>
+                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $inside_charge; ?></p>
                             </div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="location" value="outside" onchange="updateDelivery(this.value)" class="hidden peer">
                             <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
                                 <p class="text-sm font-anek font-bold text-brand-900">আউটসাইড কক্সবাজার</p>
-                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo($pre_order['free_delivery'] == 1) ? '০' : $outside_charge; ?></p>
+                                <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $outside_charge; ?></p>
                             </div>
                         </label>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">ডেলিভারি ঠিকানা
@@ -258,11 +274,11 @@ endif; ?>
 <script>
     const preOrderId = <?php echo $pre_order_id; ?>;
     const basePrice = <?php echo $price; ?>;
-    const isFreeDelivery = <?php echo($pre_order['free_delivery'] == 1) ? 'true' : 'false'; ?>;
+    const isFreeDelivery = <?php echo $is_free_delivery ? 'true' : 'false'; ?>;
     const insideCharge = isFreeDelivery ? 0 : <?php echo $inside_charge; ?>;
     const outsideCharge = isFreeDelivery ? 0 : <?php echo $outside_charge; ?>;
     let currentDeliveryCharge = insideCharge;
-    let totalAmount = basePrice + currentDeliveryCharge;
+    let totalAmount = <?php echo $total_amount; ?>;
 
     function updateDelivery(loc) {
         currentDeliveryCharge = loc === 'inside' ? insideCharge : outsideCharge;
@@ -341,7 +357,8 @@ endif; ?>
         switchStep('step-2', 'step-3');
 
         // Prepare data to send to server
-        const location = document.querySelector('input[name="location"]:checked').value;
+        const locationInput = document.querySelector('input[name="location"]:checked') || document.querySelector('input[name="location"][type="hidden"]');
+        const location = locationInput ? locationInput.value : 'inside';
         const formData = new FormData();
         formData.append('preorder_id', preOrderId);
         formData.append('name', document.getElementById('po-name').value.trim());
