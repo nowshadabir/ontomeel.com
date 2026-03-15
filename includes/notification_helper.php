@@ -10,30 +10,32 @@ function send_notification_instantly($to, $type, $data)
     if (empty($to))
         return ['success' => false, 'message' => 'No recipient email'];
 
-    // Check if user has unsubscribed from emails
-    global $pdo;
+    // Check if user has unsubscribed
     try {
-        $stmt = $pdo->prepare("SELECT email_unsubscribed FROM members WHERE email = ?");
-        $stmt->execute([$to]);
-        $member = $stmt->fetch();
-        if ($member && $member['email_unsubscribed']) {
-            return ['success' => false, 'message' => 'User has unsubscribed from emails'];
+        global $pdo;
+        if (isset($pdo)) {
+            $stmt = $pdo->prepare("SELECT email_unsubscribed FROM members WHERE email = ?");
+            $stmt->execute([$to]);
+            $member = $stmt->fetch();
+            if ($member && !empty($member['email_unsubscribed'])) {
+                return ['success' => false, 'message' => 'User has unsubscribed'];
+            }
         }
-    }
-    catch (Exception $e) {
-    // Continue if check fails
+    } catch (Throwable $e) {
+        // Continue if check fails (e.g. table not found or pdo null)
     }
 
     // Load SMTP configuration
     $smtp_config = require __DIR__ . '/smtp_config.php';
-
+    
+    // Force use auth@ontomeel.com for higher deliverability if info@ is suspected to fail
     $config = [
         'host' => $smtp_config['host'],
         'port' => $smtp_config['port'],
-        'user' => $smtp_config['user'],
-        'pass' => $smtp_config['pass'],
+        'user' => 'auth@ontomeel.com', // Using verified working account
+        'pass' => $smtp_config['pass'] ?: 'Giggly5-Spokesman7-Slinging8-Hardcopy3-Union9',
         'from_name' => $smtp_config['from_name'],
-        'reply_to' => $smtp_config['reply_to']
+        'reply_to' => 'auth@ontomeel.com'
     ];
 
     $subject = "";
@@ -168,8 +170,8 @@ function send_notification_instantly($to, $type, $data)
     $result = send_smtp_email($to, $subject, $html_message, $config, true);
     
     // Log the result for debugging
-    $status = $result['success'] ? "SUCCESS" : "FAILED";
-    $log_message = "[" . date('Y-m-d H:i:s') . "] Type: $type | To: $to | Status: $status";
+    $status_str = $result['success'] ? "SUCCESS" : "FAILED";
+    $log_message = "[" . date('Y-m-d H:i:s') . "] Type: $type | To: $to | Account: " . $config['user'] . " | Status: $status_str";
     if (!$result['success']) {
         $log_message .= " | Error: " . ($result['message'] ?? 'Unknown Error');
     }
