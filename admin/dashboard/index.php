@@ -151,6 +151,29 @@ function bn_num($num)
             background: #cda873;
             color: #0a0a0a;
         }
+
+        /* Progress Modal Styles */
+        #upload-progress-modal {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .progress-ring {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
     </style>
 </head>
 
@@ -2114,6 +2137,31 @@ endforeach; ?>
         </div>
     </div>
 
+    <!-- Upload Progress Modal -->
+    <div id="upload-progress-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-xl"></div>
+        <div class="bg-white w-full max-w-sm rounded-[40px] shadow-2xl relative z-10 p-10 text-center space-y-8 border border-white/20">
+            <div class="relative w-32 h-32 mx-auto">
+                <svg class="w-full h-full">
+                    <circle class="text-gray-100" stroke-width="8" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
+                    <circle id="progress-circle" class="text-brand-gold progress-ring" stroke-width="8" stroke-dasharray="364.4" stroke-dashoffset="364.4" stroke-linecap="round" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span id="progress-percent" class="text-2xl font-anek font-extrabold text-brand-900">০%</span>
+                </div>
+            </div>
+            <div>
+                <h3 id="progress-title" class="text-xl font-anek font-bold text-brand-900 mb-2">প্রসেসিং হচ্ছে</h3>
+                <p id="progress-status" class="text-sm text-gray-400 font-anek loading-dots">আপনার ছবিগুলো কম্প্রেস করা হচ্ছে</p>
+            </div>
+            <div class="pt-4">
+                <div class="w-full bg-gray-50 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-brand-gold h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment Config Modal -->
     <div id="payment-config-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-md" onclick="closePaymentConfigModal()"></div>
@@ -2321,22 +2369,126 @@ endforeach; ?>
             }
         }
 
-        function handleAddBook(e) {
+        function updateProgress(percent, title, status) {
+            const modal = document.getElementById('upload-progress-modal');
+            const bar = document.getElementById('progress-bar');
+            const circle = document.getElementById('progress-circle');
+            const percentText = document.getElementById('progress-percent');
+            const titleText = document.getElementById('progress-title');
+            const statusText = document.getElementById('progress-status');
+
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            const offset = 364.4 - (percent / 100 * 364.4);
+            circle.style.strokeDashoffset = offset;
+            bar.style.width = percent + '%';
+            percentText.innerText = bn_num(Math.round(percent)) + '%';
+            if (title) titleText.innerText = title;
+            if (status) statusText.innerText = status;
+        }
+
+        function hideProgress() {
+            const modal = document.getElementById('upload-progress-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            // Reset for next time
+            updateProgress(0);
+        }
+
+        async function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.8, maxSizeBytes = 150 * 1024 } = {}) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        let currentQuality = quality;
+                        
+                        const attemptCompression = (q) => {
+                            canvas.toBlob((blob) => {
+                                if (blob.size <= maxSizeBytes || q <= 0.1) {
+                                    const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                                        type: 'image/webp',
+                                        lastModified: Date.now()
+                                    });
+                                    resolve(compressedFile);
+                                } else {
+                                    attemptCompression(q - 0.1);
+                                }
+                            }, 'image/webp', q);
+                        };
+
+                        attemptCompression(currentQuality);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
+        async function handleAddBook(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
 
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerText;
-            submitBtn.innerText = "সেভ হচ্ছে...";
-            submitBtn.disabled = true;
+            updateProgress(10, "প্রসেসিং হচ্ছে", "ছবিগুলো অপ্টিমাইজ করা হচ্ছে...");
 
-            fetch('process_add_book.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(res => res.json())
-                .then(data => {
+            try {
+                // Compress Images
+                const filesToCompress = ['cover_image', 'photo_2', 'photo_3'];
+                let progress = 10;
+                const step = 20;
+
+                for (const key of filesToCompress) {
+                    const file = form.querySelector(`input[name="${key}"]`).files[0];
+                    if (file) {
+                        updateProgress(progress, "ছবি কম্প্রেস করা হচ্ছে", `${key === 'cover_image' ? 'কভার' : (key === 'photo_2' ? 'দ্বিতীয়' : 'তৃতীয়')} ছবি প্রসেস হচ্ছে...`);
+                        const compressed = await compressImage(file);
+                        formData.set(key, compressed);
+                    }
+                    progress += step;
+                }
+
+                updateProgress(70, "আপলোড হচ্ছে", "তথ্যগুলো ইনভেন্টরিতে সেভ করা হচ্ছে...");
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'process_add_book.php', true);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const uploadPercent = 70 + (e.loaded / e.total * 25);
+                        updateProgress(uploadPercent);
+                    }
+                };
+
+                xhr.onload = function() {
+                    hideProgress();
+                    const data = JSON.parse(xhr.responseText);
                     if (data.success) {
                         showToast(data.message || "নতুন বই সফলভাবে ইনভেন্টরিতে যোগ করা হয়েছে।");
                         closeAddBookModal();
@@ -2347,15 +2499,20 @@ endforeach; ?>
                     } else {
                         showToast("ত্রুটি: " + data.message);
                     }
-                })
-                .catch(err => {
-                    console.error(err);
+                };
+
+                xhr.onerror = function() {
+                    hideProgress();
                     showToast("বই যোগ করতে সমস্যা হয়েছে।");
-                })
-                .finally(() => {
-                    submitBtn.innerText = originalText;
-                    submitBtn.disabled = false;
-                });
+                };
+
+                xhr.send(formData);
+
+            } catch (err) {
+                console.error(err);
+                hideProgress();
+                showToast("ছবি প্রসেস করতে সমস্যা হয়েছে।");
+            }
         }
 
         function previewImage(input, previewId) {
@@ -2718,17 +2875,44 @@ endforeach; ?>
             }
         }
 
-        function handlePreorder(e) {
+        async function handlePreorder(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
 
-            fetch('process_preorder.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(res => res.json())
-                .then(data => {
+            updateProgress(10, "প্রসেসিং হচ্ছে", "ছবিগুলো অপ্টিমাইজ করা হচ্ছে...");
+
+            try {
+                // Compress Images
+                const filesToCompress = ['cover_image', 'second_cover_image'];
+                let progress = 10;
+                const step = 30;
+
+                for (const key of filesToCompress) {
+                    const fileInput = form.querySelector(`input[name="${key}"]`);
+                    if (fileInput && fileInput.files[0]) {
+                        updateProgress(progress, "ছবি কম্প্রেস করা হচ্ছে", `${key === 'cover_image' ? 'প্রথম' : 'দ্বিতীয়'} ছবি প্রসেস হচ্ছে...`);
+                        const compressed = await compressImage(fileInput.files[0]);
+                        formData.set(key, compressed);
+                    }
+                    progress += step;
+                }
+
+                updateProgress(70, "আপলোড হচ্ছে", "প্রি-অর্ডার তথ্য সেভ করা হচ্ছে...");
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'process_preorder.php', true);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const uploadPercent = 70 + (e.loaded / e.total * 25);
+                        updateProgress(uploadPercent);
+                    }
+                };
+
+                xhr.onload = function() {
+                    hideProgress();
+                    const data = JSON.parse(xhr.responseText);
                     if (data.success) {
                         showToast(data.message);
                         closePreorderModal();
@@ -2736,11 +2920,20 @@ endforeach; ?>
                     } else {
                         showToast("ত্রুটি: " + data.message);
                     }
-                })
-                .catch(err => {
-                    console.error(err);
+                };
+
+                xhr.onerror = function() {
+                    hideProgress();
                     showToast("সংরক্ষণ করতে সমস্যা হয়েছে।");
-                });
+                };
+
+                xhr.send(formData);
+
+            } catch (err) {
+                console.error(err);
+                hideProgress();
+                showToast("ছবি প্রসেস করতে সমস্যা হয়েছে।");
+            }
         }
 
         function deletePreorder(id) {
