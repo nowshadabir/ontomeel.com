@@ -388,27 +388,6 @@ endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <script>
-                    function switchDescriptionTab(index) {
-                        // Reset all tabs
-                        document.querySelectorAll('.desc-tab-content').forEach(el => el.classList.add('hidden'));
-                        document.getElementById('desc-tab-1').classList.remove('text-slate-900', 'border-brand-900');
-                        document.getElementById('desc-tab-1').classList.add('text-slate-400', 'border-transparent');
-                        
-                        const tab2 = document.getElementById('desc-tab-2');
-                        if(tab2) {
-                            tab2.classList.remove('text-slate-900', 'border-brand-900');
-                            tab2.classList.add('text-slate-400', 'border-transparent');
-                        }
-
-                        // Set active tab
-                        document.getElementById('desc-content-' + index).classList.remove('hidden');
-                        document.getElementById('desc-tab-' + index).classList.remove('text-slate-400', 'border-transparent');
-                        document.getElementById('desc-tab-' + index).classList.add('text-slate-900', 'border-brand-900');
-                    }
-                </script>
-
                 <div class="pt-20 text-center lg:text-left">
                     <a href="<?php echo (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
@@ -421,34 +400,22 @@ endif; ?>
 </main>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const descContent = document.getElementById('desc-content');
-        const toggleBtn = document.getElementById('read-more-toggle');
+    // Tab switching logic for combo books
+    function switchDescriptionTab(index) {
+        document.querySelectorAll('.desc-tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('desc-tab-1').classList.remove('text-slate-900', 'border-brand-900');
+        document.getElementById('desc-tab-1').classList.add('text-slate-400', 'border-transparent');
         
-        // Show button only if content is taller than clamped height
-        if (descContent.scrollHeight > descContent.clientHeight) {
-            toggleBtn.classList.remove('hidden');
+        const tab2 = document.getElementById('desc-tab-2');
+        if(tab2) {
+            tab2.classList.remove('text-slate-900', 'border-brand-900');
+            tab2.classList.add('text-slate-400', 'border-transparent');
         }
-        
-        toggleBtn.addEventListener('click', () => {
-            const isClamped = descContent.classList.contains('clamped');
-            const btnText = toggleBtn.querySelector('span');
-            const btnIcon = toggleBtn.querySelector('svg');
-            
-            if (isClamped) {
-                descContent.classList.remove('clamped');
-                btnText.innerText = 'সংক্ষেপ করুন';
-                btnIcon.classList.add('rotate-180');
-            } else {
-                descContent.classList.add('clamped');
-                btnText.innerText = 'বিস্তারিত পড়ুন';
-                btnIcon.classList.remove('rotate-180');
-                // Scroll back to title for better UX
-                const title = document.querySelector('.secondary-info-card h3');
-                title.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
+
+        document.getElementById('desc-content-' + index).classList.remove('hidden');
+        document.getElementById('desc-tab-' + index).classList.remove('text-slate-400', 'border-transparent');
+        document.getElementById('desc-tab-' + index).classList.add('text-slate-900', 'border-brand-900');
+    }
 </script>
 
 <?php include '../includes/footer.php'; ?>
