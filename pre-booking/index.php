@@ -498,7 +498,13 @@ endfor; ?>
 
                         <div class="space-y-4">
                             <h2 class="text-4xl sm:text-6xl md:text-7xl font-sans font-black text-gray-900 leading-tight">
-                                <?php echo $hot_deal['title']; ?>
+                                <?php 
+                                $hot_title = htmlspecialchars($hot_deal['title']);
+                                if (!empty($hot_deal['second_title'])) {
+                                    $hot_title .= ' এবং ' . htmlspecialchars($hot_deal['second_title']) . ' (কম্বো)';
+                                }
+                                echo $hot_title; 
+                                ?>
                             </h2>
                             <h3 class="text-xl sm:text-3xl md:text-4xl font-serif italic text-brand-gold opacity-90">
                                 <?php echo $hot_deal['sub_title']; ?>
@@ -611,7 +617,13 @@ endif; ?>
                         <div class="space-y-6">
                             <div class="space-y-2">
                                 <h3 class="text-2xl font-sans font-bold text-gray-800 line-clamp-1">
-                                    <?php echo $book['title']; ?>
+                                    <?php 
+                                    $grid_title = htmlspecialchars($book['title']);
+                                    if (!empty($book['second_title'])) {
+                                        $grid_title .= ' এবং ' . htmlspecialchars($book['second_title']) . ' (কম্বো)';
+                                    }
+                                    echo $grid_title; 
+                                    ?>
                                 </h3>
                                 <p class="text-gray-400 font-anek text-sm"><?php echo $book['author']; ?></p>
                             </div>

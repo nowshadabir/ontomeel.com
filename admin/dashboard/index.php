@@ -1204,7 +1204,13 @@ else:
                                                     </div>
                                                     <div>
                                                         <div class="font-bold text-brand-900 text-sm">
-                                                            <?php echo htmlspecialchars($po['title']); ?>
+                                                            <?php 
+                                                            $combo_title = htmlspecialchars($po['title']);
+                                                            if (!empty($po['second_title'])) {
+                                                                $combo_title .= ' এবং ' . htmlspecialchars($po['second_title']) . ' (কম্বো)';
+                                                            }
+                                                            echo $combo_title; 
+                                                            ?>
                                                         </div>
                                                         <div class="text-[10px] text-gray-400">
                                                             <?php echo htmlspecialchars($po['author']); ?>
@@ -1980,9 +1986,13 @@ endforeach; ?>
                     <!-- Left Column: Basic Info -->
                     <div class="space-y-8">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">বইয়ের
-                                নাম</label>
-                            <input type="text" name="title" required placeholder="বইয়ের নাম লিখুন"
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের নাম (প্রধান)</label>
+                            <input type="text" name="title" required placeholder="বইয়ের নাম লিখুন"
+                                class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের নাম (কম্বো হলে)</label>
+                            <input type="text" name="second_title" placeholder="২য় বইয়ের নাম লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
@@ -2008,10 +2018,15 @@ endforeach; ?>
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">বিস্তারিত
-                                বর্ণনা (হট ডিলের জন্য আবশ্যক)</label>
-                            <textarea name="description" rows="4"
-                                placeholder="বইয়ের বিস্তারিত বর্ণনা বা কম্বো অফারের বিবরণ লিখুন"
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের বর্ণনা</label>
+                            <textarea name="description" rows="3"
+                                placeholder="১ম বইয়ের বিস্তারিত বর্ণনা বা কম্বো অফারের বিবরণ লিখুন"
+                                class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner"></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের বর্ণনা (ঐচ্ছিক)</label>
+                            <textarea name="description_2" rows="3"
+                                placeholder="২য় বইয়ের বর্ণনা লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -2878,6 +2893,8 @@ endforeach; ?>
             form.title_en.value = po.title_en || "";
             form.author_en.value = po.author_en || "";
             form.description.value = po.description || "";
+            form.second_title.value = po.second_title || "";
+            form.description_2.value = po.description_2 || "";
             form.price.value = po.price;
             form.discount_price.value = po.discount_price || "";
             form.release_date.value = po.release_date;

@@ -21,7 +21,11 @@ if (!$book) {
     exit();
 }
 
-$page_title = $book['title'] . ' - প্রি-বুকিং | অন্ত্যমিল';
+$book1_title = $book['title'];
+$book2_title = $book['second_title'] ?? '';
+$display_title = $book1_title . (!empty($book2_title) ? ' এবং ' . $book2_title . ' (কম্বো)' : '');
+
+$page_title = $display_title . ' - প্রি-বুকিং | অন্ত্যমিল';
 $path_prefix = (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../../' : '../';
 $nav_class = 'glass';
 
@@ -294,41 +298,35 @@ endif; ?>
                 <!-- Badges & Status -->
                 <div class="flex flex-wrap gap-3">
                     <span class="badge-label badge-primary">নতুন প্রকাশনী অফার</span>
-                    <?php if (!empty($book['second_cover_image'])): ?>
+                    <?php if (!empty($book2_title)): ?>
                         <span class="badge-label badge-gold">কম্বো বই সেট</span>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Titles and Authors -->
                 <div class="space-y-8">
-                    <?php
-$titles = preg_split('/\s*(?:,|এবং|ও)\s*/u', $book['title']);
-?>
-                    
                     <div class="space-y-4">
                         <div class="flex items-center gap-3 text-red-500 mb-2">
                             <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="text-[11px] font-black uppercase tracking-widest">খুব শীঘ্রই আসছে</span>
                         </div>
                         <h1 class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
-                            <?php echo trim($titles[0]); ?>
+                            <?php echo $book1_title; ?>
                         </h1>
                     </div>
 
-                    <?php if (isset($titles[1])): ?>
+                    <?php if (!empty($book2_title)): ?>
                         <div class="relative py-4">
                             <div class="absolute inset-y-0 left-0 w-1 bg-slate-200 rounded-full"></div>
                             <div class="pl-8 space-y-3">
                                 <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">সাথে থাকছে</span>
                                 <h3 class="text-2xl md:text-3xl font-bold text-slate-500">
-                                    <?php echo str_replace('(কম্বো)', '', trim($titles[1])); ?>
+                                    <?php echo $book2_title; ?>
                                 </h3>
                                 <p class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
                             </div>
                         </div>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Price Section -->
@@ -357,13 +355,59 @@ endif; ?>
                     </div>
                 </div>
 
-                <!-- Description -->
+                <!-- Description Tabs -->
                 <div class="space-y-6 pt-10">
-                    <h4 class="text-xl font-black text-slate-900 border-l-4 border-brand-gold pl-4">বিস্তারিত সারসংক্ষেপ</h4>
-                    <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
-                        <?php echo $book['description']; ?>
+                    <div class="flex items-center justify-between border-b border-slate-100 mb-8">
+                        <h4 class="text-xl font-black text-slate-900 border-l-4 border-brand-gold pl-4 pb-2">বিস্তারিত তথ্য</h4>
                     </div>
+
+                    <?php if (!empty($book2_title)): ?>
+                        <!-- Tabs Navigation -->
+                        <div class="flex gap-8 border-b border-slate-100 mb-8 overflow-x-auto no-scrollbar">
+                            <button onclick="switchDescriptionTab(1)" id="desc-tab-1" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-900 border-b-2 border-brand-900 whitespace-nowrap transition-all">
+                                ১ম বই: <?php echo $book1_title; ?>
+                            </button>
+                            <button onclick="switchDescriptionTab(2)" id="desc-tab-2" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent whitespace-nowrap transition-all">
+                                ২য় বই: <?php echo $book2_title; ?>
+                            </button>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Tabs Content -->
+                    <div id="desc-content-1" class="desc-tab-content animate-in fade-in duration-500">
+                        <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
+                            <?php echo $book['description']; ?>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($book2_title)): ?>
+                        <div id="desc-content-2" class="desc-tab-content hidden animate-in fade-in duration-500">
+                            <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
+                                <?php echo !empty($book['description_2']) ? $book['description_2'] : '২য় বইয়ের বিস্তারিত তথ্য খুব শীঘ্রই আসছে...'; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
+
+                <script>
+                    function switchDescriptionTab(index) {
+                        // Reset all tabs
+                        document.querySelectorAll('.desc-tab-content').forEach(el => el.classList.add('hidden'));
+                        document.getElementById('desc-tab-1').classList.remove('text-slate-900', 'border-brand-900');
+                        document.getElementById('desc-tab-1').classList.add('text-slate-400', 'border-transparent');
+                        
+                        const tab2 = document.getElementById('desc-tab-2');
+                        if(tab2) {
+                            tab2.classList.remove('text-slate-900', 'border-brand-900');
+                            tab2.classList.add('text-slate-400', 'border-transparent');
+                        }
+
+                        // Set active tab
+                        document.getElementById('desc-content-' + index).classList.remove('hidden');
+                        document.getElementById('desc-tab-' + index).classList.remove('text-slate-400', 'border-transparent');
+                        document.getElementById('desc-tab-' + index).classList.add('text-slate-900', 'border-brand-900');
+                    }
+                </script>
 
                 <div class="pt-20 text-center lg:text-left">
                     <a href="<?php echo (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
