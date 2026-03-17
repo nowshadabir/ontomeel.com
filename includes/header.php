@@ -66,7 +66,7 @@ $project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_arra
     <?php
 $m_plan = 'None';
 if (isset($_SESSION['user_id'])) {
-    require_once __DIR__ . '/db_connect.php';
+    require_once $path_prefix . 'includes/db_connect.php';
     $m_stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
     $m_stmt->execute([$_SESSION['user_id']]);
     $m_user = $m_stmt->fetch();
