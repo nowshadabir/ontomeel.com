@@ -6,12 +6,14 @@ if (isset($_GET['slug']) && !empty($_GET['slug'])) {
     $stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE slug = ?");
     $stmt->execute([$slug]);
     $book = $stmt->fetch();
-} elseif (isset($_GET['id']) && !empty($_GET['id'])) {
+}
+elseif (isset($_GET['id']) && !empty($_GET['id'])) {
     $id = (int)$_GET['id'];
     $stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE id = ?");
     $stmt->execute([$id]);
     $book = $stmt->fetch();
-} else {
+}
+else {
     header('Location: index.php');
     exit();
 }
@@ -300,7 +302,8 @@ endif; ?>
                     <span class="badge-label badge-primary">নতুন প্রকাশনী অফার</span>
                     <?php if (!empty($book2_title)): ?>
                         <span class="badge-label badge-gold">কম্বো বই সেট</span>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- Titles and Authors -->
@@ -326,7 +329,8 @@ endif; ?>
                                 <p class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
 
                 <!-- Price Section -->
@@ -365,13 +369,14 @@ endif; ?>
                         <!-- Tabs Navigation -->
                         <div class="flex gap-8 border-b border-slate-100 mb-8 overflow-x-auto no-scrollbar">
                             <button onclick="switchDescriptionTab(1)" id="desc-tab-1" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-900 border-b-2 border-brand-900 whitespace-nowrap transition-all">
-                                ১ম বই: <?php echo $book1_title; ?>
+                                <?php echo $book1_title; ?>
                             </button>
                             <button onclick="switchDescriptionTab(2)" id="desc-tab-2" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent whitespace-nowrap transition-all">
-                                ২য় বই: <?php echo $book2_title; ?>
+                                <?php echo $book2_title; ?>
                             </button>
                         </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
 
                     <!-- Tabs Content -->
                     <div id="desc-content-1" class="desc-tab-content animate-in fade-in duration-500">
@@ -386,10 +391,11 @@ endif; ?>
                                 <?php echo !empty($book['description_2']) ? $book['description_2'] : '২য় বইয়ের বিস্তারিত তথ্য খুব শীঘ্রই আসছে...'; ?>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    <?php
+endif; ?>
                 </div>
                 <div class="pt-20 text-center lg:text-left">
-                    <a href="<?php echo (strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
+                    <a href="<?php echo(strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         ফিরে যান
                     </a>
