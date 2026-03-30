@@ -907,6 +907,125 @@ endif; ?>
         </div>
     </main>
 
+    <!-- ====== EMAIL REQUIRED MODAL ====== -->
+    <div id="email-required-modal"
+        class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-brand-900/60 backdrop-blur-sm"
+        style="display:none!important">
+        <div class="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative overflow-hidden border border-white/20">
+            <!-- Gradient Top Bar -->
+            <div class="h-2 bg-gradient-to-r from-brand-gold via-amber-400 to-brand-gold"></div>
+
+            <div class="p-10">
+                <!-- Step 1: Enter Email -->
+                <div id="email-step-1">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-anek font-bold text-brand-900">ইমেইল যোগ করুন</h3>
+                            <p class="text-xs text-gray-400 font-anek mt-0.5">নিরাপত্তার জন্য ইমেইল প্রয়োজন</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6">
+                        <p class="text-sm text-amber-800 font-anek leading-relaxed">⚠️ আপনার অ্যাকাউন্টে কোনো ইমেইল যোগ
+                            করা নেই। পাসওয়ার্ড রিকভারি ও নিরাপত্তার জন্য এখনই একটি ইমেইল যোগ করুন।</p>
+                    </div>
+
+                    <div class="space-y-2 mb-6">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">আপনার
+                            ইমেইল ঠিকানা</label>
+                        <div class="relative">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <input type="email" id="admin-email-input" placeholder="example@email.com"
+                                class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl pl-12 pr-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                        </div>
+                    </div>
+
+                    <div id="email-step1-msg" class="text-sm font-anek text-red-500 mb-4 hidden"></div>
+
+                    <button id="send-email-otp-btn" onclick="sendEmailOtp()"
+                        class="w-full py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        OTP পাঠান
+                    </button>
+                </div>
+
+                <!-- Step 2: Enter OTP -->
+                <div id="email-step-2" class="hidden">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-anek font-bold text-brand-900">OTP যাচাই করুন</h3>
+                            <p class="text-xs text-gray-400 font-anek mt-0.5">ইমেইলে পাঠানো কোডটি দিন</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6">
+                        <p class="text-sm text-green-800 font-anek leading-relaxed">✅ <span
+                                id="otp-sent-email-display"></span> ঠিকানায় একটি ৬-সংখ্যার কোড পাঠানো হয়েছে। কোডটি ১০
+                            মিনিটের মধ্যে মেয়াদ শেষ হবে।</p>
+                    </div>
+
+                    <div class="space-y-2 mb-6">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">৬-সংখ্যার
+                            OTP কোড</label>
+                        <input type="text" id="admin-otp-input" placeholder="000000" maxlength="6"
+                            class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 text-center text-2xl font-bold tracking-[0.5em]">
+                    </div>
+
+                    <div id="email-step2-msg" class="text-sm font-anek text-red-500 mb-4 hidden"></div>
+
+                    <button id="verify-otp-btn" onclick="verifyEmailOtp()"
+                        class="w-full py-4 bg-green-600 text-white font-anek font-bold rounded-2xl hover:bg-green-700 transition-all shadow-xl shadow-green-600/20 flex items-center justify-center gap-2 mb-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        নিশ্চিত করুন
+                    </button>
+
+                    <button onclick="backToEmailStep()"
+                        class="w-full py-3 text-gray-400 font-anek text-sm hover:text-brand-900 transition-colors">
+                        ← ইমেইল পরিবর্তন করুন
+                    </button>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div id="email-step-3" class="hidden text-center py-4">
+                    <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সফলভাবে যোগ হয়েছে!</h3>
+                    <p class="text-gray-500 font-anek mb-8">আপনার ইমেইল অ্যাকাউন্টে সেভ করা হয়েছে।</p>
+                    <button onclick="closeEmailModal()"
+                        class="px-10 py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all">
+                        ড্যাশবোর্ডে যান
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Fund Modal (Disabled) -->
     <!-- <div id="add-fund-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-md transition-opacity" onclick="closeAddFundModal()">
@@ -1179,6 +1298,119 @@ endif; ?>
                     else alert('প্রোফাইল আপডেট করতে সমস্যা হয়েছে।');
                 });
         });
+
+        // Email Verification Logic
+        function closeEmailModal() {
+            document.getElementById('email-required-modal').style.display = 'none';
+            document.body.style.overflow = '';
+            location.reload();
+        }
+
+        function showStep(stepId) {
+            document.getElementById('email-step-1').classList.add('hidden');
+            document.getElementById('email-step-2').classList.add('hidden');
+            document.getElementById('email-step-3').classList.add('hidden');
+            document.getElementById(stepId).classList.remove('hidden');
+        }
+
+        function backToEmailStep() {
+            showStep('email-step-1');
+        }
+
+        function sendEmailOtp() {
+            const email = document.getElementById('admin-email-input').value.trim();
+            const msgEl = document.getElementById('email-step1-msg');
+            const btn = document.getElementById('send-email-otp-btn');
+
+            if (!email) {
+                msgEl.innerText = 'অনুগ্রহ করে ইমেইল দিন।';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            msgEl.classList.add('hidden');
+            btn.innerHTML = 'পাঠানো হচ্ছে...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('action', 'send_email_otp');
+            formData.append('email', email);
+
+            fetch('process_email_otp.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('otp-sent-email-display').innerText = email;
+                        showStep('email-step-2');
+                    } else {
+                        msgEl.innerText = data.message;
+                        msgEl.classList.remove('hidden');
+                    }
+                })
+                .catch(err => {
+                    msgEl.innerText = 'সার্ভার এরর। আবার চেষ্টা করুন।';
+                    msgEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    btn.innerHTML = 'OTP পাঠান';
+                    btn.disabled = false;
+                });
+        }
+
+        function verifyEmailOtp() {
+            const otp = document.getElementById('admin-otp-input').value.trim();
+            const msgEl = document.getElementById('email-step2-msg');
+            const btn = document.getElementById('verify-otp-btn');
+
+            if (!otp || otp.length !== 6) {
+                msgEl.innerText = 'অনুগ্রহ করে ৬-সংখ্যার সঠিক OTP দিন।';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            msgEl.classList.add('hidden');
+            btn.innerHTML = 'যাচাই করা হচ্ছে...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('action', 'verify_email_otp');
+            formData.append('otp', otp);
+
+            fetch('process_email_otp.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showStep('email-step-3');
+                    } else {
+                        msgEl.innerText = data.message;
+                        msgEl.classList.remove('hidden');
+                    }
+                })
+                .catch(err => {
+                    msgEl.innerText = 'সার্ভার এরর। আবার চেষ্টা করুন।';
+                    msgEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    btn.innerHTML = 'নিশ্চিত করুন';
+                    btn.disabled = false;
+                });
+        }
+
+        <?php if (empty($user['email'])): ?>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('email-required-modal');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        <?php endif; ?>
     </script>
 </body>
 
