@@ -19,7 +19,7 @@ $categories = $cats_stmt->fetchAll();
 
 // Inventory Filter Logic - Use prepared statement
 $search = isset($_GET['search']) ? '%' . trim($_GET['search']) . '%' : '%';
-$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int)$_GET['category'] : '%';
+$cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int) $_GET['category'] : '%';
 
 $inv_stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
                           FROM books b 
@@ -90,6 +90,17 @@ $admin_members = $members_stmt->fetchAll();
 $payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
 $payment_methods = $payments_stmt->fetchAll();
 
+// Fetch full admin profile data
+$admin_stmt = $pdo->prepare("SELECT id, username, full_name, email, role, last_login FROM admins WHERE id = ?");
+$admin_stmt->execute([$_SESSION['admin_id']]);
+$admin_data = $admin_stmt->fetch();
+$admin_email = $admin_data['email'] ?? '';
+$admin_fullname = $admin_data['full_name'] ?? '';
+$admin_role = $admin_data['role'] ?? 'admin';
+$admin_username = $admin_data['username'] ?? '';
+$admin_lastlogin = $admin_data['last_login'] ?? null;
+$needs_email = empty(trim($admin_email));
+
 // Helper to get settings
 function getSetting($pdo, $key, $default = '')
 {
@@ -98,8 +109,7 @@ function getSetting($pdo, $key, $default = '')
         $stmt->execute([$key]);
         $val = $stmt->fetchColumn();
         return $val !== false ? $val : $default;
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
         return $default;
     }
 }
@@ -156,23 +166,37 @@ function bn_num($num)
         #upload-progress-modal {
             transition: all 0.3s ease-in-out;
         }
-        
+
         .progress-ring {
             transition: stroke-dashoffset 0.35s;
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
-        
+
         .loading-dots:after {
             content: '.';
             animation: dots 1.5s steps(5, end) infinite;
         }
 
         @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
+
+            0%,
+            20% {
+                content: '';
+            }
+
+            40% {
+                content: '.';
+            }
+
+            60% {
+                content: '..';
+            }
+
+            80%,
+            100% {
+                content: '...';
+            }
         }
     </style>
 </head>
@@ -255,8 +279,17 @@ function bn_num($num)
                 </svg>
                 পেমেন্ট সেটিংস
             </button>
+            <button onclick="switchTab('profile')" id="nav-profile"
+                class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                প্রোফাইল
+            </button>
+
             <a href="../logout.php"
-                class="sidebar-link text-red-400 hover:text-white hover:bg-red-500/20 flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300 mt-20">
+                class="sidebar-link text-red-400 hover:text-white hover:bg-red-500/20 flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300 mt-4">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -444,20 +477,20 @@ function bn_num($num)
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php foreach ($admin_orders as $order):
-    $items = getOrderItems($order['id'], $order_items_by_order);
-    $items_list = implode(', ', array_column($items, 'title'));
-    $status_color = 'bg-gray-100 text-gray-600';
-    if ($order['order_status'] == 'Processing')
-        $status_color = 'bg-orange-100 text-orange-600';
-    if ($order['order_status'] == 'Confirmed')
-        $status_color = 'bg-amber-100 text-amber-600';
-    if ($order['order_status'] == 'Shipped')
-        $status_color = 'bg-blue-100 text-blue-600';
-    if ($order['order_status'] == 'Delivered')
-        $status_color = 'bg-green-100 text-green-600';
-    if ($order['order_status'] == 'Cancelled')
-        $status_color = 'bg-red-100 text-red-600';
-?>
+                                $items = getOrderItems($order['id'], $order_items_by_order);
+                                $items_list = implode(', ', array_column($items, 'title'));
+                                $status_color = 'bg-gray-100 text-gray-600';
+                                if ($order['order_status'] == 'Processing')
+                                    $status_color = 'bg-orange-100 text-orange-600';
+                                if ($order['order_status'] == 'Confirmed')
+                                    $status_color = 'bg-amber-100 text-amber-600';
+                                if ($order['order_status'] == 'Shipped')
+                                    $status_color = 'bg-blue-100 text-blue-600';
+                                if ($order['order_status'] == 'Delivered')
+                                    $status_color = 'bg-green-100 text-green-600';
+                                if ($order['order_status'] == 'Cancelled')
+                                    $status_color = 'bg-red-100 text-red-600';
+                                ?>
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-10 py-6 text-sm font-bold text-brand-900">
                                         #<?php echo $order['invoice_no']; ?></td>
@@ -473,12 +506,12 @@ function bn_num($num)
                                         <?php if ($order['notes'] == 'Borrow Order'): ?>
                                             <span
                                                 class="px-2 py-1 bg-purple-100 text-purple-600 rounded text-[9px] font-bold uppercase">Borrow</span>
-                                        <?php
-    else: ?>
+                                            <?php
+                                        else: ?>
                                             <span
                                                 class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[9px] font-bold uppercase">Buy</span>
-                                        <?php
-    endif; ?>
+                                            <?php
+                                        endif; ?>
                                     </td>
                                     <td class="px-10 py-6 text-sm font-bold text-brand-900">
                                         ৳<?php echo bn_num(number_format($order['total_amount'])); ?></td>
@@ -508,35 +541,35 @@ function bn_num($num)
                                             <span
                                                 class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
                                                 <?php
-        $st = $order['order_status'];
-        if ($st == 'Delivered')
-            echo 'ডেলিভারড';
-        else if ($st == 'Cancelled')
-            echo 'বাতিল';
-?>
+                                                $st = $order['order_status'];
+                                                if ($st == 'Delivered')
+                                                    echo 'ডেলিভারড';
+                                                else if ($st == 'Cancelled')
+                                                    echo 'বাতিল';
+                                                ?>
                                             </span>
-                                        <?php
-    else: ?>
+                                            <?php
+                                        else: ?>
                                             <button onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
                                                 class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php
-        if ($order['order_status'] == 'Processing')
-            echo 'hover:ring-orange-200';
-        else if ($order['order_status'] == 'Confirmed')
-            echo 'hover:ring-amber-200';
-        else if ($order['order_status'] == 'Shipped')
-            echo 'hover:ring-blue-200';
-?>">
+                                                    if ($order['order_status'] == 'Processing')
+                                                        echo 'hover:ring-orange-200';
+                                                    else if ($order['order_status'] == 'Confirmed')
+                                                        echo 'hover:ring-amber-200';
+                                                    else if ($order['order_status'] == 'Shipped')
+                                                        echo 'hover:ring-blue-200';
+                                                    ?>">
                                                 <?php
-        $st = $order['order_status'];
-        if ($st == 'Processing')
-            echo 'পেন্ডিং';
-        else if ($st == 'Confirmed')
-            echo 'কনফার্মড';
-        else if ($st == 'Shipped')
-            echo 'শিপড';
-        else
-            echo $st;
-?>
+                                                $st = $order['order_status'];
+                                                if ($st == 'Processing')
+                                                    echo 'পেন্ডিং';
+                                                else if ($st == 'Confirmed')
+                                                    echo 'কনফার্মড';
+                                                else if ($st == 'Shipped')
+                                                    echo 'শিপড';
+                                                else
+                                                    echo $st;
+                                                ?>
                                             </button>
 
                                             <!-- Order Status Dropdown -->
@@ -553,8 +586,8 @@ function bn_num($num)
                                                 <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
                                                     class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
                                             </div>
-                                        <?php
-    endif; ?>
+                                            <?php
+                                        endif; ?>
                                     </td>
                                     <td class="px-10 py-6 text-right">
                                         <div class="flex justify-end items-center gap-2">
@@ -585,43 +618,43 @@ function bn_num($num)
                                                             onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট
                                                             পেড</button>
-                                                    <?php
-    endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if ($order['order_status'] == 'Processing'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম
                                                             করুন</button>
-                                                    <?php
-    endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if (in_array($order['order_status'], ['Processing', 'Confirmed'])): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:bg-blue-50">শিপড
                                                             করুন</button>
-                                                    <?php
-    endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if ($order['order_status'] == 'Shipped'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50">ডেলিভারড
                                                             করুন</button>
-                                                    <?php
-    endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if ($order['order_status'] != 'Delivered' && $order['order_status'] != 'Cancelled'): ?>
                                                         <button
                                                             onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
                                                             class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50">বাতিল
                                                             করুন</button>
-                                                    <?php
-    endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
-                            <?php
-endforeach; ?>
+                                <?php
+                            endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -663,11 +696,11 @@ endforeach; ?>
                         class="bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 appearance-none min-w-[150px] shadow-inner">
                         <option value="all">সব ক্যাটাগরি</option>
                         <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>" <?php echo(isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo (isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
                                 <?php echo $cat['name']; ?>
                             </option>
-                        <?php
-endforeach; ?>
+                            <?php
+                        endforeach; ?>
                     </select>
                     <button type="submit"
                         class="px-6 py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold hover:bg-white border border-transparent hover:border-brand-gold transition-all shadow-sm">বই
@@ -723,9 +756,9 @@ endforeach; ?>
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-3">
                                             <?php
-    $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
-    $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
-?>
+                                            $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
+                                            $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
+                                            ?>
                                             <div class="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
                                                 <div class="<?php echo $stock_color; ?> h-full"
                                                     style="width: <?php echo $stock_percent; ?>%"></div>
@@ -734,8 +767,8 @@ endforeach; ?>
                                                 class="text-xs font-bold text-brand-900"><?php echo bn_num($book['stock_qty']); ?>টি</span>
                                         </div>
                                         <p
-                                            class="text-[9px] <?php echo($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
-                                            <?php echo($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
+                                            class="text-[9px] <?php echo ($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
+                                            <?php echo ($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
                                         </p>
                                     </td>
                                     <td class="px-8 py-5 text-right">
@@ -757,8 +790,8 @@ endforeach; ?>
                                         </div>
                                     </td>
                                 </tr>
-                            <?php
-endforeach; ?>
+                                <?php
+                            endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -824,13 +857,13 @@ endforeach; ?>
                                     <td colspan="5" class="px-10 py-20 text-center text-gray-400 font-anek">আপাতত কোনো
                                         মেম্বার পাওয়া যায়নি।</td>
                                 </tr>
-                            <?php
-else: ?>
+                                <?php
+                            else: ?>
                                 <?php foreach ($admin_members as $member):
-        $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
-        $join_date = date('d F, Y', strtotime($member['created_at']));
-        // Translate month to Bengali if needed, but standard date is fine for now
-?>
+                                    $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
+                                    $join_date = date('d F, Y', strtotime($member['created_at']));
+                                    // Translate month to Bengali if needed, but standard date is fine for now
+                                    ?>
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="px-10 py-6">
                                             <div class="flex items-center gap-4">
@@ -855,16 +888,16 @@ else: ?>
                                             <span
                                                 class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
                                                 <?php
-        $plan = $member['membership_plan'] ?? 'None';
-        if ($plan == 'General')
-            echo 'সাধারণ';
-        else if ($plan == 'BookLover')
-            echo 'বইপ্রেমী';
-        else if ($plan == 'Collector')
-            echo 'সংগ্রাহক';
-        else
-            echo 'বেসিক';
-?>
+                                                $plan = $member['membership_plan'] ?? 'None';
+                                                if ($plan == 'General')
+                                                    echo 'সাধারণ';
+                                                else if ($plan == 'BookLover')
+                                                    echo 'বইপ্রেমী';
+                                                else if ($plan == 'Collector')
+                                                    echo 'সংগ্রাহক';
+                                                else
+                                                    echo 'বেসিক';
+                                                ?>
                                             </span>
                                         </td>
                                         <td class="px-10 py-6 text-sm text-gray-500">
@@ -887,10 +920,10 @@ else: ?>
                                             </div>
                                         </td>
                                     </tr>
+                                    <?php
+                                endforeach; ?>
                                 <?php
-    endforeach; ?>
-                            <?php
-endif; ?>
+                            endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -927,11 +960,11 @@ endif; ?>
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php
-include '../../includes/db_connect.php';
-$stmt = $pdo->query("SELECT b.*, c.name as cat_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.is_suggested = 1");
-$suggested = $stmt->fetchAll();
-foreach ($suggested as $book):
-?>
+                            include '../../includes/db_connect.php';
+                            $stmt = $pdo->query("SELECT b.*, c.name as cat_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.is_suggested = 1");
+                            $suggested = $stmt->fetchAll();
+                            foreach ($suggested as $book):
+                                ?>
                                 <tr class="hover:bg-gray-50/50 transition-colors">
                                     <td class="px-10 py-6">
                                         <div class="flex items-center gap-4">
@@ -961,8 +994,8 @@ foreach ($suggested as $book):
                                             class="px-3 py-1 bg-brand-gold/10 text-brand-900 rounded-full text-[10px] font-bold uppercase tracking-widest">সাজেস্টেড</span>
                                     </td>
                                 </tr>
-                            <?php
-endforeach; ?>
+                                <?php
+                            endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -1010,52 +1043,52 @@ endforeach; ?>
                                     <td colspan="6" class="text-center py-12 text-gray-400 font-anek">কোনো সক্রিয় বরো নেই।
                                     </td>
                                 </tr>
-                            <?php
-else: ?>
+                                <?php
+                            else: ?>
                                 <?php foreach ($active_borrows as $borrow):
-        // 1. Sync Service: If order is Shipped/Delivered, Borrow MUST be Active
-        if ($borrow['status'] === 'Processing' && in_array($borrow['order_status'], ['Shipped', 'Delivered'])) {
-            $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP WHERE id = ?")
-                ->execute([$borrow['id']]);
-            $borrow['status'] = 'Active';
-            $borrow['borrow_date'] = date('Y-m-d H:i:s');
-        }
+                                    // 1. Sync Service: If order is Shipped/Delivered, Borrow MUST be Active
+                                    if ($borrow['status'] === 'Processing' && in_array($borrow['order_status'], ['Shipped', 'Delivered'])) {
+                                        $pdo->prepare("UPDATE borrows SET status = 'Active', borrow_date = CURRENT_TIMESTAMP WHERE id = ?")
+                                            ->execute([$borrow['id']]);
+                                        $borrow['status'] = 'Active';
+                                        $borrow['borrow_date'] = date('Y-m-d H:i:s');
+                                    }
 
-        // 2. Overdue Check
-        $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date'] . ' 23:59:59') < time();
-        if ($is_overdue) {
-            $pdo->prepare("UPDATE borrows SET status = 'Overdue' WHERE id = ?")->execute([$borrow['id']]);
-            $borrow['status'] = 'Overdue';
-        }
-        switch ($borrow['status']) {
-            case 'Processing':
-                $bstatus_color = 'bg-yellow-100 text-yellow-700';
-                break;
-            case 'Active':
-                $bstatus_color = 'bg-green-100 text-green-700';
-                break;
-            case 'Overdue':
-                $bstatus_color = 'bg-red-100 text-red-600';
-                break;
-            default:
-                $bstatus_color = 'bg-gray-100 text-gray-600';
-                break;
-        }
-        switch ($borrow['status']) {
-            case 'Processing':
-                $bstatus_label = 'প্রসেসিং';
-                break;
-            case 'Active':
-                $bstatus_label = 'সক্রিয়';
-                break;
-            case 'Overdue':
-                $bstatus_label = 'মেয়াদ পার';
-                break;
-            default:
-                $bstatus_label = $borrow['status'];
-                break;
-        }
-?>
+                                    // 2. Overdue Check
+                                    $is_overdue = $borrow['status'] === 'Active' && strtotime($borrow['due_date'] . ' 23:59:59') < time();
+                                    if ($is_overdue) {
+                                        $pdo->prepare("UPDATE borrows SET status = 'Overdue' WHERE id = ?")->execute([$borrow['id']]);
+                                        $borrow['status'] = 'Overdue';
+                                    }
+                                    switch ($borrow['status']) {
+                                        case 'Processing':
+                                            $bstatus_color = 'bg-yellow-100 text-yellow-700';
+                                            break;
+                                        case 'Active':
+                                            $bstatus_color = 'bg-green-100 text-green-700';
+                                            break;
+                                        case 'Overdue':
+                                            $bstatus_color = 'bg-red-100 text-red-600';
+                                            break;
+                                        default:
+                                            $bstatus_color = 'bg-gray-100 text-gray-600';
+                                            break;
+                                    }
+                                    switch ($borrow['status']) {
+                                        case 'Processing':
+                                            $bstatus_label = 'প্রসেসিং';
+                                            break;
+                                        case 'Active':
+                                            $bstatus_label = 'সক্রিয়';
+                                            break;
+                                        case 'Overdue':
+                                            $bstatus_label = 'মেয়াদ পার';
+                                            break;
+                                        default:
+                                            $bstatus_label = $borrow['status'];
+                                            break;
+                                    }
+                                    ?>
                                     <tr class="hover:bg-gray-50/30 transition-colors">
                                         <td class="px-8 py-5">
                                             <div class="font-bold text-brand-900 text-sm">
@@ -1070,8 +1103,8 @@ else: ?>
                                                         <img src="../../admin/assets/book-images/<?php echo htmlspecialchars($borrow['cover_image']); ?>"
                                                             class="w-full h-full object-cover"
                                                             onerror="this.style.display='none'; this.parentElement.style.background='#f3f4f6';">
-                                                    <?php
-        else: ?>
+                                                        <?php
+                                                    else: ?>
                                                         <div class="w-full h-full flex items-center justify-center bg-gray-200">
                                                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                                                 viewBox="0 0 24 24">
@@ -1081,8 +1114,8 @@ else: ?>
                                                                 </path>
                                                             </svg>
                                                         </div>
-                                                    <?php
-        endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                 </div>
                                                 <span
                                                     class="text-sm font-bold text-brand-900"><?php echo htmlspecialchars($borrow['title']); ?></span>
@@ -1107,8 +1140,8 @@ else: ?>
                                                     <div class="bg-brand-gold h-full"
                                                         style="width: <?php echo $borrow['reading_progress']; ?>%"></div>
                                                 </div>
-                                            <?php
-        endif; ?>
+                                                <?php
+                                            endif; ?>
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <?php if ($borrow['status'] === 'Active' || $borrow['status'] === 'Overdue'): ?>
@@ -1116,17 +1149,17 @@ else: ?>
                                                     class="px-4 py-2 bg-brand-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-brand-gold hover:text-brand-900 transition-all">
                                                     ফেরত নিন
                                                 </button>
-                                            <?php
-        else: ?>
+                                                <?php
+                                            else: ?>
                                                 <span class="text-[10px] text-gray-400">অপেক্ষায়</span>
-                                            <?php
-        endif; ?>
+                                                <?php
+                                            endif; ?>
                                         </td>
                                     </tr>
+                                    <?php
+                                endforeach; ?>
                                 <?php
-    endforeach; ?>
-                            <?php
-endif; ?>
+                            endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -1192,9 +1225,9 @@ endif; ?>
                                             পাওয়া
                                             যায়নি।</td>
                                     </tr>
-                                <?php
-else:
-    foreach ($admin_preorders as $po): ?>
+                                    <?php
+                                else:
+                                    foreach ($admin_preorders as $po): ?>
                                         <tr class="hover:bg-gray-50/30 transition-colors">
                                             <td class="px-8 py-5">
                                                 <div class="flex items-center gap-4">
@@ -1204,12 +1237,12 @@ else:
                                                     </div>
                                                     <div>
                                                         <div class="font-bold text-brand-900 text-sm">
-                                                            <?php 
+                                                            <?php
                                                             $combo_title = htmlspecialchars($po['title']);
                                                             if (!empty($po['second_title'])) {
                                                                 $combo_title .= ' এবং ' . htmlspecialchars($po['second_title']) . ' (কম্বো)';
                                                             }
-                                                            echo $combo_title; 
+                                                            echo $combo_title;
                                                             ?>
                                                         </div>
                                                         <div class="text-[10px] text-gray-400">
@@ -1220,18 +1253,18 @@ else:
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="text-sm font-bold text-brand-900">
-                                                    ৳<?php echo bn_num((int)$po['discount_price']); ?></div>
+                                                    ৳<?php echo bn_num((int) $po['discount_price']); ?></div>
                                                 <div class="text-[10px] text-gray-400 line-through">
-                                                    ৳<?php echo bn_num((int)$po['price']); ?></div>
+                                                    ৳<?php echo bn_num((int) $po['price']); ?></div>
                                             </td>
                                             <td class="px-8 py-5 text-sm text-gray-500">
                                                 <?php echo date('d M Y', strtotime($po['release_date'])); ?>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <?php
-        $po_status_class = $po['status'] == 'Open' ? 'bg-green-100 text-green-700' : ($po['status'] == 'Upcoming' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
-        $po_status_label = $po['status'] == 'Open' ? 'চলছে' : ($po['status'] == 'Upcoming' ? 'আসন্ন' : 'বন্ধ');
-?>
+                                                $po_status_class = $po['status'] == 'Open' ? 'bg-green-100 text-green-700' : ($po['status'] == 'Upcoming' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
+                                                $po_status_label = $po['status'] == 'Open' ? 'চলছে' : ($po['status'] == 'Upcoming' ? 'আসন্ন' : 'বন্ধ');
+                                                ?>
                                                 <span
                                                     class="px-3 py-1 <?php echo $po_status_class; ?> rounded-full text-[10px] font-bold uppercase tracking-widest">
                                                     <?php echo $po_status_label; ?>
@@ -1243,27 +1276,32 @@ else:
                                                         <span
                                                             class="w-fit text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">হট
                                                             ডিল</span>
-                                                    <?php
-        endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if ($po['free_delivery']): ?>
                                                         <span
                                                             class="w-fit text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">ফ্রি
                                                             ডেলিভারি</span>
-                                                    <?php
-        endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                     <?php if (!$po['is_hot_deal'] && !$po['free_delivery']): ?>
                                                         <span class="text-xs text-gray-400">সাধারণ</span>
-                                                    <?php
-        endif; ?>
+                                                        <?php
+                                                    endif; ?>
                                                 </div>
                                             </td>
                                             <td class="px-8 py-5 text-right">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="../../pre-booking/<?php echo !empty($po['slug']) ? 'book/' . $po['slug'] : 'book-details.php?id=' . $po['id']; ?>" target="_blank"
-                                                        class="p-2 text-green-600 hover:bg-green-50 rounded-lg">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                    <a href="../../pre-booking/<?php echo !empty($po['slug']) ? 'book/' . $po['slug'] : 'book-details.php?id=' . $po['id']; ?>"
+                                                        target="_blank" class="p-2 text-green-600 hover:bg-green-50 rounded-lg">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                            </path>
                                                         </svg>
                                                     </a>
                                                     <button onclick='editPreorder(<?php echo json_encode($po); ?>)'
@@ -1289,9 +1327,9 @@ else:
                                                 </div>
                                             </td>
                                         </tr>
-                                    <?php
-    endforeach;
-endif; ?>
+                                        <?php
+                                    endforeach;
+                                endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -1331,9 +1369,9 @@ endif; ?>
                                         <td colspan="6" class="px-8 py-20 text-center text-gray-400 font-anek">আপাতত কোনো
                                             প্রি-অর্ডার বুকিং নেই।</td>
                                     </tr>
-                                <?php
-else:
-    foreach ($admin_preorder_bookings as $booking): ?>
+                                    <?php
+                                else:
+                                    foreach ($admin_preorder_bookings as $booking): ?>
                                         <tr class="hover:bg-gray-50/30 transition-colors border-b border-gray-50 last:border-0">
                                             <td class="px-8 py-5">
                                                 <div class="font-bold text-brand-900 text-xs">
@@ -1365,15 +1403,16 @@ else:
                                             </td>
                                             <td class="px-8 py-5">
                                                 <?php
-        $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
-?>
+                                                $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
+                                                ?>
                                                 <span
                                                     class="px-3 py-1 <?php echo $s_class; ?> rounded-full text-[10px] font-bold">
                                                     <?php echo $booking['order_status']; ?>
                                                 </span>
                                             </td>
                                             <td class="px-8 py-5 text-right">
-                                                <button onclick="viewPreOrderDetails(<?php echo htmlspecialchars(json_encode($booking), ENT_QUOTES, 'UTF-8'); ?>)"
+                                                <button
+                                                    onclick="viewPreOrderDetails(<?php echo htmlspecialchars(json_encode($booking), ENT_QUOTES, 'UTF-8'); ?>)"
                                                     class="p-2 text-brand-900 hover:bg-brand-gold/10 rounded-lg transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1385,10 +1424,10 @@ else:
                                                 </button>
                                             </td>
                                         </tr>
+                                        <?php
+                                    endforeach; ?>
                                     <?php
-    endforeach; ?>
-                                <?php
-endif; ?>
+                                endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -1406,8 +1445,8 @@ endif; ?>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($payment_methods as $method):
-    $config = json_decode($method['config_json'], true) ?: [];
-?>
+                    $config = json_decode($method['config_json'], true) ?: [];
+                    ?>
                     <div
                         class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
                         <div class="flex items-center justify-between mb-8">
@@ -1416,28 +1455,28 @@ endif; ?>
                                     <?php if ($method['method_key'] == 'bkash'): ?>
                                         <img src="../../assets/img/bkash-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
-                                    <?php
-    elseif ($method['method_key'] == 'nagad'): ?>
+                                        <?php
+                                    elseif ($method['method_key'] == 'nagad'): ?>
                                         <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
-                                    <?php
-    elseif ($method['method_key'] == 'cod'): ?>
+                                        <?php
+                                    elseif ($method['method_key'] == 'cod'): ?>
                                         <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
                                             </path>
                                         </svg>
-                                    <?php
-    else: ?>
+                                        <?php
+                                    else: ?>
                                         <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                                             </path>
                                         </svg>
-                                    <?php
-    endif; ?>
+                                        <?php
+                                    endif; ?>
                                 </div>
                                 <div>
                                     <h3 class="font-anek font-bold text-brand-900">
@@ -1464,16 +1503,16 @@ endif; ?>
                                     onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)'
                                     class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API
                                     কনফিগারেশন আপডেট করুন</button>
-                            <?php
-    else: ?>
+                                <?php
+                            else: ?>
                                 <p class="text-xs text-gray-400 font-anek leading-relaxed">এই মেথডটির জন্য কোনো বিশেষ API
                                     কনফিগারেশন প্রয়োজন নেই। এটি সরাসরি কাস্টমার চেকআউট পেজে প্রদর্শিত হবে।</p>
-                            <?php
-    endif; ?>
+                                <?php
+                            endif; ?>
                         </div>
                     </div>
-                <?php
-endforeach; ?>
+                    <?php
+                endforeach; ?>
             </div>
 
             <div class="mt-12">
@@ -1482,29 +1521,453 @@ endforeach; ?>
                     <form onsubmit="updateDeliveryCharges(event)" class="space-y-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">কক্সবাজার শহর (Inside)</label>
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">কক্সবাজার
+                                    শহর (Inside)</label>
                                 <div class="relative">
-                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
-                                    <input type="number" id="charge_inside" value="<?php echo $inside_charge; ?>" required
+                                    <span
+                                        class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
+                                    <input type="number" id="charge_inside" value="<?php echo $inside_charge; ?>"
+                                        required
                                         class="w-full bg-gray-50 border border-transparent rounded-2xl pl-12 pr-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-bold text-brand-900 shadow-inner">
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আউটসাইড কক্সবাজার (Outside)</label>
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">আউটসাইড
+                                    কক্সবাজার (Outside)</label>
                                 <div class="relative">
-                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
-                                    <input type="number" id="charge_outside" value="<?php echo $outside_charge; ?>" required
+                                    <span
+                                        class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">৳</span>
+                                    <input type="number" id="charge_outside" value="<?php echo $outside_charge; ?>"
+                                        required
                                         class="w-full bg-gray-50 border border-transparent rounded-2xl pl-12 pr-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-bold text-brand-900 shadow-inner">
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" 
-                            class="w-full py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">চার্জ আপডেট করুন</button>
+                        <button type="submit"
+                            class="w-full py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">চার্জ
+                            আপডেট করুন</button>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- ====== Tab: Profile ====== -->
+        <div id="tab-profile" class="p-8 lg:p-12 tab-content hidden">
+
+            <div class="mb-10">
+                <h1 class="text-3xl font-anek font-bold text-brand-900 mb-2">প্রোফাইল সেটিংস</h1>
+                <p class="text-gray-500 font-light">আপনার অ্যাকাউন্টের তথ্য ও পাসওয়ার্ড এখান থেকে পরিচালনা করুন।</p>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+                <!-- LEFT: Profile Card -->
+                <div class="xl:col-span-1 space-y-6">
+
+                    <!-- Avatar / Info Card -->
+                    <div class="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="px-8 pt-12 pb-8">
+                            <!-- Avatar -->
+                            <div class="mb-5 flex justify-between items-center">
+                                <div class="w-20 h-20 rounded-[20px] bg-brand-gold text-brand-900 flex items-center justify-center text-3xl font-extrabold shadow-md">
+                                    <?php echo strtoupper(substr($admin_username, 0, 1)); ?>
+                                </div>
+                                <?php if ($admin_role === 'superadmin'): ?>
+                                    <span
+                                        class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-widest rounded-full">Super
+                                        Admin</span>
+                                <?php else: ?>
+                                    <span
+                                        class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full"><?php echo htmlspecialchars($admin_role); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <!-- Info -->
+                            <h3 class="text-xl font-anek font-bold text-brand-900 mb-1">
+                                <?php echo htmlspecialchars($admin_fullname ?: $admin_username); ?>
+                            </h3>
+                            <p class="text-sm text-gray-400 font-anek">@<?php echo htmlspecialchars($admin_username); ?>
+                            </p>
+
+                            <div class="mt-6 space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">ইমেইল
+                                        </p>
+                                        <p class="text-sm font-bold text-brand-900 truncate">
+                                            <?php echo !empty($admin_email) ? htmlspecialchars($admin_email) : '<span class="text-orange-500">যোগ করা হয়নি</span>'; ?>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">ভূমিকা
+                                        </p>
+                                        <p class="text-sm font-bold text-brand-900">
+                                            <?php echo ucfirst(htmlspecialchars($admin_role)); ?>
+                                        </p>
+                                    </div>
+                                </div>
+                                <?php if ($admin_lastlogin): ?>
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">সর্বশেষ
+                                                লগইন</p>
+                                            <p class="text-sm font-bold text-brand-900">
+                                                <?php echo date('d M Y, h:i A', strtotime($admin_lastlogin)); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="bg-white rounded-[32px] border border-gray-100 shadow-sm p-6 space-y-3">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">অ্যাকাউন্ট স্ট্যাটাস
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="w-2.5 h-2.5 rounded-full <?php echo !empty($admin_email) ? 'bg-green-400' : 'bg-orange-400'; ?> shrink-0"></span>
+                            <span
+                                class="text-sm font-anek text-brand-900"><?php echo !empty($admin_email) ? 'ইমেইল যাচাই সম্পন্ন' : 'ইমেইল যোগ করা বাকি'; ?></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0"></span>
+                            <span class="text-sm font-anek text-brand-900">অ্যাকাউন্ট সক্রিয়</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Forms -->
+                <div class="xl:col-span-2 space-y-8">
+
+                    <!-- Profile Info Form -->
+                    <div class="bg-white rounded-[40px] border border-gray-100 shadow-sm p-10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-10 h-10 bg-brand-light rounded-2xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-anek font-bold text-brand-900">ব্যক্তিগত তথ্য</h3>
+                                <p class="text-xs text-gray-400 font-anek">আপনার নাম ও ইমেইল আপডেট করুন</p>
+                            </div>
+                        </div>
+
+                        <form id="profile-info-form" onsubmit="updateProfileInfo(event)" class="space-y-6">
+                            <!-- Full Name -->
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">পূর্ণ
+                                    নাম</label>
+                                <input type="text" name="full_name" id="profile-fullname"
+                                    value="<?php echo htmlspecialchars($admin_fullname); ?>"
+                                    placeholder="আপনার পূর্ণ নাম লিখুন"
+                                    class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            </div>
+
+                            <!-- Username (read-only) -->
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">ইউজারনেম
+                                    (পরিবর্তনযোগ্য নয়)</label>
+                                <input type="text" value="<?php echo htmlspecialchars($admin_username); ?>" readonly
+                                    class="w-full bg-gray-100 border border-transparent rounded-2xl px-6 py-4 font-anek text-gray-400 cursor-not-allowed">
+                            </div>
+
+                            <!-- Email with OTP verification -->
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">ইমেইল
+                                    ঠিকানা</label>
+                                <div class="flex gap-3">
+                                    <input type="email" name="email" id="profile-email-input"
+                                        value="<?php echo htmlspecialchars($admin_email); ?>"
+                                        placeholder="example@email.com"
+                                        class="flex-1 bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                                    <button type="button" onclick="sendProfileEmailOtp()" id="profile-send-otp-btn"
+                                        class="shrink-0 px-5 py-4 bg-brand-light text-brand-900 font-anek font-bold text-xs rounded-2xl hover:bg-brand-900 hover:text-white transition-all whitespace-nowrap">
+                                        OTP পাঠান
+                                    </button>
+                                </div>
+                                <!-- OTP Input (hidden until OTP sent) -->
+                                <div id="profile-otp-row" class="hidden">
+                                    <div class="flex gap-3 mt-2">
+                                        <input type="text" id="profile-otp-input" maxlength="6"
+                                            placeholder="৬-সংখ্যার কোড"
+                                            class="flex-1 bg-gray-50 border border-transparent focus:border-green-400 rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 text-center text-xl font-bold tracking-[0.4em]">
+                                        <button type="button" onclick="verifyProfileEmailOtp()"
+                                            id="profile-verify-otp-btn"
+                                            class="shrink-0 px-5 py-4 bg-green-600 text-white font-anek font-bold text-xs rounded-2xl hover:bg-green-700 transition-all">
+                                            যাচাই
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 font-anek mt-2 ml-2" id="profile-otp-hint">আপনার
+                                        ইমেইলে পাঠানো কোডটি দিন। মেয়াদ ১০ মিনিট।</p>
+                                </div>
+                                <div id="profile-email-msg" class="text-sm font-anek mt-1 ml-2 hidden"></div>
+                            </div>
+
+                            <div id="profile-info-msg" class="text-sm font-anek hidden"></div>
+
+                            <button type="submit" id="profile-info-save-btn"
+                                class="w-full py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10">
+                                নাম আপডেট করুন
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Password Change Form -->
+                    <div class="bg-white rounded-[40px] border border-gray-100 shadow-sm p-10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-anek font-bold text-brand-900">পাসওয়ার্ড পরিবর্তন</h3>
+                                <p class="text-xs text-gray-400 font-anek">OTP ছাড়াই সরাসরি পাসওয়ার্ড পরিবর্তন করুন
+                                </p>
+                            </div>
+                        </div>
+
+                        <form id="change-password-form" onsubmit="updateAdminPassword(event)" class="space-y-6">
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">বর্তমান
+                                    পাসওয়ার্ড</label>
+                                <div class="relative">
+                                    <input type="password" name="current_password" id="cp-current"
+                                        placeholder="••••••••"
+                                        class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 pr-14 focus:outline-none transition-all font-anek text-brand-900">
+                                    <button type="button" onclick="togglePwVisibility('cp-current', this)"
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-900 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">নতুন
+                                        পাসওয়ার্ড</label>
+                                    <div class="relative">
+                                        <input type="password" name="new_password" id="cp-new"
+                                            placeholder="কমপক্ষে ৮ অক্ষর"
+                                            class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 pr-14 focus:outline-none transition-all font-anek text-brand-900">
+                                        <button type="button" onclick="togglePwVisibility('cp-new', this)"
+                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-900 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">নতুন
+                                        পাসওয়ার্ড নিশ্চিত করুন</label>
+                                    <div class="relative">
+                                        <input type="password" name="confirm_password" id="cp-confirm"
+                                            placeholder="আবার টাইপ করুন"
+                                            class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 pr-14 focus:outline-none transition-all font-anek text-brand-900">
+                                        <button type="button" onclick="togglePwVisibility('cp-confirm', this)"
+                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-900 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password strength indicator -->
+                            <div id="pw-strength-wrap" class="hidden">
+                                <div class="flex gap-1.5 mt-1">
+                                    <div class="h-1.5 flex-1 rounded-full bg-gray-100" id="ps-bar-1"></div>
+                                    <div class="h-1.5 flex-1 rounded-full bg-gray-100" id="ps-bar-2"></div>
+                                    <div class="h-1.5 flex-1 rounded-full bg-gray-100" id="ps-bar-3"></div>
+                                    <div class="h-1.5 flex-1 rounded-full bg-gray-100" id="ps-bar-4"></div>
+                                </div>
+                                <p id="ps-label" class="text-xs font-anek mt-1 ml-1"></p>
+                            </div>
+
+                            <div id="change-pw-msg" class="text-sm font-anek hidden"></div>
+
+                            <button type="submit" id="change-pw-btn"
+                                class="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-anek font-bold rounded-2xl hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/20">
+                                পাসওয়ার্ড পরিবর্তন করুন
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </main>
+
+    <!-- ====== EMAIL REQUIRED MODAL ====== -->
+    <div id="email-required-modal"
+        class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-brand-900/60 backdrop-blur-sm"
+        style="display:none!important">
+        <div class="bg-white w-full max-w-md rounded-[40px] shadow-2xl relative overflow-hidden border border-white/20">
+            <!-- Gradient Top Bar -->
+            <div class="h-2 bg-gradient-to-r from-brand-gold via-amber-400 to-brand-gold"></div>
+
+            <div class="p-10">
+                <!-- Step 1: Enter Email -->
+                <div id="email-step-1">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-anek font-bold text-brand-900">ইমেইল যোগ করুন</h3>
+                            <p class="text-xs text-gray-400 font-anek mt-0.5">নিরাপত্তার জন্য ইমেইল প্রয়োজন</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6">
+                        <p class="text-sm text-amber-800 font-anek leading-relaxed">⚠️ আপনার অ্যাকাউন্টে কোনো ইমেইল যোগ
+                            করা নেই। পাসওয়ার্ড রিকভারি ও নিরাপত্তার জন্য এখনই একটি ইমেইল যোগ করুন।</p>
+                    </div>
+
+                    <div class="space-y-2 mb-6">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">আপনার
+                            ইমেইল ঠিকানা</label>
+                        <div class="relative">
+                            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <input type="email" id="admin-email-input" placeholder="example@email.com"
+                                class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl pl-12 pr-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                        </div>
+                    </div>
+
+                    <div id="email-step1-msg" class="text-sm font-anek text-red-500 mb-4 hidden"></div>
+
+                    <button id="send-email-otp-btn" onclick="sendEmailOtp()"
+                        class="w-full py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        OTP পাঠান
+                    </button>
+                </div>
+
+                <!-- Step 2: Enter OTP -->
+                <div id="email-step-2" class="hidden">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-anek font-bold text-brand-900">OTP যাচাই করুন</h3>
+                            <p class="text-xs text-gray-400 font-anek mt-0.5">ইমেইলে পাঠানো কোডটি দিন</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6">
+                        <p class="text-sm text-green-800 font-anek leading-relaxed">✅ <span
+                                id="otp-sent-email-display"></span> ঠিকানায় একটি ৬-সংখ্যার কোড পাঠানো হয়েছে। কোডটি ১০
+                            মিনিটের মধ্যে মেয়াদ শেষ হবে।</p>
+                    </div>
+
+                    <div class="space-y-2 mb-6">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2 font-anek">৬-সংখ্যার
+                            OTP কোড</label>
+                        <input type="text" id="admin-otp-input" placeholder="000000" maxlength="6"
+                            class="w-full bg-gray-50 border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 text-center text-2xl font-bold tracking-[0.5em]">
+                    </div>
+
+                    <div id="email-step2-msg" class="text-sm font-anek text-red-500 mb-4 hidden"></div>
+
+                    <button id="verify-otp-btn" onclick="verifyEmailOtp()"
+                        class="w-full py-4 bg-green-600 text-white font-anek font-bold rounded-2xl hover:bg-green-700 transition-all shadow-xl shadow-green-600/20 flex items-center justify-center gap-2 mb-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        নিশ্চিত করুন
+                    </button>
+
+                    <button onclick="backToEmailStep()"
+                        class="w-full py-3 text-gray-400 font-anek text-sm hover:text-brand-900 transition-colors">
+                        ← ইমেইল পরিবর্তন করুন
+                    </button>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div id="email-step-3" class="hidden text-center py-4">
+                    <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সফলভাবে যোগ হয়েছে!</h3>
+                    <p class="text-gray-500 font-anek mb-8">আপনার ইমেইল অ্যাকাউন্টে সেভ করা হয়েছে।</p>
+                    <button onclick="closeEmailModal()"
+                        class="px-10 py-4 bg-brand-900 text-white font-anek font-bold rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all">
+                        ড্যাশবোর্ডে যান
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Add Book Modal -->
     <div id="add-book-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
@@ -1548,7 +2011,8 @@ endforeach; ?>
                         </div>
                         <div class="space-y-2">
                             <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Book Title (English) *</label>
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Book
+                                Title (English) *</label>
                             <input type="text" name="title_en" required placeholder="Book title in English"
                                 class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
                         </div>
@@ -1577,8 +2041,8 @@ endforeach; ?>
                                         <option value="<?php echo $cat['id']; ?>">
                                             <?php echo htmlspecialchars($cat['name']); ?>
                                         </option>
-                                    <?php
-endforeach; ?>
+                                        <?php
+                                    endforeach; ?>
                                     <option value="new">-- নতুন ক্যাটাগরি যোগ করুন --</option>
                                 </select>
                             </div>
@@ -1623,7 +2087,8 @@ endforeach; ?>
                         </div>
                         <div class="space-y-2">
                             <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Author (English) *</label>
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Author
+                                (English) *</label>
                             <input type="text" name="author_en" required placeholder="Author name in English"
                                 class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
                         </div>
@@ -1942,8 +2407,7 @@ endforeach; ?>
     </div>
 
     <!-- Order Details Modal -->
-    <div id="order-details-modal"
-        class="fixed inset-0 bg-brand-900/60 z-[100] hidden items-center justify-center p-4">
+    <div id="order-details-modal" class="fixed inset-0 bg-brand-900/60 z-[100] hidden items-center justify-center p-4">
         <div class="bg-white rounded-[40px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <button onclick="closeOrderDetailsModal()"
                 class="absolute top-8 right-8 text-gray-400 hover:text-brand-900 transition-colors z-10">
@@ -1986,17 +2450,20 @@ endforeach; ?>
                     <!-- Left Column: Basic Info -->
                     <div class="space-y-8">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের নাম (প্রধান)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের
+                                নাম (প্রধান)</label>
                             <input type="text" name="title" required placeholder="বইয়ের নাম লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের নাম (কম্বো হলে)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের
+                                নাম (কম্বো হলে)</label>
                             <input type="text" name="second_title" placeholder="২য় বইয়ের নাম লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Book Title (English)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Book Title
+                                (English)</label>
                             <input type="text" name="title_en" placeholder="Book title in English"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
@@ -2013,20 +2480,22 @@ endforeach; ?>
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Author (English)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Author
+                                (English)</label>
                             <input type="text" name="author_en" placeholder="Author name in English"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের বর্ণনা</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের
+                                বর্ণনা</label>
                             <textarea name="description" rows="3"
                                 placeholder="১ম বইয়ের বিস্তারিত বর্ণনা বা কম্বো অফারের বিবরণ লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner"></textarea>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের বর্ণনা (ঐচ্ছিক)</label>
-                            <textarea name="description_2" rows="3"
-                                placeholder="২য় বইয়ের বর্ণনা লিখুন"
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">২য় বইয়ের
+                                বর্ণনা (ঐচ্ছিক)</label>
+                            <textarea name="description_2" rows="3" placeholder="২য় বইয়ের বর্ণনা লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -2083,7 +2552,8 @@ endforeach; ?>
                         <div class="flex items-center gap-4 bg-blue-50 p-6 rounded-3xl border border-blue-100">
                             <div class="flex-1">
                                 <h4 class="text-sm font-bold text-blue-900 font-anek">ফ্রি ডেলিভারি সুবিধা</h4>
-                                <p class="text-[10px] text-blue-700 font-anek">এটি অন থাকলে ডেলিভারি চার্জ যোগ হবে না</p>
+                                <p class="text-[10px] text-blue-700 font-anek">এটি অন থাকলে ডেলিভারি চার্জ যোগ হবে না
+                                </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="free_delivery" class="sr-only peer">
@@ -2184,11 +2654,15 @@ endforeach; ?>
     <!-- Upload Progress Modal -->
     <div id="upload-progress-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/60"></div>
-        <div class="bg-white w-full max-w-sm rounded-[40px] shadow-2xl relative z-10 p-10 text-center space-y-8 border border-white/20">
+        <div
+            class="bg-white w-full max-w-sm rounded-[40px] shadow-2xl relative z-10 p-10 text-center space-y-8 border border-white/20">
             <div class="relative w-32 h-32 mx-auto">
                 <svg class="w-full h-full">
-                    <circle class="text-gray-100" stroke-width="8" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
-                    <circle id="progress-circle" class="text-brand-gold progress-ring" stroke-width="8" stroke-dasharray="364.4" stroke-dashoffset="364.4" stroke-linecap="round" stroke="currentColor" fill="transparent" r="58" cx="64" cy="64" />
+                    <circle class="text-gray-100" stroke-width="8" stroke="currentColor" fill="transparent" r="58"
+                        cx="64" cy="64" />
+                    <circle id="progress-circle" class="text-brand-gold progress-ring" stroke-width="8"
+                        stroke-dasharray="364.4" stroke-dashoffset="364.4" stroke-linecap="round" stroke="currentColor"
+                        fill="transparent" r="58" cx="64" cy="64" />
                 </svg>
                 <div class="absolute inset-0 flex items-center justify-center">
                     <span id="progress-percent" class="text-2xl font-anek font-extrabold text-brand-900">০%</span>
@@ -2196,11 +2670,13 @@ endforeach; ?>
             </div>
             <div>
                 <h3 id="progress-title" class="text-xl font-anek font-bold text-brand-900 mb-2">প্রসেসিং হচ্ছে</h3>
-                <p id="progress-status" class="text-sm text-gray-400 font-anek loading-dots">আপনার ছবিগুলো কম্প্রেস করা হচ্ছে</p>
+                <p id="progress-status" class="text-sm text-gray-400 font-anek loading-dots">আপনার ছবিগুলো কম্প্রেস করা
+                    হচ্ছে</p>
             </div>
             <div class="pt-4">
                 <div class="w-full bg-gray-50 h-2 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="bg-brand-gold h-full transition-all duration-300" style="width: 0%"></div>
+                    <div id="progress-bar" class="bg-brand-gold h-full transition-all duration-300" style="width: 0%">
+                    </div>
                 </div>
             </div>
         </div>
@@ -2332,12 +2808,14 @@ endforeach; ?>
                 // Populate Fields
                 document.getElementById('book_id').value = book.id;
                 document.querySelector('[name="title"]').value = book.title;
+                document.querySelector('[name="title_en"]').value = book.title_en || "";
                 document.querySelector('[name="subtitle"]').value = book.subtitle || "";
                 document.querySelector('[name="description"]').value = book.description || "";
                 document.querySelector('[name="category_id"]').value = book.category_id;
                 document.querySelector('[name="genre"]').value = book.genre || "";
                 document.querySelector('[name="language"]').value = book.language || "";
                 document.querySelector('[name="author"]').value = book.author;
+                document.querySelector('[name="author_en"]').value = book.author_en || "";
                 document.querySelector('[name="co_author"]').value = book.co_author || "";
                 document.querySelector('[name="publisher"]').value = book.publisher || "";
                 document.querySelector('[name="publish_year"]').value = book.publish_year || "";
@@ -2350,8 +2828,8 @@ endforeach; ?>
                 document.querySelector('[name="rack_number"]').value = book.rack_number || "";
                 document.querySelector('[name="stock_qty"]').value = book.stock_qty;
                 document.querySelector('[name="min_stock_level"]').value = book.min_stock_level;
-                document.querySelector('[name="is_borrowable"]').checked = parseInt(book.is_borrowable);
-                document.querySelector('[name="is_suggested"]').checked = parseInt(book.is_suggested);
+                document.querySelector('[name="is_borrowable"]').checked = parseInt(book.is_borrowable) === 1;
+                document.querySelector('[name="is_suggested"]').checked = parseInt(book.is_suggested) === 1;
                 document.querySelector('[name="purchase_price"]').value = book.purchase_price;
                 document.querySelector('[name="sell_price"]').value = book.sell_price;
                 document.querySelector('[name="supplier_name"]').value = book.supplier_name || "";
@@ -2472,7 +2950,7 @@ endforeach; ?>
                         ctx.drawImage(img, 0, 0, width, height);
 
                         let currentQuality = quality;
-                        
+
                         const attemptCompression = (q) => {
                             canvas.toBlob((blob) => {
                                 if (blob.size <= maxSizeBytes || q <= 0.1) {
@@ -2530,7 +3008,7 @@ endforeach; ?>
                     }
                 };
 
-                xhr.onload = function() {
+                xhr.onload = function () {
                     hideProgress();
                     const data = JSON.parse(xhr.responseText);
                     if (data.success) {
@@ -2545,7 +3023,7 @@ endforeach; ?>
                     }
                 };
 
-                xhr.onerror = function() {
+                xhr.onerror = function () {
                     hideProgress();
                     showToast("বই যোগ করতে সমস্যা হয়েছে।");
                 };
@@ -2786,7 +3264,7 @@ endforeach; ?>
             e.preventDefault();
             const inside = document.getElementById('charge_inside').value;
             const outside = document.getElementById('charge_outside').value;
-            
+
             const btn = e.target.querySelector('button');
             const originalText = btn.innerText;
             btn.innerText = "আপডেট হচ্ছে...";
@@ -2801,22 +3279,22 @@ endforeach; ?>
                 method: 'POST',
                 body: formData
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message);
-                } else {
-                    showToast("ত্রুটি: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast("চার্জ আপডেট করতে সমস্যা হয়েছে।");
-            })
-            .finally(() => {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                    } else {
+                        showToast("ত্রুটি: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("চার্জ আপডেট করতে সমস্যা হয়েছে।");
+                })
+                .finally(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
         }
 
         function deleteBook(bookId) {
@@ -2958,7 +3436,7 @@ endforeach; ?>
                     }
                 };
 
-                xhr.onload = function() {
+                xhr.onload = function () {
                     hideProgress();
                     const data = JSON.parse(xhr.responseText);
                     if (data.success) {
@@ -2970,7 +3448,7 @@ endforeach; ?>
                     }
                 };
 
-                xhr.onerror = function() {
+                xhr.onerror = function () {
                     hideProgress();
                     showToast("সংরক্ষণ করতে সমস্যা হয়েছে।");
                 };
@@ -3232,6 +3710,351 @@ endforeach; ?>
                 menu.style.opacity = '0';
             });
         }, { passive: true });
+
+        // ===== EMAIL REQUIRED MODAL =====
+        const adminNeedsEmail = <?php echo $needs_email ? 'true' : 'false'; ?>;
+
+        if (adminNeedsEmail) {
+            const emailModal = document.getElementById('email-required-modal');
+            emailModal.style.removeProperty('display');
+            emailModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function sendEmailOtp() {
+            const email = document.getElementById('admin-email-input').value.trim();
+            const msgEl = document.getElementById('email-step1-msg');
+            const btn = document.getElementById('send-email-otp-btn');
+
+            msgEl.classList.add('hidden');
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                msgEl.textContent = 'একটি সঠিক ইমেইল ঠিকানা দিন।';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> পাঠানো হচ্ছে...';
+
+            const formData = new FormData();
+            formData.append('action', 'send_email_otp');
+            formData.append('email', email);
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('otp-sent-email-display').textContent = email;
+                        document.getElementById('email-step-1').classList.add('hidden');
+                        document.getElementById('email-step-2').classList.remove('hidden');
+                    } else {
+                        msgEl.textContent = data.message || 'OTP পাঠাতে সমস্যা হয়েছে।';
+                        msgEl.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সংযোগে সমস্যা। আবার চেষ্টা করুন।';
+                    msgEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg> OTP পাঠান';
+                });
+        }
+
+        function verifyEmailOtp() {
+            const otp = document.getElementById('admin-otp-input').value.trim();
+            const msgEl = document.getElementById('email-step2-msg');
+            const btn = document.getElementById('verify-otp-btn');
+
+            msgEl.classList.add('hidden');
+
+            if (!otp || otp.length !== 6) {
+                msgEl.textContent = 'সঠিক ৬-সংখ্যার OTP কোড দিন।';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> যাচাই করা হচ্ছে...';
+
+            const formData = new FormData();
+            formData.append('action', 'verify_email_otp');
+            formData.append('otp', otp);
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('email-step-2').classList.add('hidden');
+                        document.getElementById('email-step-3').classList.remove('hidden');
+                    } else {
+                        msgEl.textContent = data.message || 'OTP যাচাই করতে সমস্যা।';
+                        msgEl.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> নিশ্চিত করুন';
+                    }
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সংযোগে সমস্যা। আবার চেষ্টা করুন।';
+                    msgEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> নিশ্চিত করুন';
+                });
+        }
+
+        function backToEmailStep() {
+            document.getElementById('email-step-2').classList.add('hidden');
+            document.getElementById('email-step-1').classList.remove('hidden');
+            document.getElementById('admin-otp-input').value = '';
+            document.getElementById('email-step2-msg').classList.add('hidden');
+        }
+
+        function closeEmailModal() {
+            const modal = document.getElementById('email-required-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Allow Enter key on OTP input
+        document.getElementById('admin-otp-input')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyEmailOtp();
+        });
+        document.getElementById('admin-email-input')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendEmailOtp();
+        });
+
+        // ===== PROFILE TAB FUNCTIONS =====
+
+        // ---- Update full name (no OTP) ----
+        function updateProfileInfo(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('profile-fullname').value.trim();
+            const msgEl = document.getElementById('profile-info-msg');
+            const btn = document.getElementById('profile-info-save-btn');
+
+            msgEl.classList.add('hidden');
+
+            if (!fullName) {
+                msgEl.textContent = 'নাম খালি রাখা যাবে না।';
+                msgEl.className = 'text-sm font-anek text-red-500';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'সেভ হচ্ছে...';
+
+            const formData = new FormData();
+            formData.append('action', 'update_profile_name');
+            formData.append('full_name', fullName);
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    msgEl.textContent = data.message;
+                    msgEl.className = `text-sm font-anek ${data.success ? 'text-green-600' : 'text-red-500'}`;
+                    msgEl.classList.remove('hidden');
+                    if (data.success) showToast('প্রোফাইল আপডেট হয়েছে।');
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সংযোগে সমস্যা।';
+                    msgEl.className = 'text-sm font-anek text-red-500';
+                    msgEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'নাম আপডেট করুন';
+                });
+        }
+
+        // ---- Send OTP for profile email change ----
+        function sendProfileEmailOtp() {
+            const email = document.getElementById('profile-email-input').value.trim();
+            const msgEl = document.getElementById('profile-email-msg');
+            const btn = document.getElementById('profile-send-otp-btn');
+
+            msgEl.classList.add('hidden');
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                msgEl.textContent = 'সঠিক ইমেইল দিন।';
+                msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'পাঠানো হচ্ছে...';
+
+            const formData = new FormData();
+            formData.append('action', 'send_email_otp');
+            formData.append('email', email);
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('profile-otp-row').classList.remove('hidden');
+                        msgEl.textContent = `${email} ঠিকানায় OTP পাঠানো হয়েছে।`;
+                        msgEl.className = 'text-sm font-anek text-green-600 ml-2';
+                        msgEl.classList.remove('hidden');
+                        btn.textContent = 'আবার পাঠান';
+                    } else {
+                        msgEl.textContent = data.message || 'OTP পাঠাতে সমস্যা।';
+                        msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                        msgEl.classList.remove('hidden');
+                        btn.textContent = 'OTP পাঠান';
+                    }
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সমস্যা।';
+                    msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                    msgEl.classList.remove('hidden');
+                    btn.textContent = 'OTP পাঠান';
+                })
+                .finally(() => { btn.disabled = false; });
+        }
+
+        // ---- Verify OTP for profile email ----
+        function verifyProfileEmailOtp() {
+            const otp = document.getElementById('profile-otp-input').value.trim();
+            const msgEl = document.getElementById('profile-email-msg');
+            const btn = document.getElementById('profile-verify-otp-btn');
+
+            if (!otp || otp.length !== 6) {
+                msgEl.textContent = '৬-সংখ্যার OTP দিন।';
+                msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'যাচাই...';
+
+            const formData = new FormData();
+            formData.append('action', 'verify_email_otp');
+            formData.append('otp', otp);
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('profile-otp-row').classList.add('hidden');
+                        document.getElementById('profile-otp-input').value = '';
+                        msgEl.textContent = '✅ ইমেইল সফলভাবে আপডেট হয়েছে।';
+                        msgEl.className = 'text-sm font-anek text-green-600 ml-2';
+                        msgEl.classList.remove('hidden');
+                        showToast('ইমেইল আপডেট হয়েছে!');
+                        // Reload after 2s to refresh profile card
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        msgEl.textContent = data.message || 'OTP সঠিক নয়।';
+                        msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                        msgEl.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.textContent = 'যাচাই';
+                    }
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সমস্যা।';
+                    msgEl.className = 'text-sm font-anek text-red-500 ml-2';
+                    msgEl.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'যাচাই';
+                });
+        }
+
+        // ---- Password strength indicator ----
+        document.getElementById('cp-new')?.addEventListener('input', function () {
+            const pw = this.value;
+            const wrap = document.getElementById('pw-strength-wrap');
+            if (!pw) { wrap.classList.add('hidden'); return; }
+            wrap.classList.remove('hidden');
+
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+            const bars = ['ps-bar-1', 'ps-bar-2', 'ps-bar-3', 'ps-bar-4'];
+            const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500'];
+            const labels = ['দুর্বল', 'মাঝারি', 'ভালো', 'শক্তিশালী'];
+            const txtCols = ['text-red-500', 'text-orange-500', 'text-yellow-600', 'text-green-600'];
+
+            bars.forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.className = `h-1.5 flex-1 rounded-full ${i < score ? colors[score - 1] : 'bg-gray-100'}`;
+            });
+            const label = document.getElementById('ps-label');
+            label.textContent = labels[score - 1] || '';
+            label.className = `text-xs font-anek mt-1 ml-1 font-bold ${txtCols[score - 1] || ''}`;
+        });
+
+        // ---- Toggle password visibility ----
+        function togglePwVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+            }
+        }
+
+        // ---- Change password ----
+        function updateAdminPassword(e) {
+            e.preventDefault();
+            const msgEl = document.getElementById('change-pw-msg');
+            const btn = document.getElementById('change-pw-btn');
+            const newPw = document.getElementById('cp-new').value;
+            const cfPw = document.getElementById('cp-confirm').value;
+
+            msgEl.classList.add('hidden');
+
+            if (newPw !== cfPw) {
+                msgEl.textContent = 'নতুন পাসওয়ার্ড দুটি মিলছে না।';
+                msgEl.className = 'text-sm font-anek text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            if (newPw.length < 8) {
+                msgEl.textContent = 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।';
+                msgEl.className = 'text-sm font-anek text-red-500';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'পরিবর্তন হচ্ছে...';
+
+            const formData = new FormData(document.getElementById('change-password-form'));
+            formData.append('action', 'update_password');
+
+            fetch('process_settings.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    msgEl.textContent = data.message;
+                    msgEl.className = `text-sm font-anek ${data.success ? 'text-green-600' : 'text-red-500'}`;
+                    msgEl.classList.remove('hidden');
+                    if (data.success) {
+                        document.getElementById('change-password-form').reset();
+                        document.getElementById('pw-strength-wrap').classList.add('hidden');
+                        showToast('পাসওয়ার্ড পরিবর্তন হয়েছে!');
+                    }
+                })
+                .catch(() => {
+                    msgEl.textContent = 'সার্ভার সমস্যা।';
+                    msgEl.className = 'text-sm font-anek text-red-500';
+                    msgEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'পাসওয়ার্ড পরিবর্তন করুন';
+                });
+        }
+
     </script>
 </body>
 
