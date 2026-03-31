@@ -43,4 +43,18 @@ Behind the scenes, Ontomeel.com equips platform administrators with powerful too
 * **Automated Communications**: The system automatically emails customers with order confirmations, OTPs for security, status updates, and renewal reminders so the admins can focus on growing the business.
 
 ---
+
+## 📜 License & Usage Rights
+
+**This project is a proprietary, closed-source client project.**
+
+- **Client:** Ontomeel.com
+- **Developed By:** [VIVAGO DIGITAL](https://vivagodigital.com) (or developer team)
+- **Usage:** This repository is made public **strictly for education and research purposes**. 
+
+⚠️ **Cloning, downloading, forking, or directly copying the source code for personal, commercial, or derivative use is STRICTLY PROHIBITED.** 
+
+Please refer to the [LICENSE.md](./LICENSE.md) file for full terms and conditions.
+
+---
 *Ontomeel.com — Read more, spend less, and track your journey seamlessly.*
