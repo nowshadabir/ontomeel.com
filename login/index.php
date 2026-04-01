@@ -55,7 +55,7 @@
         </div>
 
         <!-- Login Card -->
-        <div class="w-full max-w-[450px] md:w-[450px] reveal" style="animation-delay: 300ms;">
+        <div class="w-full max-w-[450px] md:w-[450px]" style="animation-delay: 300ms;">
             <div
                 class="bg-white p-6 sm:p-10 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100">
                 <!-- Mobile Logo -->
@@ -106,7 +106,7 @@ endif; ?>
                         <div class="flex justify-between items-center ml-2">
                             <label
                                 class="text-xs font-bold text-gray-400 md:text-gray-500 uppercase tracking-widest font-anek">পাসওয়ার্ড</label>
-                            <a href="#"
+                            <a href="../recover/"
                                 class="text-[10px] text-brand-gold font-bold uppercase hover:underline">পাসওয়ার্ড ভুলে
                                 গেছেন?</a>
                         </div>

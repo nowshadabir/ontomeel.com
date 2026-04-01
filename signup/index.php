@@ -52,7 +52,7 @@
         </div>
 
         <!-- Signup Card -->
-        <div class="w-full max-w-[500px] md:w-[500px] reveal" style="animation-delay: 300ms;">
+        <div class="w-full max-w-[500px] md:w-[500px]" style="animation-delay: 300ms;">
             <div
                 class="bg-white p-6 sm:p-10 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100">
                 <!-- Mobile Logo -->

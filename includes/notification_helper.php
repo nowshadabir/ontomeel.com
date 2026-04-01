@@ -127,6 +127,20 @@ function send_notification_instantly($to, $type, $data)
                 <p>We hope you enjoyed the read!</p>
             ";
             break;
+            
+        case 'password_recovery':
+            $subject = "Recovery Code: " . $data['otp'] . " - Ontomeel";
+            $title = "Password Recovery";
+            $color = "#cda873"; // Brand Gold
+            $content = "
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>We received a request to reset your account password. Use the code below to proceed:</p>
+                <div style=\"background: #f7f7f7; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 15px; color: #1e1b4b; border-radius: 10px; margin: 20px 0;\">
+                    " . $data['otp'] . "
+                </div>
+                <p style=\"font-size: 14px; color: #666;\">This code is valid for 15 minutes. If you did not request this, please ignore this email.</p>
+            ";
+            break;
 
         default:
             $subject = "Ontomeel Bookshop Notification";
