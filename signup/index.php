@@ -28,7 +28,7 @@
 </head>
 
 <body
-    class="antialiased selection:bg-brand-gold selection:text-white bg-brand-light min-h-screen flex items-center justify-center relative overflow-hidden py-10 md:py-20">
+    class="antialiased selection:bg-brand-gold selection:text-white bg-brand-light min-h-screen flex items-center justify-center relative overflow-x-hidden py-6 md:py-20">
 
     <!-- Background Elements -->
     <div class="mesh-gradient absolute inset-0 opacity-20"></div>
@@ -36,7 +36,7 @@
     <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-900/10 blur-[120px] rounded-full"></div>
 
     <div
-        class="max-w-7xl mx-auto w-full px-6 flex flex-col md:flex-row items-center justify-between gap-20 relative z-10">
+        class="max-w-7xl mx-auto w-full px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-10 md:gap-20 relative z-10">
 
         <!-- Branding Side -->
         <div class="hidden md:block w-1/2">
@@ -52,13 +52,14 @@
         </div>
 
         <!-- Signup Card -->
-        <div class="w-full md:w-[500px] reveal" style="animation-delay: 300ms;">
+        <div class="w-full max-w-[500px] md:w-[500px] reveal" style="animation-delay: 300ms;">
             <div
-                class="glass-dark md:bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-gray-200 md:border-gray-100">
+                class="bg-white p-6 sm:p-10 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl border border-gray-100">
                 <!-- Mobile Logo -->
-                <div class="md:hidden flex flex-col items-center mb-10">
-                    <img src="../assets/img/logo.webp" alt="logo" class="w-12 h-auto mb-4">
-                    <h2 class="text-3xl font-anek font-bold text-white">নতুন অ্যাকাউন্ট</h2>
+                <div class="md:hidden flex flex-col items-center mb-8 text-center">
+                    <img src="../assets/img/logo.webp" alt="logo" class="w-10 h-auto mb-3">
+                    <h2 class="text-2xl font-anek font-extrabold text-brand-900 leading-tight">নতুন অ্যাকাউন্ট তৈরি করি</h2>
+                    <div class="w-12 h-1 bg-brand-gold rounded-full mt-2"></div>
                 </div>
 
                 <div class="hidden md:block mb-10 text-center">
@@ -136,10 +137,10 @@
 
                         <div class="space-y-1 text-center">
                             <label
-                                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-anek">৬-সংখ্যার
+                                class="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-anek ml-2">৬-সংখ্যার
                                 ওটিপি</label>
-                            <input type="text" name="otp" id="otp" maxlength="6" placeholder="0 0 0 0 0 0"
-                                class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-5 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all text-brand-900 placeholder:text-gray-200">
+                            <input type="text" name="otp" id="otp" maxlength="6" placeholder="000000"
+                                class="w-full bg-gray-50 border border-gray-100 rounded-xl px-5 py-4 text-center text-3xl font-bold tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all text-brand-900 placeholder:text-gray-200">
                         </div>
 
                         <button type="submit" id="submit-btn"
