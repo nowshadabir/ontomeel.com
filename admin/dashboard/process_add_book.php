@@ -1,5 +1,6 @@
 <?php
-error_reporting(0);
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Keep off from final output to avoid breaking JSON
 require '../../includes/db_connect.php';
 
 header('Content-Type: application/json');
@@ -27,8 +28,16 @@ try {
         if ($existing) {
             $category_id = $existing['id'];
         } else {
-            $stmt = $pdo->prepare("INSERT INTO categories (name) VALUES (?)");
-            $stmt->execute([$new_category_name]);
+            // Generate a simple unique slug for the category
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $new_category_name), '-'));
+            if (empty($slug)) {
+                $slug = 'category-' . uniqid();
+            } else {
+                $slug .= '-' . substr(uniqid(), -4);
+            }
+            
+            $stmt = $pdo->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
+            $stmt->execute([$new_category_name, $slug]);
             $category_id = $pdo->lastInsertId();
         }
     }
@@ -57,8 +66,13 @@ try {
         $file_name = time() . '_' . $file_key . '_' . uniqid() . '.webp';
         $target_file = $target_dir . $file_name;
 
-        // Create image from source and compress ONLY if GD is enabled
+        // Create image from source and compress ONLY if GD is enabled and supports WebP
         if (function_exists('imagewebp')) {
+            $image = null;
+            $gd_info = gd_info();
+            $webp_supported = isset($gd_info['WebP Support']) && $gd_info['WebP Support'];
+
+            if ($webp_supported) {
             switch ($mime) {
                 case 'image/jpeg':
                     $image = imagecreatefromjpeg($tmp_name);
@@ -79,11 +93,12 @@ try {
                     $image = null;
             }
 
-            if ($image && imagewebp($image, $target_file, 80)) {
-                imagedestroy($image);
-                return $file_name;
+                if ($image && imagewebp($image, $target_file, 80)) {
+                    imagedestroy($image);
+                    return $file_name;
+                }
+                if ($image) imagedestroy($image);
             }
-            if ($image) imagedestroy($image);
         }
 
         // Fallback: Standard upload if GD is missing or conversion fails
@@ -124,6 +139,7 @@ try {
     $is_suggested = isset($_POST['is_suggested']) ? 1 : 0;
     $purchase_price = $_POST['purchase_price'] ?: 0;
     $sell_price = $_POST['sell_price'] ?: 0;
+    $discount_price = $_POST['discount_price'] ?: 0;
     $supplier_name = $_POST['supplier_name'] ?? null;
     $supplier_contact = $_POST['supplier_contact'] ?? null;
 
@@ -141,7 +157,7 @@ try {
             author=?, author_en=?, co_author=?, publisher=?, publish_year=?, edition=?, isbn=?, 
             format=?, page_count=?, book_condition=?, shelf_location=?, rack_number=?, 
             stock_qty=?, min_stock_level=?, is_borrowable=?, is_suggested=?, 
-            purchase_price=?, sell_price=?, supplier_name=?, supplier_contact=?";
+            purchase_price=?, sell_price=?, discount_price=?, supplier_name=?, supplier_contact=?";
 
         $params = [
             $title,
@@ -169,6 +185,7 @@ try {
             $is_suggested,
             $purchase_price,
             $sell_price,
+            $discount_price,
             $supplier_name,
             $supplier_contact
         ];
@@ -198,14 +215,14 @@ try {
             author, author_en, co_author, publisher, publish_year, edition, isbn, 
             format, page_count, book_condition, shelf_location, rack_number, 
             stock_qty, min_stock_level, is_borrowable, is_suggested, 
-            purchase_price, sell_price, supplier_name, supplier_contact, 
+            purchase_price, sell_price, discount_price, supplier_name, supplier_contact, 
             cover_image, photo_2, photo_3, is_active, created_at
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, 
-            ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, 
             ?, ?, ?, 1, NOW()
         )";
 
@@ -236,6 +253,7 @@ try {
             $is_suggested,
             $purchase_price,
             $sell_price,
+            $discount_price,
             $supplier_name,
             $supplier_contact,
             $cover_image,

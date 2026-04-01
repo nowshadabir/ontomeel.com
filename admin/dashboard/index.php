@@ -21,15 +21,22 @@ $categories = $cats_stmt->fetchAll();
 $search = isset($_GET['search']) ? '%' . trim($_GET['search']) . '%' : '%';
 $cat_id = isset($_GET['category']) && $_GET['category'] != 'all' ? (int) $_GET['category'] : '%';
 
+// Optimized: Fetch only the first 20 books for initial SSR
 $inv_stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
                           FROM books b 
                           LEFT JOIN categories c ON b.category_id = c.id 
                           WHERE (b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?) 
                           AND (COALESCE(b.category_id, '') LIKE ?)
                           AND b.is_active = 1
-                          ORDER BY b.created_at DESC");
+                          ORDER BY b.created_at DESC
+                          LIMIT 20");
 $inv_stmt->execute([$search, $search, $search, $cat_id]);
 $inventory_books = $inv_stmt->fetchAll();
+
+// Get total count for initial pagination UI
+$count_stmt = $pdo->prepare("SELECT COUNT(*) FROM books b WHERE (b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?) AND (COALESCE(b.category_id, '') LIKE ?) AND b.is_active = 1");
+$count_stmt->execute([$search, $search, $search, $cat_id]);
+$total_inventory_books = $count_stmt->fetchColumn();
 
 // Fetch Orders with JOIN
 $orders_stmt = $pdo->query("SELECT o.*, 
@@ -678,10 +685,11 @@ function bn_num($num)
             </div>
 
             <!-- Inventory Controls -->
-            <form action="" method="GET"
+            <form action="" method="GET" onsubmit="return handleInventoryFilter(event)"
                 class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm mb-8 flex flex-col lg:flex-row gap-6 items-center">
                 <div class="relative flex-1 w-full">
-                    <input type="text" name="search"
+                    <input type="text" id="inventory-search-input" name="search"
+                        onkeyup="debounceInventorySearch()"
                         value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
                         placeholder="বইয়ের নাম, লেখক অথবা আইএসবিএন (ISBN) দিয়ে সার্চ করুন..."
                         class="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-12 py-4 focus:outline-none transition-all font-anek text-brand-900 shadow-inner">
@@ -692,7 +700,7 @@ function bn_num($num)
                     </svg>
                 </div>
                 <div class="flex gap-4 w-full lg:w-auto">
-                    <select name="category"
+                    <select id="inventory-category-select" name="category" onchange="loadInventory(1)"
                         class="bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 appearance-none min-w-[150px] shadow-inner">
                         <option value="all">সব ক্যাটাগরি</option>
                         <?php foreach ($categories as $cat): ?>
@@ -731,81 +739,92 @@ function bn_num($num)
                                     অ্যাকশন</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50 font-anek">
-                            <?php foreach ($inventory_books as $book): ?>
-                                <tr class="hover:bg-gray-50/30 transition-colors">
-                                    <td class="px-8 py-5">
-                                        <div class="flex items-center gap-4">
-                                            <div
-                                                class="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 shadow-sm flex-shrink-0">
-                                                <img src="<?php echo !empty($book['cover_image']) ? '../../admin/assets/book-images/' . $book['cover_image'] : ''; ?>"
-                                                    class="w-full h-full object-cover"
-                                                    onerror="this.style.display='none'; this.parentElement.style.background='#f3f4f6';">
+                        <tbody id="inventory-table-body" class="divide-y divide-gray-50 font-anek">
+                            <?php if (empty($inventory_books)): ?>
+                                <tr><td colspan="5" class="px-8 py-20 text-center text-gray-400 font-anek">কোনো বই পাওয়া যায়নি।</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($inventory_books as $book): ?>
+                                    <tr class="hover:bg-gray-50/30 transition-colors">
+                                        <td class="px-8 py-5">
+                                            <div class="flex items-center gap-4">
+                                                <div
+                                                    class="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 shadow-sm flex-shrink-0">
+                                                    <img src="<?php echo !empty($book['cover_image']) ? '../../admin/assets/book-images/' . $book['cover_image'] : ''; ?>"
+                                                        class="w-full h-full object-cover"
+                                                        onerror="this.style.display='none'; this.parentElement.style.background='#f3f4f6';">
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-brand-900"><?php echo $book['title']; ?></p>
+                                                    <p class="text-xs text-gray-400"><?php echo $book['author']; ?></p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p class="font-bold text-brand-900"><?php echo $book['title']; ?></p>
-                                                <p class="text-xs text-gray-400"><?php echo $book['author']; ?></p>
+                                        </td>
+                                        <td class="px-8 py-5 text-sm font-medium text-gray-500">
+                                            <?php echo $book['category_name'] ?: 'N/A'; ?>
+                                        </td>
+                                        <td class="px-8 py-5 text-sm font-bold text-brand-900">
+                                            ৳<?php echo bn_num($book['sell_price']); ?></td>
+                                        <td class="px-8 py-5">
+                                            <div class="flex items-center gap-3">
+                                                <?php
+                                                $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
+                                                $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
+                                                ?>
+                                                <div class="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
+                                                    <div class="<?php echo $stock_color; ?> h-full"
+                                                        style="width: <?php echo $stock_percent; ?>%"></div>
+                                                </div>
+                                                <span
+                                                    class="text-xs font-bold text-brand-900"><?php echo bn_num($book['stock_qty']); ?>টি</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-8 py-5 text-sm font-medium text-gray-500">
-                                        <?php echo $book['category_name'] ?: 'N/A'; ?>
-                                    </td>
-                                    <td class="px-8 py-5 text-sm font-bold text-brand-900">
-                                        ৳<?php echo bn_num($book['sell_price']); ?></td>
-                                    <td class="px-8 py-5">
-                                        <div class="flex items-center gap-3">
-                                            <?php
-                                            $stock_percent = min(100, ($book['stock_qty'] / 20) * 100);
-                                            $stock_color = ($book['stock_qty'] <= 5) ? 'bg-red-500' : 'bg-green-500';
-                                            ?>
-                                            <div class="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
-                                                <div class="<?php echo $stock_color; ?> h-full"
-                                                    style="width: <?php echo $stock_percent; ?>%"></div>
+                                            <p
+                                                class="text-[9px] <?php echo ($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
+                                                <?php echo ($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
+                                            </p>
+                                        </td>
+                                        <td class="px-8 py-5 text-right">
+                                            <div class="flex justify-end gap-2">
+                                                <button onclick="editBook(<?php echo htmlspecialchars(json_encode($book)); ?>)"
+                                                    class="p-2 text-gray-400 hover:text-brand-gold transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                                <button onclick="deleteBook(<?php echo $book['id']; ?>)"
+                                                    class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <span
-                                                class="text-xs font-bold text-brand-900"><?php echo bn_num($book['stock_qty']); ?>টি</span>
-                                        </div>
-                                        <p
-                                            class="text-[9px] <?php echo ($book['stock_qty'] <= 5) ? 'text-red-500' : 'text-green-500'; ?> font-bold uppercase mt-1">
-                                            <?php echo ($book['stock_qty'] <= 5) ? 'স্টক কম' : 'ইন স্টক'; ?>
-                                        </p>
-                                    </td>
-                                    <td class="px-8 py-5 text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <button onclick="editBook(<?php echo htmlspecialchars(json_encode($book)); ?>)"
-                                                class="p-2 text-gray-400 hover:text-brand-gold transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                </svg>
-                                            </button>
-                                            <button onclick="deleteBook(<?php echo $book['id']; ?>)"
-                                                class="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php
-                            endforeach; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Simple Pagination -->
-                <div
+                <!-- Dynamic Pagination -->
+                <div id="inventory-pagination"
                     class="px-8 py-5 bg-gray-50/30 flex items-center justify-between border-t border-gray-50 font-anek">
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">দেখানো হচ্ছে ১-১০ (মোট ৫০০টি
-                        বইয়ের মধ্যে)</p>
+                    <?php 
+                    $curr_page = 1;
+                    $limit = 20;
+                    $start_rec = ($curr_page - 1) * $limit + 1;
+                    $end_rec = min($curr_page * $limit, $total_inventory_books);
+                    $total_pages = ceil($total_inventory_books / $limit);
+                    ?>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">দেখানো হচ্ছে <?php echo bn_num($start_rec); ?>-<?php echo bn_num($end_rec); ?> (মোট <?php echo bn_num($total_inventory_books); ?>টি বইয়ের মধ্যে)</p>
                     <div class="flex gap-2">
-                        <button
-                            class="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-brand-900 shadow-sm hover:border-brand-gold transition-all">পূর্ববর্তী</button>
-                        <button
-                            class="px-4 py-2 bg-brand-900 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-gold hover:text-brand-900 transition-all">পরবর্তী</button>
+                        <button onclick="changeInventoryPage(<?php echo $curr_page - 1; ?>)"
+                            <?php echo $curr_page <= 1 ? 'disabled' : ''; ?>
+                            class="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-brand-900 shadow-sm hover:border-brand-gold transition-all disabled:opacity-50 disabled:cursor-not-allowed">পূর্ববর্তী</button>
+                        <button onclick="changeInventoryPage(<?php echo $curr_page + 1; ?>)"
+                            <?php echo $curr_page >= $total_pages ? 'disabled' : ''; ?>
+                            class="px-4 py-2 bg-brand-900 text-white rounded-xl text-xs font-bold shadow-md hover:bg-brand-gold hover:text-brand-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed">পরবর্তী</button>
                     </div>
                 </div>
             </div>
@@ -2237,7 +2256,7 @@ function bn_num($num)
                         <span class="w-8 h-[1px] bg-brand-gold/30"></span> মূল্য ও সাপ্লায়ার
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="space-y-2">
                                 <label
                                     class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ক্রয়
@@ -2251,6 +2270,13 @@ function bn_num($num)
                                     মূল্য (৳) *</label>
                                 <input type="number" name="sell_price" required placeholder="৳০০০"
                                     class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ছাড়ের
+                                    মূল্য (৳)</label>
+                                <input type="number" name="discount_price" placeholder="৳০০০"
+                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
                             </div>
                         </div>
                         <div class="space-y-2">
@@ -2717,7 +2743,74 @@ function bn_num($num)
     </div>
 
     <script>
-        // Use a more robust way to get modal reference
+        // Inventory State & AJAX Loading
+        let inventoryState = {
+            page: 1,
+            search: '',
+            category: 'all',
+            limit: 20
+        };
+
+        function bn_num(num) {
+            const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return num.toString().replace(/\d/g, d => bnDigits[d]);
+        }
+
+        async function loadInventory(page = null) {
+            if (page !== null) inventoryState.page = page;
+            
+            const tbody = document.getElementById('inventory-table-body');
+            const pagination = document.getElementById('inventory-pagination');
+            
+            // Show Skeleton Loader (Simplified for brevity, but "pro" look)
+            tbody.classList.add('opacity-40', 'pointer-events-none');
+            
+            inventoryState.search = document.getElementById('inventory-search-input').value;
+            inventoryState.category = document.getElementById('inventory-category-select').value;
+
+            const params = new URLSearchParams({
+                page: inventoryState.page,
+                search: inventoryState.search,
+                category: inventoryState.category,
+                limit: inventoryState.limit
+            });
+
+            try {
+                const response = await fetch(`fetch_inventory.php?${params.toString()}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    tbody.innerHTML = data.html;
+                    pagination.innerHTML = data.pagination;
+                }
+            } catch (error) {
+                console.error("Scale error loading inventory:", error);
+                showToast("ইনভেন্টরি লোড করতে সমস্যা হয়েছে।");
+            } finally {
+                tbody.classList.remove('opacity-40', 'pointer-events-none');
+                // Scroll to table top smoothly
+                tbody.closest('.bg-white').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function changeInventoryPage(page) {
+            loadInventory(page);
+        }
+
+        let inventoryDebounceTimer;
+        function debounceInventorySearch() {
+            clearTimeout(inventoryDebounceTimer);
+            inventoryDebounceTimer = setTimeout(() => {
+                loadInventory(1);
+            }, 500);
+        }
+
+        function handleInventoryFilter(e) {
+            e.preventDefault();
+            loadInventory(1);
+            return false;
+        }
+
         function getAddBookModal() {
             return document.getElementById('add-book-modal');
         }
@@ -2752,6 +2845,12 @@ function bn_num($num)
 
         // On Page Load, check hash and switch tab
         document.addEventListener('DOMContentLoaded', () => {
+            // Sync initial state with PHP-rendered inputs
+            const searchInput = document.getElementById('inventory-search-input');
+            const catSelect = document.getElementById('inventory-category-select');
+            if (searchInput) inventoryState.search = searchInput.value;
+            if (catSelect) inventoryState.category = catSelect.value;
+
             let hash = window.location.hash.substring(1);
             if (hash) {
                 // Check if it's a subtab
@@ -2832,6 +2931,7 @@ function bn_num($num)
                 document.querySelector('[name="is_suggested"]').checked = parseInt(book.is_suggested) === 1;
                 document.querySelector('[name="purchase_price"]').value = book.purchase_price;
                 document.querySelector('[name="sell_price"]').value = book.sell_price;
+                document.querySelector('[name="discount_price"]').value = book.discount_price || 0;
                 document.querySelector('[name="supplier_name"]').value = book.supplier_name || "";
                 document.querySelector('[name="supplier_contact"]').value = book.supplier_contact || "";
 
@@ -2916,8 +3016,10 @@ function bn_num($num)
             const modal = document.getElementById('upload-progress-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-            // Reset for next time
-            updateProgress(0);
+            
+            // Just reset the visual bars without re-triggering visibility
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-circle').style.strokeDashoffset = 364.4;
         }
 
         async function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.8, maxSizeBytes = 150 * 1024 } = {}) {
@@ -3000,6 +3102,7 @@ function bn_num($num)
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', 'process_add_book.php', true);
+                xhr.timeout = 30000; // 30 second timeout
 
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
@@ -3009,23 +3112,52 @@ function bn_num($num)
                 };
 
                 xhr.onload = function () {
-                    hideProgress();
-                    const data = JSON.parse(xhr.responseText);
-                    if (data.success) {
-                        showToast(data.message || "নতুন বই সফলভাবে ইনভেন্টরিতে যোগ করা হয়েছে।");
-                        closeAddBookModal();
-                        form.reset();
-                        document.querySelectorAll('[id$="-preview"]').forEach(p => p.classList.add('hidden'));
-                        document.getElementById('new_category_div').classList.add('hidden');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showToast("ত্রুটি: " + data.message);
+                    try {
+                        // Always hide progress first
+                        hideProgress();
+                        
+                        if (xhr.status !== 200) {
+                            throw new Error(`Server returned status ${xhr.status}`);
+                        }
+
+                        let data;
+                        try {
+                            data = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                            console.error("Malformed JSON response:", xhr.responseText);
+                            throw new Error("সার্ভার থেকে সঠিক তথ্য পাওয়া যায়নি।");
+                        }
+
+                        if (data.success) {
+                            showToast(data.message || "নতুন বই সফলভাবে ইনভেন্টরিতে যোগ করা হয়েছে।");
+                            closeAddBookModal();
+                            form.reset();
+                            document.querySelectorAll('[id$="-preview"]').forEach(p => p.classList.add('hidden'));
+                            document.getElementById('new_category_div').classList.add('hidden');
+                            setTimeout(() => {
+                                if (typeof loadInventory === 'function') {
+                                    loadInventory(1); // Reload tab 1 instead of full page
+                                } else {
+                                    location.reload();
+                                }
+                            }, 1500);
+                        } else {
+                            showToast("ত্রুটি: " + data.message);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showToast("সিস্টেম ত্রুটি: " + err.message);
                     }
+                };
+
+                xhr.ontimeout = function() {
+                    hideProgress();
+                    showToast("সার্ভার থেকে রেসপন্স পেতে দেরি হচ্ছে। আবার চেষ্টা করুন।");
                 };
 
                 xhr.onerror = function () {
                     hideProgress();
-                    showToast("বই যোগ করতে সমস্যা হয়েছে।");
+                    showToast("নেটওয়ার্ক বা সার্ভার কানেকশন এর সমস্যা হয়েছে।");
                 };
 
                 xhr.send(formData);

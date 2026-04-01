@@ -173,12 +173,31 @@ function renderBooks(booksToRender) {
         // Check stock and borrow status
         const isOutOfStock = parseInt(book.stock_qty) <= 0;
         const canBorrow = parseInt(book.is_borrowable) === 1 && !isOutOfStock;
+        
+        const safeCategory = String(book.category || 'Uncategorized');
+        const displayTitle = String(book.title || '').replace(/"/g, '&quot;');
+
+        const actionData = JSON.stringify({
+            id: book.id,
+            title: String(book.title || ''),
+            price: Number(book.price || 0),
+            img: String(book.img || ''),
+            author: String(book.author || '')
+        }).replace(/"/g, '&quot;');
+        
+        const borrowData = JSON.stringify({
+            id: book.id,
+            title: String(book.title || ''),
+            price: 0,
+            img: String(book.img || ''),
+            author: String(book.author || '')
+        }).replace(/"/g, '&quot;');
 
         const bookHTML = `
                     <div class="book-card group reveal active ${isOutOfStock ? 'opacity-80' : ''}" style="transition-delay: ${delay}ms;">
                         <!-- Cover -->
                         <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-100 mb-4 shadow-sm border border-gray-100 skeleton">
-                            <img data-src="${book.img}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E" alt="${book.title}" class="lazy-image object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}">
+                            <img data-src="${book.img}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E" alt="${displayTitle}" class="lazy-image object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}">
                             
                             ${isOutOfStock ? `
                             <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">
@@ -191,14 +210,14 @@ function renderBooks(booksToRender) {
                             <button disabled class="flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10">
                                 স্টকে নেই
                             </button>` : `
-                            <button onclick="addToCart({id: ${book.id}, title: '${book.title.replace(/'/g, "\\'")}', price: ${book.price}, img: '${book.img}', author: '${book.author.replace(/'/g, "\\'")}'})" 
+                            <button onclick="addToCart(${actionData})" 
                                      class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-xl font-sans">
                                 <span class="md:hidden">কিনুন</span>
                                 <span class="hidden md:block">কিনুন ৳${convertToBengaliNumber(book.price)}</span>
                             </button>`}
                             
                             ${canBorrow ? `
-                            <button onclick="borrowBook({id: ${book.id}, title: '${book.title.replace(/'/g, "\\'")}', price: 0, img: '${book.img}', author: '${book.author.replace(/'/g, "\\'")}'})" 
+                            <button onclick="borrowBook(${borrowData})" 
                                     class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white/30 text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1 backdrop-blur-sm">
                                 <span class="borrow-icon">
                                     <svg class="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,11 +235,11 @@ function renderBooks(booksToRender) {
                         
                         <!-- Details -->
                         <div class="text-center px-1">
-                            <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${book.category}</span>
+                            <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
                             <a href="${prefix}book-details.php?id=${book.id}" class="block hover:text-brand-gold">
-                                <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${book.title}</h3>
+                                <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${displayTitle}</h3>
                             </a>
-                            <p class="text-gray-500 text-xs md:text-sm font-light mt-1">${book.author}</p>
+                            <p class="text-gray-500 text-xs md:text-sm font-light mt-1">${String(book.author || '')}</p>
                         </div>
                     </div>
                 `;
@@ -239,46 +258,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookGrid = document.getElementById('book-grid');
     const isLibraryPage = window.location.pathname.includes('library') || libGrid;
 
-    if (categoryFilter && (libGrid || bookGrid)) {
-        showSkeletons();
-        setTimeout(() => filterByCategory(categoryFilter), 300);
-    } else if (isLibraryPage && libGrid) {
-        showSkeletons();
-        setTimeout(() => renderBooks(allBooks), 300);
-    } else if (bookGrid) {
-        // If homepage has suggested books pre-rendered by PHP, we might still want to "refresh" 
-        // them or just let them stay. The user asked for skeleton loading animation.
-        // Let's hide the PHP rendered ones, show skeletons, then show them again.
-
-        // Check if we have suggested books in the data
-        const suggestedBooks = allBooks.filter(book => parseInt(book.is_suggested) === 1);
-        if (suggestedBooks.length > 0) {
+    if (!isLibraryPage) {
+        if (categoryFilter && bookGrid) {
             showSkeletons();
-            setTimeout(() => renderBooks(suggestedBooks), 300);
+            setTimeout(() => filterByCategory(categoryFilter), 300);
+        } else if (bookGrid) {
+            // If homepage has suggested books pre-rendered by PHP, we might still want to "refresh" 
+            // them or just let them stay. The user asked for skeleton loading animation.
+            // Let's hide the PHP rendered ones, show skeletons, then show them again.
+
+            // Check if we have suggested books in the data
+            const suggestedBooks = allBooks.filter(book => parseInt(book.is_suggested) === 1);
+            if (suggestedBooks.length > 0) {
+                showSkeletons();
+                setTimeout(() => renderBooks(suggestedBooks), 300);
+            }
         }
     }
 });
 
 // --- 4. Search and Filter Logic ---
 function searchBooks(event, isMobile = false) {
-    const query = event.target.value.toLowerCase();
-    const filteredBooks = allBooks.filter(book =>
-        book.title.toLowerCase().includes(query) ||
-        book.author.toLowerCase().includes(query)
-    );
-
-    document.getElementById('section-title').innerText = query ? "অনুসন্ধানের ফলাফল" : "সাজেস্টেড বই";
-    document.getElementById('section-subtitle').innerText = query ? "সার্চ রেজাল্ট" : "আমাদের কালেকশন";
-    document.getElementById('section-desc').innerText = query ? `"${event.target.value}" এর জন্য প্রাপ্ত বইসমূহ` : "আপনার জন্য আমাদের বাছাইকৃত কিছু চমৎকার বই, যা আপনি কিনতে বা লাইব্রেরি থেকে ধার নিতে পারেন।";
-    document.getElementById('clearFilterBtn').classList.remove('hidden');
-
-    renderBooks(filteredBooks);
-
-    if (isMobile && event.key === 'Enter') {
-        toggleMobileMenu();
-        const discoverSection = document.getElementById('discover');
-        if (discoverSection) {
-            discoverSection.scrollIntoView({ behavior: 'smooth' });
+    const query = event.target.value.trim();
+    if (event.key === 'Enter' || isMobile) {
+        if (query.length > 0) {
+            let prefix = typeof PROJECT_ROOT !== 'undefined' ? PROJECT_ROOT : '/';
+            window.location.href = prefix + 'library/index.php?search=' + encodeURIComponent(query);
         }
     }
 }
@@ -634,3 +639,95 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof updateCartUI === 'function') updateCartUI();
     if (typeof updateBorrowCartUI === 'function') updateBorrowCartUI();
 });
+// --- 7. Real-time Stock Sync ---
+function startStockSync() {
+    // Initial check and then every 15 seconds
+    setTimeout(syncStockNow, 2000);
+    setInterval(syncStockNow, 15000);
+}
+
+async function syncStockNow() {
+    let ids = [];
+    document.querySelectorAll('.book-card').forEach(card => {
+        const link = card.querySelector('a[href*="id="]');
+        if (link) {
+            const match = link.href.match(/id=(\d+)/);
+            if (match) ids.push(match[1]);
+        }
+    });
+    
+    // Items in carts
+    const carts = ['antyam_cart', 'antyam_borrow_cart'];
+    carts.forEach(cartName => {
+        const cartData = JSON.parse(localStorage.getItem(cartName) || '[]');
+        cartData.forEach(item => {
+            if (item && item.id) ids.push(item.id);
+        });
+    });
+
+    ids = [...new Set(ids)];
+    if (ids.length === 0) return;
+
+    try {
+        let prefix = typeof PROJECT_ROOT !== 'undefined' ? PROJECT_ROOT : '/';
+        const response = await fetch(`${prefix}api/check_stock.php?ids=${ids.join(',')}`);
+        const data = await response.json();
+        if (data && data.success && data.stocks) updateUIWithRealtimeStock(data.stocks);
+    } catch (err) {
+        console.error("Stock sync error:", err);
+    }
+}
+
+function updateUIWithRealtimeStock(stockData) {
+    for (const [bookId, stock] of Object.entries(stockData)) {
+        const isOutOfStock = stock <= 0;
+        
+        // Update on-page buttons/badges
+        document.querySelectorAll('.book-card').forEach(card => {
+            const link = card.querySelector('a[href*="id="]');
+            if (link && link.href.includes(`id=${bookId}`)) {
+                if (isOutOfStock) {
+                    if (!card.querySelector('.stock-out-badge')) {
+                        const cover = card.querySelector('.book-cover-container') || card.querySelector('a');
+                        if (cover) {
+                            cover.insertAdjacentHTML('afterbegin', `<div class="stock-out-badge absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">স্টক আউট</div>`);
+                            const img = cover.querySelector('img');
+                            if (img) img.classList.add('grayscale');
+                        }
+                    }
+                    const buyBtn = card.querySelector('button[onclick*="addToCart"]');
+                    if (buyBtn && !buyBtn.disabled) {
+                        buyBtn.disabled = true;
+                        buyBtn.className = "flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10";
+                        buyBtn.innerText = 'স্টকে নেই';
+                        buyBtn.onclick = null;
+                    }
+                }
+            }
+        });
+
+        // Update Carts
+        ['antyam_cart', 'antyam_borrow_cart'].forEach(cartName => {
+            let currentCart = JSON.parse(localStorage.getItem(cartName) || '[]');
+            let changed = false;
+            currentCart.forEach(item => {
+                if (item.id == bookId && stock <= 0 && !item.isOutOfStock) {
+                    item.isOutOfStock = true;
+                    changed = true;
+                    if (typeof showToast === 'function') {
+                        showToast(`সতর্কতা: "${item.title}" স্টকে ফুরিয়ে গেছে!`);
+                    }
+                }
+            });
+            if (changed) {
+                localStorage.setItem(cartName, JSON.stringify(currentCart));
+                if (typeof updateCartUI === 'function') updateCartUI();
+                if (typeof updateBorrowCartUI === 'function') updateBorrowCartUI();
+                
+                // Specific for checkout pages
+                if (typeof loadCheckout === 'function') loadCheckout();
+            }
+        });
+    }
+}
+startStockSync();

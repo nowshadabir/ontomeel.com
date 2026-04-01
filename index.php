@@ -18,13 +18,9 @@ WHERE b.is_active = 1 AND b.is_suggested = 1
 ORDER BY (b.stock_qty > 0) DESC, b.created_at DESC LIMIT 12");
 $suggested_books = $stmt->fetchAll();
 
-// Fetch All Books for Search/Filter
-$stmt = $pdo->query("SELECT b.*, c.name as category_name
-FROM books b
-LEFT JOIN categories c ON b.category_id = c.id
-WHERE b.is_active = 1
-ORDER BY (b.stock_qty > 0) DESC, b.created_at DESC");
-$all_books_db = $stmt->fetchAll();
+// We no longer fetch all books here for optimization. 
+// Search will be redirected to the library page.
+$all_books_db = []; 
 
 function getBookImage($image)
 {
@@ -257,20 +253,44 @@ endforeach; ?>
 
     <!-- Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10" id="book-grid">
-        <!-- Skeletons shown initially, then JS replaces them -->
-        <?php for ($i = 0; $i < 8; $i++): ?>
-            <div class="book-card reveal active">
-                <div class="skeleton aspect-[2/3] rounded-md mb-4"></div>
-                <div class="px-1 flex flex-col items-center">
-                    <div class="skeleton skeleton-text w-1/4 mb-2"></div>
-                    <div class="skeleton skeleton-text skeleton-title mb-2"></div>
-                    <div class="skeleton skeleton-text skeleton-author"></div>
+        <?php foreach ($suggested_books as $index => $book): ?>
+            <div class="book-card reveal active" style="transition-delay: <?php echo $index * 50; ?>ms">
+                <a href="book-details.php?id=<?php echo $book['id']; ?>" class="block group relative aspect-[2/3] rounded-2xl overflow-hidden mb-6 shadow-sm hover:shadow-2xl transition-all duration-500">
+                    <img src="<?php echo getBookImage($book['cover_image']); ?>" 
+                         alt="<?php echo htmlspecialchars($book['title']); ?>"
+                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                         loading="lazy">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+                        <span class="text-white text-xs font-bold uppercase tracking-widest bg-brand-gold/80 px-4 py-2 rounded-full">বিস্তারিত দেখুন</span>
+                    </div>
+                    <?php if ($book['stock_qty'] <= 0): ?>
+                        <div class="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">স্টক আউট</div>
+                    <?php endif; ?>
+                </a>
+                <div class="px-2 text-center">
+                    <p class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-2"><?php echo htmlspecialchars($book['category_name'] ?? 'বই'); ?></p>
+                    <h3 class="text-brand-900 font-serif font-bold text-lg md:text-xl mb-1 line-clamp-1 hover:text-brand-gold transition-colors">
+                        <a href="book-details.php?id=<?php echo $book['id']; ?>"><?php echo htmlspecialchars($book['title']); ?></a>
+                    </h3>
+                    <p class="text-gray-500 text-xs md:text-sm italic font-light"><?php echo htmlspecialchars($book['author']); ?></p>
+                    <div class="mt-4 flex items-center justify-center gap-3">
+                        <?php if ($book['discount_price'] > 0): ?>
+                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['discount_price']); ?></span>
+                            <span class="text-gray-400 text-xs line-through font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
+                        <?php else: ?>
+                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
-        <?php
-endfor; ?>
+        <?php endforeach; ?>
+        
+        <?php if (empty($suggested_books)): ?>
+            <div class="col-span-full py-20 text-center">
+                <p class="text-gray-400 font-anek">বর্তমানে কোনো সাজেস্টেড বই পাওয়া যায়নি।</p>
+            </div>
+        <?php endif; ?>
     </div>
-</section>
 </section>
 
 <!-- The Library Experience (Split Section) -->
@@ -470,22 +490,7 @@ endfor; ?>
 
 <script>
     // Populate allBooks from DB
-    allBooks = [
-        <?php foreach ($all_books_db as $book): ?>
-                                                                        {
-                id: <?php echo $book['id']; ?>,
-                title: "<?php echo addslashes($book['title']); ?>",
-                author: "<?php echo addslashes($book['author']); ?>",
-                price: <?php echo $book['sell_price'] ?? 0; ?>,
-                img: "<?php echo getBookImage($book['cover_image'] ?? ''); ?>",
-                category: "<?php echo addslashes($book['category_name'] ?? ''); ?>",
-                is_borrowable: <?php echo $book['is_borrowable'] ?? 0; ?>,
-                is_suggested: <?php echo $book['is_suggested'] ?? 0; ?>,
-                stock_qty: <?php echo $book['stock_qty'] ?? 0; ?>
-            },
-        <?php
-endforeach; ?>
-    ];
+    allBooks = [];
 
     // Initial Suggested books are now rendered by PHP directly.
     // JS allBooks array is kept for Search and Filter functionality.

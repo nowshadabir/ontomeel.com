@@ -429,21 +429,27 @@ endif; ?>
         }
 
         let total = 0;
+        let anyOutOfStock = false;
         container.innerHTML = '';
 
         cartItems.forEach(item => {
             const displayPrice = (checkoutType === 'borrow') ? 0 : item.price;
-            total += displayPrice;
+            const isItemOutOfStock = item.isOutOfStock || false;
+            if (isItemOutOfStock) anyOutOfStock = true;
+            
+            total += (isItemOutOfStock ? 0 : displayPrice);
+            
             container.innerHTML += `
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-16 bg-gray-50 rounded shadow-sm overflow-hidden flex-shrink-0">
+                    <div class="flex gap-4 items-center ${isItemOutOfStock ? 'opacity-60 grayscale' : ''}">
+                        <div class="w-12 h-16 bg-gray-50 rounded shadow-sm overflow-hidden flex-shrink-0 relative">
                             <img src="${typeof getCorrectImagePath === 'function' ? getCorrectImagePath(item.img) : item.img}" class="w-full h-full object-cover">
+                            ${isItemOutOfStock ? '<div class="absolute inset-0 bg-red-600/40 flex items-center justify-center"><p class="text-[8px] text-white font-bold">X</p></div>' : ''}
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-brand-900 font-anek text-sm truncate w-40">${item.title}</h4>
-                            <p class="text-[10px] text-gray-400 font-anek">পরিমাণ: ১টি</p>
+                            ${isItemOutOfStock ? '<p class="text-[9px] text-red-600 font-bold uppercase tracking-wider">সদ্য স্টক শেষ!</p>' : '<p class="text-[10px] text-gray-400 font-anek">পরিমাণ: ১টি</p>'}
                         </div>
-                        <p class="font-bold text-brand-900 font-anek">৳${convertToBengaliNumber(displayPrice)}</p>
+                        <p class="font-bold text-brand-900 font-anek">৳${isItemOutOfStock ? '০' : convertToBengaliNumber(displayPrice)}</p>
                     </div>
                 `;
         });
@@ -452,6 +458,27 @@ endif; ?>
         subTotal = total;
         document.getElementById('sub-total').innerText = `৳${convertToBengaliNumber(total)}`;
         document.getElementById('grand-total').innerText = `৳${convertToBengaliNumber(total + deliveryCharge)}`;
+        
+        // Disable order button if any item is out of stock
+        const orderBtn = document.querySelector('button[onclick="confirmOrder()"]');
+        if (orderBtn) {
+            if (anyOutOfStock) {
+                orderBtn.disabled = true;
+                orderBtn.classList.replace('bg-brand-900', 'bg-gray-400');
+                orderBtn.classList.add('cursor-not-allowed');
+                orderBtn.innerHTML = '<span>স্টক শেষ (অর্ডার করা যাবে না)</span>';
+                showToast('আপনার কার্টে থাকা কিছু বই স্টকে ফুরিয়ে গেছে। দয়া করে সেগুলো বাদ দিন।');
+            } else {
+                orderBtn.disabled = false;
+                orderBtn.classList.replace('bg-gray-400', 'bg-brand-900');
+                orderBtn.classList.remove('cursor-not-allowed');
+                orderBtn.innerHTML = `<span>${checkoutType == 'borrow' ? 'ধার নিশ্চিত করুন' : 'অর্ডার কনফার্ম করুন'}</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>`;
+            }
+        }
     }
 
     function createConfetti() {
