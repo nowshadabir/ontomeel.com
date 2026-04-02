@@ -85,12 +85,12 @@ $total_amount = $price + $delivery_charge;
                 <p class="text-xs md:text-sm text-gray-500 font-anek mt-1 hidden">লেখক: <?php echo htmlspecialchars($pre_order['author']); ?>
                 </p>
             </div>
-            <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10">
+            <div class="sm:text-right w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-brand-gold/10 flex flex-col items-center sm:items-end">
                 <p class="text-xl md:text-2xl font-bold text-brand-900 font-anek">৳<?php echo number_format($price); ?></p>
                 <p class="text-[10px] md:text-xs text-brand-900/60 font-anek"><?php if ($is_free_delivery): ?>ফ্রি ডেলিভারি<?php
 else: ?>+ ৳<span id="display-delivery"><?php echo $delivery_charge; ?></span> ডেলিভারি<?php
 endif; ?></p>
-                <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block">
+                <div class="mt-2 text-xs md:text-sm font-bold text-brand-gold bg-brand-900 px-4 py-1.5 rounded-full inline-block whitespace-nowrap">
                     মোট: ৳<span id="display-total"><?php echo number_format($total_amount); ?></span></div>
             </div>
         </div>
@@ -140,17 +140,17 @@ endif; ?></p>
                         </div>
                     <?php
 else: ?>
-                    <div class="flex gap-4">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
-                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all h-full flex flex-col justify-center">
                                 <p class="text-sm font-anek font-bold text-brand-900">কক্সবাজার শহর</p>
                                 <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $inside_charge; ?></p>
                             </div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="location" value="outside" onchange="updateDelivery(this.value)" class="hidden peer">
-                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all">
+                            <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all h-full flex flex-col justify-center">
                                 <p class="text-sm font-anek font-bold text-brand-900">আউটসাইড কক্সবাজার</p>
                                 <p class="text-xs text-gray-400 font-anek">চার্জ: ৳<?php echo $outside_charge; ?></p>
                             </div>
@@ -212,17 +212,17 @@ endif; ?>
                     </p>
 
                     <div class="mt-6 space-y-2">
-                        <div class="flex items-center justify-between ml-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2 ml-2">
                             <label class="text-[10px] font-bold text-[#D12053] uppercase tracking-widest">আপনার ট্রাঞ্জেকশন আইডিটি দিন *</label>
-                            <button onclick="toggleTutorial()" class="text-[10px] font-bold text-brand-900 bg-brand-gold/20 px-3 py-1 rounded-full flex items-center gap-1.5 hover:bg-brand-gold hover:text-brand-900 transition-all">
+                            <button onclick="toggleTutorial()" class="text-[10px] font-bold text-brand-900 bg-brand-gold/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 hover:bg-brand-gold hover:text-brand-900 transition-all shrink-0">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 টিউটোরিয়াল দেখুন
                             </button>
                         </div>
                         <div class="relative group mt-2">
                             <input type="text" id="po-sender-number" placeholder="যেমন: CDDS0393DF"
-                                class="w-full bg-white border border-[#D12053]/30 rounded-2xl px-6 py-4 pr-24 focus:outline-none focus:border-[#D12053] transition-all text-brand-900 font-bold tracking-wider uppercase placeholder:text-gray-300">
-                            <button onclick="pasteTrxID()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-pink-100 text-[#D12053] px-4 py-2 rounded-xl text-xs font-bold font-anek hover:bg-[#D12053] hover:text-white transition-all flex items-center gap-1.5 active:scale-95">
+                                class="w-full bg-white border border-[#D12053]/30 rounded-2xl px-5 sm:px-6 py-4 pr-24 sm:pr-28 focus:outline-none focus:border-[#D12053] transition-all text-brand-900 font-bold tracking-wider uppercase placeholder:text-gray-300 text-sm sm:text-base">
+                            <button onclick="pasteTrxID()" class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-pink-100 text-[#D12053] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold font-anek hover:bg-[#D12053] hover:text-white transition-all flex items-center gap-1.5 active:scale-95">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 পেস্ট করুন
                             </button>
@@ -495,8 +495,8 @@ endif; ?>
             </button>
         </div>
         <div class="p-6 max-h-[85vh] overflow-y-auto">
-            <div class="relative w-full max-w-[280px] mx-auto rounded-2xl overflow-hidden shadow-2xl border border-gray-100 mb-6 bg-black">
-                <div class="sp-embed-player" data-id="cOfncwnTgT8" data-aspect-ratio="0.562500" data-padding-top="177.777778%" style="position:relative;width:100%;padding-top:177.777778%;height:0;">
+            <div class="relative w-full max-w-[320px] mx-auto rounded-2xl overflow-hidden shadow-2xl border border-gray-100 mb-6 bg-black aspect-[9/16]">
+                <div class="sp-embed-player h-full w-full" data-id="cOfncwnTgT8" data-aspect-ratio="0.562500" style="position:relative;width:100%;height:100%;">
                     <script src="https://go.screenpal.com/consumption/player_appearance/cOfncwnTgT8/0.562500"></script>
                     <iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" scrolling="no" src="https://go.screenpal.com/player/cOfncwnTgT8?ff=1&ahc=1&dcc=1&tl=1&bg=transparent&share=1&download=1&embed=1&cl=1" allowfullscreen="true"></iframe>
                 </div>
