@@ -20,6 +20,16 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 // Note: Adjust directives based on your needs
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://fonts.googleapis.com https://go.screenpal.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https://go.screenpal.com https://www.youtube.com;");
 
+// Force secure session parameters globally
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Strict');
+// Secure flag only if HTTPS is on
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', 1);
+}
+
 // Force HTTPS (uncomment in production)
 // header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
