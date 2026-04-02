@@ -1,5 +1,5 @@
 <?php
-$page_title = 'প্রি-বুকিং | আসন্ন বইয়ের একচেটিয়া সংগ্রহ - অন্ত্যমিল';
+$page_title = 'প্রি-বুকিং | আসছে বইয়ের আকর্ষণীয় সংগ্রহ - অন্ত্যমিল';
 $page_description = 'বাজারে আসার আগেই সংগ্রহ করুন আপনার কাঙ্ক্ষিত বইটি। অন্ত্যমিল প্রি-বুকিং অফারে পান বিশেষ ছাড় এবং নিশ্চিত ডেলিভারি। আপনার পাঠ্য তালিকার পরবর্তী চমকটি বুক করে রাখুন এখনই।';
 $page_keywords = 'প্রি-বুকিং, আসন্ন বই, ডিসকাউন্ট, বইয়ের অফার, অন্ত্যমিল, Vivago Digital, Pre-order Books, অনলাইন বুকস্টোর';
 $path_prefix = '../';
@@ -439,15 +439,14 @@ function bn_num($num)
                             class="px-8 py-4 bg-brand-900 text-white rounded-2xl font-bold font-anek hover:bg-brand-gold hover:text-brand-900 transition-all shadow-2xl shadow-brand-900/20 transform hover:-translate-y-1">
                             অফার দেখুন
                         </a>
-                        <div
-                            class="flex items-center gap-4 px-6 py-4 bg-white/80 rounded-2xl border border-white">
+                        <div class="flex items-center gap-4 px-6 py-4 bg-white/80 rounded-2xl border border-white">
                             <div class="flex -space-x-3">
                                 <?php for ($i = 1; $i <= 3; $i++): ?>
                                     <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
                                         <img src="https://i.pravatar.cc/100?img=<?php echo $i + 10; ?>" alt="user">
                                     </div>
-                                <?php
-endfor; ?>
+                                    <?php
+                                endfor; ?>
                             </div>
                             <div class="text-left">
                                 <p class="text-xs font-bold text-brand-900">১২০০+ পাঠক</p>
@@ -468,9 +467,12 @@ endfor; ?>
                             </div>
 
                             <!-- Hero Image Main -->
-                            <div class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden skeleton">
+                            <div
+                                class="relative hero-glass p-2 md:p-4 rounded-[40px] shadow-2xl overflow-hidden skeleton">
                                 <img src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
-                                    alt="Premium Book Collection" class="w-full h-auto rounded-[30px] object-cover" fetchpriority="high" loading="eager" onload="this.parentElement.classList.remove('skeleton')">
+                                    alt="Premium Book Collection" class="w-full h-auto rounded-[30px] object-cover"
+                                    fetchpriority="high" loading="eager"
+                                    onload="this.parentElement.classList.remove('skeleton')">
                             </div>
                         </div>
                     </div>
@@ -483,7 +485,8 @@ endfor; ?>
 
         <?php if ($hot_deal): ?>
             <!-- Modern Hot Deal Section -->
-            <section onclick="window.location.href='<?php echo !empty($hot_deal['slug']) ? 'book/' . $hot_deal['slug'] : 'book-details.php?id=' . $hot_deal['id']; ?>'"
+            <section
+                onclick="window.location.href='<?php echo !empty($hot_deal['slug']) ? 'book/' . $hot_deal['slug'] : 'book-details.php?id=' . $hot_deal['id']; ?>'"
                 class="hot-deal-container p-10 md:p-20 mb-24 reveal active cursor-pointer group">
                 <div
                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none">
@@ -498,12 +501,12 @@ endfor; ?>
 
                         <div class="space-y-4">
                             <h2 class="text-4xl sm:text-6xl md:text-7xl font-sans font-black text-gray-900 leading-tight">
-                                <?php 
+                                <?php
                                 $hot_title = htmlspecialchars($hot_deal['title']);
                                 if (!empty($hot_deal['second_title'])) {
                                     $hot_title .= ' এবং ' . htmlspecialchars($hot_deal['second_title']) . ' (কম্বো)';
                                 }
-                                echo $hot_title; 
+                                echo $hot_title;
                                 ?>
                             </h2>
                             <h3 class="text-xl sm:text-3xl md:text-4xl font-serif italic text-brand-gold opacity-90">
@@ -521,9 +524,9 @@ endfor; ?>
                                 </p>
                                 <div class="flex items-baseline gap-4">
                                     <span
-                                        class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int)$hot_deal['discount_price']); ?></span>
+                                        class="text-4xl sm:text-6xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $hot_deal['discount_price']); ?></span>
                                     <span
-                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int)$hot_deal['price']); ?></span>
+                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num((int) $hot_deal['price']); ?></span>
                                 </div>
                             </div>
                             <div class="h-16 w-[1px] bg-gray-200 hidden sm:block"></div>
@@ -531,7 +534,7 @@ endfor; ?>
                                 <p class="text-[10px] text-brand-gold uppercase tracking-widest font-bold mb-1">আপনি
                                     বাঁচাচ্ছেন</p>
                                 <p class="text-lg sm:text-2xl font-bold font-anek text-brand-gold">
-                                    ৳<?php echo bn_num((int)($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
+                                    ৳<?php echo bn_num((int) ($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
                                 </p>
                             </div>
                         </div>
@@ -559,28 +562,29 @@ endfor; ?>
                                 <div class="book-wrapper book-2 w-[220px] md:w-[280px] skeleton rounded-r-xl">
                                     <img data-src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
                                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                        class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?> - Second Cover">
+                                        class="lazy-image rounded-r-xl shadow-2xl"
+                                        alt="<?php echo $hot_deal['title']; ?> - Second Cover">
                                     <div class="status-label label-released">
                                         <span class="inline-block w-2 h-2 bg-white rounded-full mr-2"></span>
                                         সদ্য প্রকাশিত
                                     </div>
                                 </div>
                             </div>
-                        <?php
-    else: ?>
+                            <?php
+                        else: ?>
                             <!-- Single Book Display -->
                             <div class="book-3d-hot w-[280px] md:w-[400px] skeleton rounded-r-xl">
                                 <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                     class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
+                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
+                                    class="lazy-image rounded-r-xl shadow-2xl" alt="<?php echo $hot_deal['title']; ?>">
                             </div>
-                        <?php
-    endif; ?>
+                            <?php
+                        endif; ?>
                     </div>
                 </div>
             </section>
-        <?php
-endif; ?>
+            <?php
+        endif; ?>
 
         <!-- Other Pre-orders Grid -->
         <div class="reveal">
@@ -591,8 +595,8 @@ endif; ?>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                 <?php foreach ($preorders as $index => $book):
-    $isOpen = $book['status'] == 'Open';
-?>
+                    $isOpen = $book['status'] == 'Open';
+                    ?>
                     <div onclick="window.location.href='<?php echo !empty($book['slug']) ? 'book/' . $book['slug'] : 'book-details.php?id=' . $book['id']; ?>'"
                         class="mockup-card reveal group">
 
@@ -617,12 +621,12 @@ endif; ?>
                         <div class="space-y-6">
                             <div class="space-y-2">
                                 <h3 class="text-2xl font-sans font-bold text-gray-800 line-clamp-1">
-                                    <?php 
+                                    <?php
                                     $grid_title = htmlspecialchars($book['title']);
                                     if (!empty($book['second_title'])) {
                                         $grid_title .= ' এবং ' . htmlspecialchars($book['second_title']) . ' (কম্বো)';
                                     }
-                                    echo $grid_title; 
+                                    echo $grid_title;
                                     ?>
                                 </h3>
                                 <p class="text-gray-400 font-anek text-sm"><?php echo $book['author']; ?></p>
@@ -634,9 +638,9 @@ endif; ?>
                                 <div>
                                     <div class="flex items-baseline gap-3">
                                         <span
-                                            class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int)$book['discount_price']); ?></span>
+                                            class="text-3xl font-sans font-black text-gray-900">৳<?php echo bn_num((int) $book['discount_price']); ?></span>
                                         <span
-                                            class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int)$book['price']); ?></span>
+                                            class="text-sm text-gray-300 line-through">৳<?php echo bn_num((int) $book['price']); ?></span>
                                     </div>
                                 </div>
 
@@ -649,8 +653,8 @@ endif; ?>
                             </div>
                         </div>
                     </div>
-                <?php
-endforeach; ?>
+                    <?php
+                endforeach; ?>
             </div>
         </div>
 
