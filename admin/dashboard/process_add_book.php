@@ -5,6 +5,12 @@ require '../../includes/db_connect.php';
 
 header('Content-Type: application/json');
 
+// Check Authentication
+if (!isset($_SESSION['admin_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit();
+}
+
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception('Invalid request method');
