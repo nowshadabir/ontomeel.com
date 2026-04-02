@@ -18,7 +18,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 
 // Content Security Policy - reduce XSS attack surface
 // Note: Adjust directives based on your needs
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://fonts.googleapis.com https://go.screenpal.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https://go.screenpal.com https://www.youtube.com;");
 
 // Force HTTPS (uncomment in production)
 // header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
