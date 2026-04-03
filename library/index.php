@@ -123,8 +123,12 @@ function bn_num($num)
                     <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($book['title']); ?>" class="object-cover w-full h-full transition-all duration-700 <?php echo $isOutOfStock ? 'grayscale' : ''; ?>" loading="lazy">
                     
                     <?php if ($isOutOfStock): ?>
-                    <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">
+                    <div class="absolute top-4 left-4 bg-red-600/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">
                         স্টক আউট
+                    </div>
+                    <?php elseif ($book['stock_qty'] > 0 && $book['stock_qty'] <= 5): ?>
+                    <div class="absolute top-4 left-4 bg-amber-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">
+                        অল্প কিছু বাকি
                     </div>
                     <?php endif; ?>
 
@@ -151,7 +155,12 @@ function bn_num($num)
                     </div>
                 </div>
                 <div class="text-center px-1">
-                    <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider"><?php echo $book['category_name']; ?></span>
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider"><?php echo $book['category_name']; ?></span>
+                        <?php if ($book['is_borrowable'] == 1): ?>
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে রয়েছে"></span>
+                        <?php endif; ?>
+                    </div>
                     <a href="../book-details.php?id=<?php echo $book['id']; ?>" class="block hover:text-brand-gold">
                         <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors"><?php echo $book['title']; ?></h3>
                     </a>
@@ -287,6 +296,7 @@ function bn_num($num)
                 data.books.forEach((book, index) => {
                     const delay = (index % 4) * 50; // Faster animation for page loads
                     const isOutOfStock = parseInt(book.stock_qty) <= 0;
+                    const isLowStock = !isOutOfStock && parseInt(book.stock_qty) <= 5;
                     const canBorrow = parseInt(book.is_borrowable) === 1 && !isOutOfStock;
                     
                     const safeCategory = String(book.category || 'Uncategorized');
@@ -308,25 +318,36 @@ function bn_num($num)
                         author: String(book.author || '')
                     }).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
                     
-                    const outOfStockHTML = isOutOfStock ? '<div class="absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">স্টক আউট</div>' : '';
+                    let stockBadgeHTML = '';
+                    if (isOutOfStock) {
+                        stockBadgeHTML = '<div class="absolute top-4 left-4 bg-red-600/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">স্টক আউট</div>';
+                    } else if (isLowStock) {
+                        stockBadgeHTML = '<div class="absolute top-4 left-4 bg-amber-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">অল্প কিছু বাকি</div>';
+                    }
+
                     const buyButtonHTML = isOutOfStock ? 
                         '<button disabled class="flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10">স্টকে নেই</button>' : 
                         '<button onclick=\'addToCart(' + actionData + ')\' class="flex-1 md:flex-none md:w-3/4 bg-brand-gold text-brand-900 py-2 rounded-sm font-bold transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 hover:bg-white text-[10px] md:text-sm shadow-xl font-sans"><span class="hidden md:block">কিনুন ৳' + bnNum(book.price) + '</span><span class="md:hidden">কিনুন</span></button>';
                     const borrowButtonHTML = canBorrow ? 
                         '<button onclick=\'borrowBook(' + borrowData + ')\' class="flex-1 md:flex-none md:w-3/4 bg-transparent border border-white/30 text-white py-2 rounded-sm font-medium transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-400 delay-75 hover:bg-white hover:text-brand-900 text-[10px] md:text-sm font-sans flex items-center justify-center gap-1 backdrop-blur-sm"><span class="hidden md:block">ধার নিন</span><span class="md:hidden">ধার</span></button>' : '';
 
+                    const borrowIndicatorHTML = parseInt(book.is_borrowable) === 1 ? '<span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে রয়েছে"></span>' : '';
+
                     const html = `
                         <div class="book-card group reveal active animate-slide-up ${isOutOfStock ? 'opacity-80' : ''}" style="animation-delay: ${delay}ms;">
                             <div class="relative book-cover-container aspect-[2/3] rounded-md overflow-hidden bg-gray-100 mb-4 shadow-sm border border-gray-100">
                                 <img src="${book.img}" alt="${displayTitle}" class="object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}" loading="lazy">
-                                ${outOfStockHTML}
+                                ${stockBadgeHTML}
                                 <div class="absolute inset-x-0 bottom-0 md:inset-0 bg-brand-900/95 md:bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-row md:flex-col justify-center items-center gap-2 md:gap-3 backdrop-blur-md md:backdrop-blur-sm p-2 md:p-0 z-30">
                                     ${buyButtonHTML}
                                     ${borrowButtonHTML}
                                 </div>
                             </div>
                             <div class="text-center px-1">
-                                <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
+                                <div class="flex items-center justify-center gap-2 mb-2">
+                                    <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
+                                    ${borrowIndicatorHTML}
+                                </div>
                                 <a href="../book-details.php?id=${book.id}" class="block hover:text-brand-gold">
                                     <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${displayTitle}</h3>
                                 </a>

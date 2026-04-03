@@ -171,7 +171,7 @@ function renderBooks(booksToRender) {
         const delay = (index % 4) * 80;
 
         // Check stock and borrow status
-        const isOutOfStock = parseInt(book.stock_qty) <= 0;
+        const isOutOfStock = parseInt(book.stock_qty) <= 0; const isLowStock = parseInt(book.stock_qty) > 0 && parseInt(book.stock_qty) <= 5;
         const canBorrow = parseInt(book.is_borrowable) === 1 && !isOutOfStock;
         
         const safeCategory = String(book.category || 'Uncategorized');
@@ -200,9 +200,12 @@ function renderBooks(booksToRender) {
                             <img data-src="${book.img}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E" alt="${displayTitle}" class="lazy-image object-cover w-full h-full transition-all duration-700 ${isOutOfStock ? 'grayscale' : ''}">
                             
                             ${isOutOfStock ? `
-                            <div class="absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">
+                            <div class="stock-out-badge absolute top-4 left-4 bg-red-600/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">
                                 স্টক আউট
-                            </div>` : ''}
+                            </div>` : (isLowStock ? `
+                            <div class="absolute top-4 left-4 bg-amber-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">
+                                অল্প কিছু বাকি
+                            </div>` : '')}
 
                         <!-- Overlay Actions -->
                         <div class="absolute inset-x-0 bottom-0 md:inset-0 bg-brand-900/95 md:bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-row md:flex-col justify-center items-center gap-2 md:gap-3 backdrop-blur-md md:backdrop-blur-sm p-2 md:p-0 z-30">
@@ -235,7 +238,10 @@ function renderBooks(booksToRender) {
                         
                         <!-- Details -->
                         <div class="text-center px-1">
-                            <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
+                                ${parseInt(book.is_borrowable) === 1 ? `<span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে রয়েছে"></span>` : ''}
+                            </div>
                             <a href="${prefix}book-details.php?id=${book.id}" class="block hover:text-brand-gold">
                                 <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${displayTitle}</h3>
                             </a>
@@ -679,28 +685,43 @@ async function syncStockNow() {
 }
 
 function updateUIWithRealtimeStock(stockData) {
+    console.log("Starting real-time stock UI update with data:", stockData);
     for (const [bookId, stock] of Object.entries(stockData)) {
         const isOutOfStock = stock <= 0;
         
         // Update on-page buttons/badges
         document.querySelectorAll('.book-card').forEach(card => {
             const link = card.querySelector('a[href*="id="]');
-            if (link && link.href.includes(`id=${bookId}`)) {
-                if (isOutOfStock) {
-                    if (!card.querySelector('.stock-out-badge')) {
-                        const cover = card.querySelector('.book-cover-container') || card.querySelector('a');
-                        if (cover) {
-                            cover.insertAdjacentHTML('afterbegin', `<div class="stock-out-badge absolute top-2 left-2 bg-red-600/90 text-white text-[9px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider z-20 backdrop-blur-sm">স্টক আউট</div>`);
-                            const img = cover.querySelector('img');
-                            if (img) img.classList.add('grayscale');
-                        }
-                    }
+            if (link) {
+                const match = link.href.match(/[?&]id=(\d+)/);
+                const currentId = match ? match[1] : null;
+                if (currentId == bookId) {
+                    const titleEl = card.querySelector('h3');
+                    const title = titleEl ? titleEl.innerText : 'Unknown';
+                    console.log(`Matching card ${currentId} ("${title}") with stock entry ${bookId}: stock=${stock}`);
+                    const badge = card.querySelector('.stock-out-badge');
+                    const img = card.querySelector('img');
                     const buyBtn = card.querySelector('button[onclick*="addToCart"]');
-                    if (buyBtn && !buyBtn.disabled) {
-                        buyBtn.disabled = true;
-                        buyBtn.className = "flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10";
-                        buyBtn.innerText = 'স্টকে নেই';
-                        buyBtn.onclick = null;
+
+                    if (isOutOfStock) {
+                        if (!badge) {
+                            const cover = card.querySelector('.book-cover-container') || card.querySelector('a');
+                            if (cover) {
+                                cover.insertAdjacentHTML('afterbegin', `<div class="stock-out-badge absolute top-4 left-4 bg-red-600/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest z-20 backdrop-blur-sm shadow-lg">স্টক আউট</div>`);
+                            }
+                        }
+                        if (img) img.classList.add('grayscale');
+                        if (buyBtn && !buyBtn.disabled) {
+                            buyBtn.disabled = true;
+                            buyBtn.className = "flex-1 md:flex-none md:w-3/4 bg-gray-700 text-gray-400 py-2 rounded-sm font-bold text-[10px] md:text-sm cursor-not-allowed border border-white/10";
+                            buyBtn.innerText = 'স্টকে নেই';
+                            buyBtn.onclick = null;
+                        }
+                    } else {
+                        // Re-enable if stock is back
+                        if (badge) badge.remove();
+                        if (img) img.classList.remove('grayscale');
+                        // Note: For button re-enabling, we'd need more logic, but user mostly cares about fixing the false positive stock out
                     }
                 }
             }

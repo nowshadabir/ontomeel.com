@@ -47,7 +47,7 @@ if (session_status() == PHP_SESSION_NONE) {
     <script src="<?php echo $path_prefix ?? ''; ?>assets/js/tailwind-config.js"></script>
 
     <!-- Custom JS - Version controlled for cache management -->
-    <script src="<?php echo $path_prefix ?? ''; ?>assets/js/script.js?v=2.0.2" defer></script>
+    <script src="<?php echo $path_prefix ?? ''; ?>assets/js/script.js?v=2.0.3" defer></script>
 
     <!-- Custom Styles - Version controlled for cache management -->
     <link rel="stylesheet" href="<?php echo $path_prefix ?? ''; ?>assets/css/style.css?v=2.0.1">

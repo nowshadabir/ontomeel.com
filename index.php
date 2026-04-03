@@ -254,21 +254,28 @@ endforeach; ?>
     <!-- Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10" id="book-grid">
         <?php foreach ($suggested_books as $index => $book): ?>
-            <div class="book-card reveal active" style="transition-delay: <?php echo $index * 50; ?>ms">
+            <div class="book-card reveal active <?php echo ($book['stock_qty'] <= 0) ? 'opacity-80' : ''; ?>" style="transition-delay: <?php echo $index * 50; ?>ms">
                 <a href="book-details.php?id=<?php echo $book['id']; ?>" class="block group relative aspect-[2/3] rounded-2xl overflow-hidden mb-6 shadow-sm hover:shadow-2xl transition-all duration-500">
                     <img src="<?php echo getBookImage($book['cover_image']); ?>" 
                          alt="<?php echo htmlspecialchars($book['title']); ?>"
-                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 <?php echo ($book['stock_qty'] <= 0) ? 'grayscale' : ''; ?>" 
                          loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
                         <span class="text-white text-xs font-bold uppercase tracking-widest bg-brand-gold/80 px-4 py-2 rounded-full">বিস্তারিত দেখুন</span>
                     </div>
                     <?php if ($book['stock_qty'] <= 0): ?>
-                        <div class="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">স্টক আউট</div>
+                        <div class="stock-out-badge absolute top-4 left-4 bg-red-600/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg backdrop-blur-sm">স্টক আউট</div>
+                    <?php elseif ($book['stock_qty'] > 0 && $book['stock_qty'] <= 5): ?>
+                        <div class="absolute top-4 left-4 bg-amber-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg backdrop-blur-sm">অল্প কিছু বাকি</div>
                     <?php endif; ?>
                 </a>
                 <div class="px-2 text-center">
-                    <p class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-2"><?php echo htmlspecialchars($book['category_name'] ?? 'বই'); ?></p>
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <p class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em]"><?php echo htmlspecialchars($book['category_name'] ?? 'বই'); ?></p>
+                        <?php if ($book['is_borrowable']): ?>
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে রয়েছে"></span>
+                        <?php endif; ?>
+                    </div>
                     <h3 class="text-brand-900 font-serif font-bold text-lg md:text-xl mb-1 line-clamp-1 hover:text-brand-gold transition-colors">
                         <a href="book-details.php?id=<?php echo $book['id']; ?>"><?php echo htmlspecialchars($book['title']); ?></a>
                     </h3>
