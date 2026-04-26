@@ -784,7 +784,7 @@ function bn_num($num)
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <div class="flex justify-end gap-2">
-                                                <button onclick="editBook(<?php echo htmlspecialchars(json_encode($book)); ?>)"
+                                                <button onclick="editBook(<?php echo htmlspecialchars(json_encode($book), ENT_QUOTES); ?>)"
                                                     class="p-2 text-gray-400 hover:text-brand-gold transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1323,7 +1323,7 @@ function bn_num($num)
                                                             </path>
                                                         </svg>
                                                     </a>
-                                                    <button onclick='editPreorder(<?php echo json_encode($po); ?>)'
+                                                    <button onclick="editPreorder(<?php echo htmlspecialchars(json_encode($po), ENT_QUOTES); ?>)"
                                                         class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -1519,7 +1519,7 @@ function bn_num($num)
                         <div class="space-y-4">
                             <?php if ($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad'): ?>
                                 <button
-                                    onclick='openPaymentConfigModal("<?php echo $method['method_key']; ?>", <?php echo json_encode($config); ?>)'
+                                    onclick="openPaymentConfigModal('<?php echo $method['method_key']; ?>', <?php echo htmlspecialchars(json_encode($config), ENT_QUOTES); ?>)"
                                     class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API
                                     কনফিগারেশন আপডেট করুন</button>
                                 <?php
