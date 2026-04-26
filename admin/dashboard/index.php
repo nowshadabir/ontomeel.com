@@ -2477,7 +2477,7 @@ function bn_num($num)
                     <div class="space-y-8">
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের
-                                নাম (প্রধান)</label>
+                                নাম (বা প্রি-অর্ডার বইয়ের নাম)</label>
                             <input type="text" name="title" required placeholder="বইয়ের নাম লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
@@ -2512,10 +2512,10 @@ function bn_num($num)
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">১ম বইয়ের
-                                বর্ণনা</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">বইয়ের
+                                বর্ণনা (বা প্রি-অর্ডার বইয়ের বর্ণনা)</label>
                             <textarea name="description" rows="3"
-                                placeholder="১ম বইয়ের বিস্তারিত বর্ণনা বা কম্বো অফারের বিবরণ লিখুন"
+                                placeholder="বইয়ের বিস্তারিত বর্ণনা বা কম্বো অফারের বিবরণ লিখুন"
                                 class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold focus:bg-white outline-none transition-all font-anek font-medium shadow-inner"></textarea>
                         </div>
                         <div class="space-y-2">
