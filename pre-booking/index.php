@@ -423,10 +423,10 @@ function bn_num($num)
 
                     <h1
                         class="text-5xl sm:text-7xl lg:text-8xl font-sans font-black text-brand-900 leading-[1.1] tracking-tight">
-                        বইয়ের জগতে <br>
+                        বইয়ের পাতায় <br>
                         <span
                             class="text-transparent bg-clip-text bg-gradient-to-r from-brand-900 via-brand-gold to-brand-900 bg-[length:200%_auto] animate-gradient">প্রথম
-                            দখল।</span>
+                            ছোঁয়া</span>
                     </h1>
 
                     <p class="text-xl text-gray-500 font-anek max-w-2xl mx-auto lg:mx-0 leading-relaxed">
