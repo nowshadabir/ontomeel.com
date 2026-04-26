@@ -520,7 +520,7 @@ function bn_num($num)
 
                         <div class="price-box">
                             <div class="space-y-1">
-                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">विशेष मूल्य
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">কম্বো মূল্য
                                 </p>
                                 <div class="flex items-baseline gap-4">
                                     <span
