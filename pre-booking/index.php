@@ -531,8 +531,6 @@ function bn_num($num)
                             </div>
                             <div class="h-16 w-[1px] bg-gray-200 hidden sm:block"></div>
                             <div class="space-y-1">
-                                <p class="text-[10px] text-brand-gold uppercase tracking-widest font-bold mb-1">আপনি
-                                    বাঁচাচ্ছেন</p>
                                 <p class="text-lg sm:text-2xl font-bold font-anek text-brand-gold">
                                     ৳<?php echo bn_num((int) ($hot_deal['price'] - $hot_deal['discount_price'])); ?> সাশ্রয়
                                 </p>
