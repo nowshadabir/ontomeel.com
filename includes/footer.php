@@ -34,7 +34,7 @@
                 <ul class="space-y-3 text-sm text-gray-400">
                     <li><a href="#" class="hover:text-brand-gold transition-colors">সাধারণ জিজ্ঞাসা (FAQ)</a></li>
                     <li><a href="#" class="hover:text-brand-gold transition-colors">ডেলিভারি ও রিটার্ন</a></li>
-                    <li><a href="#" class="hover:text-brand-gold transition-colors">যোগাযোগ</a></li>
+                    <li><a href="<?php echo $path_prefix ?? ''; ?>contact/contact.php" class="hover:text-brand-gold transition-colors">যোগাযোগ</a></li>
                 </ul>
             </div>
 
