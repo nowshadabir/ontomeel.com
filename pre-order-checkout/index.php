@@ -213,7 +213,7 @@ endif; ?>
 
                     <div class="mt-6 space-y-2">
                         <div class="flex flex-wrap items-center justify-between gap-2 ml-2">
-                            <label class="text-[10px] font-bold text-[#D12053] uppercase tracking-widest">আপনার ট্রাঞ্জেকশন আইডিটি দিন *</label>
+                            <label class="text-[10px] font-bold text-[#D12053] uppercase">বিকাশ পেমেন্টের ট্রানজেকশন আইডিটি নিচের বক্সে দিন*</label>
                             <button onclick="toggleTutorial()" class="text-[10px] font-bold text-brand-900 bg-brand-gold/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 hover:bg-brand-gold hover:text-brand-900 transition-all shrink-0">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 টিউটোরিয়াল দেখুন
