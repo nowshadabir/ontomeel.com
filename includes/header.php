@@ -2,6 +2,16 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Calculate Project Root for absolute URLs
+$script_name = $_SERVER['SCRIPT_NAME'];
+$p_prefix = $path_prefix ?? '';
+$depth = substr_count($p_prefix, '../');
+$path_array = explode('/', trim($script_name, '/'));
+$parts_to_keep = count($path_array) - $depth - 1;
+$project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+$base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/');
 ?>
 <!DOCTYPE html>
 <html lang="bn" class="scroll-smooth">
@@ -23,14 +33,14 @@ if (session_status() == PHP_SESSION_NONE) {
     <meta property="og:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="og:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="og:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
-    <meta property="og:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
+    <meta property="og:image" content="<?php echo $og_image ?? $base_url . '/assets/img/image-og.jpeg'; ?>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="twitter:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="twitter:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
-    <meta property="twitter:image" content="<?php echo $og_image ?? ($path_prefix ?? '') . 'assets/img/og-image.jpg'; ?>">
+    <meta property="twitter:image" content="<?php echo $og_image ?? $base_url . '/assets/img/image-og.jpeg'; ?>">
 
     <!-- Google Fonts for Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,14 +65,6 @@ if (session_status() == PHP_SESSION_NONE) {
     <!-- favicon -->
     <link rel="icon" href="<?php echo $path_prefix ?? ''; ?>assets/img/logo.webp">
 
-    <?php
-$script_name = $_SERVER['SCRIPT_NAME'];
-$p_prefix = $path_prefix ?? '';
-$depth = substr_count($p_prefix, '../');
-$path_array = explode('/', trim($script_name, '/'));
-$parts_to_keep = count($path_array) - $depth - 1;
-$project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
-?>
     <?php
 $m_plan = 'None';
 if (isset($_SESSION['user_id'])) {
