@@ -40,146 +40,43 @@ function bn_num($num)
 ?>
 
 <!-- Hero Section -->
-<header class="relative min-h-screen flex items-center overflow-hidden hero-bg bg-brand-900 pt-20">
-    <!-- Overlay Layers -->
-    <div class="mesh-gradient absolute inset-0"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-brand-900 via-brand-900/60 to-transparent"></div>
+<header class="relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-900 pt-20">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+        <img src="assets/img/image-og.jpeg" class="w-full h-full object-cover opacity-50" alt="Background">
+        <div class="absolute inset-0 bg-gradient-to-b from-brand-900/80 via-brand-900/40 to-brand-900"></div>
+        <div class="absolute inset-0 mesh-gradient opacity-30"></div>
+    </div>
 
-    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full py-12 lg:py-0">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <!-- Content Column -->
-            <div class="text-center lg:text-left">
-                <!-- <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-brand-gold/20 bg-brand-gold/5 text-brand-gold_light text-xs md:text-sm mb-10 animate-slide-up shadow-sm"
-                        style="animation-delay: 0.1s;">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-gold"></span>
-                        </span>
-                        <span class="font-medium tracking-wide">গল্পের এক অনন্য অভয়ারণ্য</span>
-                    </div> -->
+    <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+        <h1 class="text-6xl md:text-8xl lg:text-9xl font-anek font-extrabold text-white mb-8 leading-[1.1] animate-slide-up"
+            style="animation-delay: 0.3s;">
+            পড়ুন, ধার নিন,<br>
+            <span class="text-brand-gold">সংগ্রহ করুন।</span>
+        </h1>
 
-                <h1 class="text-6xl md:text-7xl lg:text-[100px] font-anek font-extrabold text-white mb-8 leading-[1] sm:leading-[0.9] animate-slide-up"
-                    style="animation-delay: 0.3s;">
-                    পড়ুন, ধার নিন,<br>
-                    <span class="text-gradient-gold">এবং সংগ্রহ করুন।</span>
-                </h1>
+        <p class="text-gray-300 text-lg md:text-2xl font-light mb-12 max-w-2xl mx-auto animate-slide-up leading-relaxed"
+            style="animation-delay: 0.5s;">
+            অন্ত্যমিল - একটি প্রিমিয়াম বুকস্টোর এবং আধুনিক লাইব্রেরির মেলবন্ধন। আমাদের বাছাইকৃত সংগ্রহে খুঁজে পান সাহিত্যের অমূল্য সম্পদ।
+        </p>
 
-                <p class="text-gray-300 text-lg md:text-xl font-light mb-12 max-w-xl mx-auto lg:mx-0 animate-slide-up leading-relaxed"
-                    style="animation-delay: 0.5s;">
-                    অন্ত্যমিল, একটি প্রিমিয়াম বুকস্টোর এবং আধুনিক লাইব্রেরির এক অপূর্ব মেলবন্ধন। আমাদের বাছাইকৃত
-                    সংগ্রহে খুঁজে পান সাহিত্যের অমূল্য সম্পদ।
-                </p>
-
-                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-6 animate-slide-up"
-                    style="animation-delay: 0.7s;">
-                    <a href="#discover"
-                        class="group relative px-10 py-5 bg-brand-gold text-brand-900 font-bold text-lg overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(205,168,115,0.4)]">
-                        <span class="relative z-10 flex items-center gap-2">
-                            এক্সপ্লোর করুন
-                            <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </span>
-                    </a>
-                    <a href="membership/"
-                        class="px-10 py-5 bg-transparent border border-white/30 text-white font-medium text-lg btn-premium glass hover:border-brand-gold transition-all duration-300">
-                        মেম্বারশিপ নিন
-                    </a>
-                </div>
-
-                <!-- Stats Section -->
-                <div class="mt-16 md:mt-20 grid grid-cols-2 lg:flex items-center gap-6 md:gap-12 animate-slide-up"
-                    style="animation-delay: 0.9s;">
-                    <div class="flex flex-col">
-                        <span class="text-3xl md:text-4xl font-anek font-bold text-white">১৩হা<span
-                                class="text-brand-gold">+</span></span>
-                        <span
-                            class="text-gray-400 text-[10px] md:text-xs uppercase tracking-[0.2em] mt-1 md:mt-2 font-medium">বইয়ের
-                            সংগ্রহ</span>
-                    </div>
-                    <div class="hidden lg:block h-10 w-px bg-brand-gold/20"></div>
-                    <div class="flex flex-col border-l border-brand-gold/20 pl-6 lg:border-0 lg:pl-0">
-                        <span class="text-3xl md:text-4xl font-anek font-bold text-white">১হা<span
-                                class="text-brand-gold">+</span></span>
-                        <span
-                            class="text-gray-400 text-[10px] md:text-xs uppercase tracking-[0.2em] mt-1 md:mt-2 font-medium">সক্রিয়া
-                            पाठक</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Visual Column -->
-            <div class="hidden lg:flex justify-center items-center relative hero-visual-container min-h-[600px] reveal"
-                style="transition-delay: 400ms;">
-                <!-- Ambient Glow -->
-                <div class="glow-aura glow-gold w-[500px] h-[500px]"></div>
-
-                <!-- Main Feature: 3D Book Mockup -->
-                <div class="relative z-20 w-[320px] book-3d floating-card">
-                    <!-- Book Cover -->
-                    <div
-                        class="relative aspect-[2/3] rounded-r-lg overflow-hidden shadow-[20px_20px_50px_rgba(0,0,0,0.5)] border-l-2 border-white/20 skeleton">
-                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000&auto=format&fit=crop"
-                            alt="Featured Book" class="w-full h-full object-cover" fetchpriority="high" loading="eager" onload="this.parentElement.classList.remove('skeleton')">
-                        <!-- Shine effect on cover -->
-                        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent">
-                        </div>
-                    </div>
-
-                    <!-- Floating Badge on Book -->
-                    <div class="absolute -top-6 -right-10 glass px-6 py-4 rounded-2xl shadow-2xl border border-white/20 animate-float"
-                        style="animation-delay: -2s;">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-brand-gold p-2 rounded-full">
-                                <svg class="w-4 h-4 text-brand-900" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-brand-900 font-anek font-bold text-lg leading-none">৪.৯</p>
-                                <p class="text-gray-600 text-[10px] uppercase font-bold tracking-widest mt-1">পাঠক
-                                    রেটিং</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Decorative Elements -->
-                <div class="absolute -bottom-10 -right-20 w-64 glass p-6 rounded-3xl shadow-2xl border border-white/20 animate-slide-up"
-                    style="animation-delay: 1s;">
-                    <span class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-3 block">বিশেষ
-                        কালেকশন</span>
-                    <h4 class="text-black font-anek font-bold text-xl mb-4 leading-snug">রবীন্দ্রনাথের শ্রেষ্ঠ
-                        গল্পগুচ্ছ</h4>
-                    <div class="flex items-center justify-between">
-                        <span class="text-brand-gold font-bold text-lg font-anek whitespace-nowrap">৳৪৭৫</span>
-                        <a href="#" class="text-white/60 hover:text-brand-gold transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Ambient Floating Circles -->
-                <div
-                    class="absolute top-10 right-0 w-4 h-4 bg-brand-gold rounded-full blur-sm opacity-50 animate-pulse">
-                </div>
-                <div class="absolute bottom-20 left-10 w-2 h-2 bg-brand-gold rounded-full blur-[1px] opacity-30 animate-pulse"
-                    style="animation-delay: 1s;"></div>
-            </div>
+        <div class="flex flex-wrap items-center justify-center gap-6 animate-slide-up"
+            style="animation-delay: 0.7s;">
+            <a href="#discover"
+                class="px-12 py-5 bg-brand-gold text-brand-900 font-bold text-xl transition-all duration-300 hover:shadow-[0_0_40px_rgba(205,168,115,0.3)] hover:bg-white">
+                শুরু করুন
+            </a>
+            <a href="membership/"
+                class="px-12 py-5 border border-white/20 text-white font-medium text-xl hover:border-brand-gold hover:bg-white/5 transition-all duration-300 backdrop-blur-sm">
+                মেম্বারশিপ
+            </a>
         </div>
     </div>
 
     <!-- Scroll Indicator -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-10 text-white cursor-pointer opacity-40 hover:opacity-100 transition-opacity"
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce z-10 text-white cursor-pointer opacity-30 hover:opacity-100 transition-opacity"
         onclick="document.getElementById('collections').scrollIntoView({behavior: 'smooth'})">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3">
             </path>
         </svg>
