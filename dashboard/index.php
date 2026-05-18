@@ -20,6 +20,14 @@ if (!$user) {
 
 $wallet_balance = $user['acc_balance'] ?? 0;
 
+$plan_names_bn = [
+    'General' => 'সাধারণ পাঠক',
+    'BookLover' => 'নিয়মিত পাঠক',
+    'Collector' => 'সাহিত্য অনুরাগী',
+    'None' => 'কোনো মেম্বারশিপ নেই'
+];
+$display_plan_name = $plan_names_bn[$user['membership_plan']] ?? $user['membership_plan'];
+
 // 2. Stats
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM borrows WHERE member_id = ? AND status IN ('Active', 'Processing')");
 $stmt->execute([$user_id]);
@@ -359,7 +367,7 @@ function getDaysRemaining($due_date)
                     </div>
                     <div class="space-y-4">
                         <p class="text-2xl font-anek font-bold text-brand-900 leading-tight">
-                            <?php echo htmlspecialchars($user['membership_plan']); ?> মেম্বার
+                            <?php echo htmlspecialchars($display_plan_name); ?><?php if ($user['membership_plan'] !== 'None') echo ' মেম্বার'; ?>
                         </p>
                         <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
                             <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1 leading-none">
@@ -842,8 +850,7 @@ endif; ?>
                             </p>
                             <div class="flex flex-wrap items-center gap-3">
                                 <span
-                                    class="px-4 py-2 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest"><?php echo htmlspecialchars($user['membership_plan']); ?>
-                                    মেম্বার</span>
+                                    class="px-4 py-2 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest"><?php echo htmlspecialchars($display_plan_name); ?><?php if ($user['membership_plan'] !== 'None') echo ' মেম্বার'; ?></span>
                                 <?php if ($user['membership_plan'] != 'None' && $user['plan_expire_date']): ?>
                                     <span class="px-4 py-2 bg-red-100 text-red-600 rounded-full text-xs font-bold">মেয়াদ
                                         শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?></span>

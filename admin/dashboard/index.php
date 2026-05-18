@@ -286,6 +286,13 @@ function bn_num($num)
                 </svg>
                 পেমেন্ট সেটিংস
             </button>
+            <button onclick="switchTab('membership')" id="nav-membership"
+                class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                মেম্বারশিপ রিকোয়েস্ট
+            </button>
             <button onclick="switchTab('profile')" id="nav-profile"
                 class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -909,11 +916,11 @@ function bn_num($num)
                                                 <?php
                                                 $plan = $member['membership_plan'] ?? 'None';
                                                 if ($plan == 'General')
-                                                    echo 'সাধারণ';
+                                                    echo 'সাধারণ পাঠক';
                                                 else if ($plan == 'BookLover')
-                                                    echo 'বইপ্রেমী';
+                                                    echo 'নিয়মিত পাঠক';
                                                 else if ($plan == 'Collector')
-                                                    echo 'সংগ্রাহক';
+                                                    echo 'সাহিত্য অনুরাগী';
                                                 else
                                                     echo 'বেসিক';
                                                 ?>
@@ -1568,6 +1575,98 @@ function bn_num($num)
                             class="w-full py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">চার্জ
                             আপডেট করুন</button>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== Tab: Membership Requests ====== -->
+        <div id="tab-membership" class="p-8 lg:p-12 tab-content hidden font-anek">
+            <div class="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-brand-900 mb-2">মেম্বারশিপ রিকোয়েস্ট</h1>
+                    <p class="text-gray-500 font-light">বিকাশ/নগদ পেমেন্ট ভেরিফাই করে মেম্বারশিপ প্ল্যান অ্যাক্টিভ বা বাতিল করুন।</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-100 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="px-8 py-6">তারিখ ও আইডি</th>
+                                <th class="px-8 py-6">সদস্যের নাম ও যোগাযোগ</th>
+                                <th class="px-8 py-6">নির্বাচিত প্ল্যান</th>
+                                <th class="px-8 py-6">পেমেন্ট মেথড ও TrxID</th>
+                                <th class="px-8 py-6">ফি</th>
+                                <th class="px-8 py-6">স্ট্যাটাস</th>
+                                <th class="px-8 py-6 text-right">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 text-sm">
+                            <?php
+                            $req_stmt = $pdo->query("SELECT mr.*, m.full_name, m.email, m.phone FROM membership_requests mr JOIN members m ON mr.member_id = m.id ORDER BY mr.created_at DESC");
+                            $requests = $req_stmt->fetchAll();
+
+                            $plan_names = [
+                                'General' => 'সাধারণ পাঠক',
+                                'BookLover' => 'নিয়মিত পাঠক',
+                                'Collector' => 'সাহিত্য অনুরাগী'
+                            ];
+
+                            if (empty($requests)): ?>
+                                <tr>
+                                    <td colspan="7" class="px-8 py-12 text-center text-gray-400 font-light">কোনো রিকোয়েস্ট পাওয়া যায়নি</td>
+                                </tr>
+                            <?php else:
+                                foreach ($requests as $req): ?>
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="px-8 py-6">
+                                            <span class="font-bold text-brand-900 block">REQ-<?php echo $req['id']; ?></span>
+                                            <span class="text-xs text-gray-400"><?php echo date('d M Y, h:i A', strtotime($req['created_at'])); ?></span>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <span class="font-bold text-gray-900 block"><?php echo htmlspecialchars($req['full_name']); ?></span>
+                                            <span class="text-xs text-gray-500"><?php echo htmlspecialchars($req['phone']); ?> | <?php echo htmlspecialchars($req['email']); ?></span>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <span class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-xs font-bold">
+                                                <?php echo $plan_names[$req['plan']] ?? $req['plan']; ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-8 py-6 font-mono">
+                                            <span class="font-bold text-brand-900 block"><?php echo strtoupper($req['payment_method']); ?></span>
+                                            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600"><?php echo htmlspecialchars($req['trx_id']); ?></span>
+                                        </td>
+                                        <td class="px-8 py-6 font-bold text-brand-900 font-anek">
+                                            ৳<?php echo $req['amount']; ?>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <?php if ($req['status'] === 'Confirmed'): ?>
+                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Confirmed</span>
+                                            <?php elseif ($req['status'] === 'Cancelled'): ?>
+                                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Cancelled</span>
+                                            <?php else: ?>
+                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">Pending</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-8 py-6 text-right space-x-2">
+                                            <?php if ($req['status'] === 'Pending'): ?>
+                                                <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'confirm')"
+                                                    class="px-4 py-2 bg-brand-900 text-white rounded-xl text-xs font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow">
+                                                    Confirm
+                                                </button>
+                                                <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'cancel')"
+                                                    class="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-all shadow">
+                                                    Cancel
+                                                </button>
+                                            <?php else: ?>
+                                                <span class="text-xs text-gray-400 italic">No action</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                            <?php endforeach; endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -4185,6 +4284,26 @@ function bn_num($num)
                     btn.disabled = false;
                     btn.textContent = 'পাসওয়ার্ড পরিবর্তন করুন';
                 });
+        }
+
+        function updateMembershipRequest(id, action) {
+            if (!confirm(`Are you sure you want to ${action} this membership request?`)) return;
+
+            const formData = new FormData();
+            formData.append('request_id', id);
+            formData.append('action', action);
+
+            fetch('update_membership_request.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(`Request ${action}ed successfully!`);
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        alert(data.message || 'Error updating request');
+                    }
+                })
+                .catch(() => alert('Server error'));
         }
 
     </script>

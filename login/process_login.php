@@ -5,7 +5,7 @@ require_once '../includes/db_connect.php';
 require_once '../includes/security_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Rate limiting check
+    // Rate limiting check (Re-enabled as per security requirements)
     if (!check_rate_limit('login', 5, 300)) {
         // Log the event
         log_security_event('rate_limit_exceeded', ['identifier' => 'login']);
