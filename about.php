@@ -7,7 +7,7 @@ if ($lang === 'en') {
     $page_keywords = 'About Us, Ontomeel, Bookstore, Bookshop';
 } else {
     $page_title = 'আমাদের সম্পর্কে | অন্ত্যমিল';
-    $page_description = 'অন্ত্যমিল একটি অনলাইন বুকস্টোর, যা সর্বত্র পাঠকদের জন্য মানসম্মত বই সহজলভ্য করার উদ্দেশ্যে নিবেদিত।';
+    $page_description = 'অন্ত্যমিল একটি ডিজিটাল বুকস্টোর, যা সর্বত্র পাঠকদের জন্য মানসম্মত বই সহজলভ্য করার উদ্দেশ্যে নিবেদিত।';
     $page_keywords = 'অন্ত্যমিল, About Us, Ontomeel, বুকস্টোর, বইয়ের দোকান';
 }
 
@@ -29,7 +29,7 @@ include 'includes/header.php';
             <?php if ($lang === 'en'): ?>
                 Ontomeel - Online <span class="text-gradient-gold">Bookstore</span>
             <?php else: ?>
-                অন্ত্যমিল - অনলাইন <span class="text-gradient-gold">বুকস্টোর</span>
+                অন্ত্যমিল - ডিজিটাল <span class="text-gradient-gold">বুকস্টোর</span>
             <?php endif; ?>
         </h1>
     </div>
@@ -88,15 +88,15 @@ include 'includes/header.php';
         </div>
         <?php else: ?>
         <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 leading-relaxed text-gray-700 space-y-6">
-            <h2 class="text-3xl font-serif text-brand-900 mb-4">অন্ত্যমিল – আপনার বিশ্বস্ত অনলাইন বুকস্টোর</h2>
+            <h2 class="text-3xl font-serif text-brand-900 mb-4">অন্ত্যমিল – আপনার বিশ্বস্ত ডিজিটাল বুকস্টোর</h2>
             <p class="text-lg font-light">
-                অন্ত্যমিল একটি আধুনিক অনলাইন ও অফলাইন বুকস্টোর, যার লক্ষ্য দেশের প্রতিটি বইপ্রেমীর কাছে মানসম্মত বই সহজে পৌঁছে দেওয়া। আমরা বিশ্বাস করি, একটি ভালো বই মানুষের জ্ঞান, চিন্তাশক্তি ও কল্পনাশক্তিকে সমৃদ্ধ করে। সেই বিশ্বাস থেকেই আমরা পাঠকদের জন্য নির্ভরযোগ্য ও সহজ একটি বই কেনার প্ল্যাটফর্ম গড়ে তুলেছি।
+                অন্ত্যমিল একটি আধুনিক ডিজিটাল ও অফলাইন বুকস্টোর, যার লক্ষ্য দেশের প্রতিটি বইপ্রেমীর কাছে মানসম্মত বই সহজে পৌঁছে দেওয়া। আমরা বিশ্বাস করি, একটি ভালো বই মানুষের জ্ঞান, চিন্তাশক্তি ও কল্পনাশক্তিকে সমৃদ্ধ করে। সেই বিশ্বাস থেকেই আমরা পাঠকদের জন্য নির্ভরযোগ্য ও সহজ একটি বই কেনার প্ল্যাটফর্ম গড়ে তুলেছি।
             </p>
             <p class="text-lg font-light">
                 আমাদের সংগ্রহে রয়েছে বাংলা ও বিদেশি লেখকদের ফিকশন, নন-ফিকশন, একাডেমিক বই, শিশু-কিশোর সাহিত্য, আত্ম-উন্নয়নমূলক বই, ধর্মীয় গ্রন্থসহ বিভিন্ন বিষয় ও ঘরানার বই। পাঠকের প্রয়োজন ও আগ্রহকে গুরুত্ব দিয়ে আমরা নিয়মিত নতুন বই যুক্ত করি এবং মানসম্পন্ন প্রকাশনীর বই সংগ্রহে রাখি।
             </p>
             <p class="text-lg font-light">
-                আমাদের লক্ষ্য শুধু বই বিক্রি নয়; বরং পাঠাভ্যাসকে উৎসাহিত করা এবং জ্ঞান ও সৃজনশীলতার প্রসারে একটি ইতিবাচক ভূমিকা রাখা। তাই আমরা সর্বোচ্চ মানের সেবা নিশ্চিত করতে নিরাপদ অনলাইন পেমেন্ট, দ্রুত ও নির্ভরযোগ্য ডেলিভারি এবং আন্তরিক গ্রাহক সহায়তা প্রদান করে থাকি।
+                আমাদের লক্ষ্য শুধু বই বিক্রি নয়; বরং পাঠাভ্যাসকে উৎসাহিত করা এবং জ্ঞান ও সৃজনশীলতার প্রসারে একটি ইতিবাচক ভূমিকা রাখা। তাই আমরা সর্বোচ্চ মানের সেবা নিশ্চিত করতে নিরাপদ ডিজিটাল পেমেন্ট, দ্রুত ও নির্ভরযোগ্য ডেলিভারি এবং আন্তরিক গ্রাহক সহায়তা প্রদান করে থাকি।
             </p>
             <p class="text-lg font-light">
                 অন্ত্যমিল সবসময় এমন একটি কেনাকাটার অভিজ্ঞতা নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ, যেখানে প্রতিটি পাঠক সহজেই তাঁর পছন্দের বই খুঁজে পাবেন এবং নির্ভরতার সঙ্গে অর্ডার করতে পারবেন।
@@ -108,7 +108,7 @@ include 'includes/header.php';
             <h2 class="text-3xl font-serif text-brand-900 mb-6">কোম্পানির তথ্য</h2>
             <ul class="space-y-4 text-gray-700 font-light">
                 <li><strong class="font-medium">ব্যবসার নাম:</strong> অন্ত্যমিল</li>
-                <li><strong class="font-medium">ব্যবসার ধরন:</strong> অনলাইন ও অফলাইন বুকস্টোর</li>
+                <li><strong class="font-medium">ব্যবসার ধরন:</strong> ডিজিটাল ও অফলাইন বুকস্টোর</li>
                 <li><strong class="font-medium">ওয়েবসাইট:</strong> <a href="http://www.ontomeel.com" class="text-brand-gold hover:underline">www.ontomeel.com</a></li>
                 <li><strong class="font-medium">ইমেইল:</strong> <a href="mailto:info@ontomeel.com" class="text-brand-gold hover:underline">info@ontomeel.com</a></li>
                 <li><strong class="font-medium">ফোন:</strong> <a href="tel:+8801330975787" class="text-brand-gold hover:underline">+৮৮০১৩৩০৯৭৫৭৮৭</a></li>
