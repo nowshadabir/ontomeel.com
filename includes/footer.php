@@ -32,8 +32,10 @@
             <div>
                 <h4 class="font-serif text-xl font-bold mb-6 text-brand-gold_light">সাপোর্ট</h4>
                 <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="#" class="hover:text-brand-gold transition-colors">সাধারণ জিজ্ঞাসা (FAQ)</a></li>
-                    <li><a href="#" class="hover:text-brand-gold transition-colors">ডেলিভারি ও রিটার্ন</a></li>
+                    <li><a href="<?php echo $path_prefix ?? ''; ?>about.php" class="hover:text-brand-gold transition-colors">আমাদের সম্পর্কে</a></li>
+                    <li><a href="<?php echo $path_prefix ?? ''; ?>terms.php" class="hover:text-brand-gold transition-colors">শর্তাবলী</a></li>
+                    <li><a href="<?php echo $path_prefix ?? ''; ?>privacy.php" class="hover:text-brand-gold transition-colors">প্রাইভেসি পলিসি</a></li>
+                    <li><a href="<?php echo $path_prefix ?? ''; ?>refund.php" class="hover:text-brand-gold transition-colors">রিটার্ন ও রিফান্ড</a></li>
                     <li><a href="<?php echo $path_prefix ?? ''; ?>contact/contact.php" class="hover:text-brand-gold transition-colors">যোগাযোগ</a></li>
                 </ul>
             </div>
