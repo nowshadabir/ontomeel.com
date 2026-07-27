@@ -58,8 +58,8 @@
         </div>
 
         <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-gray-500 text-sm">© Developed by: <a href="https://www.facebook.com/vivagodigital/"
-                    target="_blank" class="hover:text-brand-gold transition-colors">Vivago Digital</a></p>
+            <p class="text-gray-500 text-sm">© Developed by: <a href="https://www.facebook.com/vivagotechnologies/"
+                    target="_blank" class="hover:text-brand-gold transition-colors">VIVAGO TECHNOLOGIES</a></p>
             <div class="flex space-x-4 text-gray-400">
                 <a href="#" class="hover:text-brand-gold transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -49,7 +49,7 @@ Behind the scenes, Ontomeel.com equips platform administrators with powerful too
 **This project is a proprietary, closed-source client project.**
 
 - **Client:** Ontomeel.com
-- **Developed By:** [VIVAGO DIGITAL](https://vivagodigital.com) (or developer team)
+- **Developed By:** [VIVAGO TECHNOLOGIES](https://vivagotechnologies.com) (or developer team)
 - **Usage:** This repository is made public **strictly for education and research purposes**. 
 
 ⚠️ **Cloning, downloading, forking, or directly copying the source code for personal, commercial, or derivative use is STRICTLY PROHIBITED.** 

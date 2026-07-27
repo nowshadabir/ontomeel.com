@@ -23,8 +23,8 @@ $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/'
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন। সাহিত্য ও জ্ঞানের এক অনন্য ভান্ডার।'; ?>">
-    <meta name="keywords" content="<?php echo $page_keywords ?? 'বুকস্টোর, লাইব্রেরি, অনলাইন বুক শপ, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, Vivago Digital, অনলাইন লাইব্রেরি'; ?>">
-    <meta name="author" content="Vivago Digital">
+    <meta name="keywords" content="<?php echo $page_keywords ?? 'বুকস্টোর, লাইব্রেরি, অনলাইন বুক শপ, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, VIVAGO TECHNOLOGIES, অনলাইন লাইব্রেরি'; ?>">
+    <meta name="author" content="VIVAGO TECHNOLOGIES">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
 

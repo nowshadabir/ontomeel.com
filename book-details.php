@@ -40,7 +40,7 @@ function bn_num($num)
 // SEO Meta Tags
 $page_title = $book['title'] . ' | ' . $book['author'] . ' - অন্ত্যমিল';
 $page_description = $book['title'] . ' বাই ' . $book['author'] . ' - ' . mb_substr(strip_tags($book['description'] ?? ''), 0, 160) . '...';
-$page_keywords = $book['title'] . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, Vivago Digital, অনলাইন বুকস্টোর';
+$page_keywords = $book['title'] . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, VIVAGO TECHNOLOGIES, অনলাইন বুকস্টোর';
 $og_image = getBookImage($book['cover_image'] ?? '');
 
 include 'includes/header.php';

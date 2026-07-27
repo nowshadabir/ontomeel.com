@@ -1,12 +1,12 @@
 # Proprietary Educational & Research License
 
 **Project:** Ontomeel.com
-**Developer:** VIVAGO DIGITAL
+**Developer:** VIVAGO TECHNOLOGIES
 **Client:** Ontomeel
 **Year:** 2026
 
 ## Preamble
-This software and its associated documentation (the "Software") constitute a proprietary client project developed explicitly for Ontomeel by VIVAGO DIGITAL.
+This software and its associated documentation (the "Software") constitute a proprietary client project developed explicitly for Ontomeel by VIVAGO TECHNOLOGIES.
 
 The repository is made public solely for the purposes of **education** and **research**. By accessing this repository, you agree strictly to the following terms and conditions.
 
@@ -26,7 +26,7 @@ You may not modify, alter, adapt, or create derivative works from the Software.
 The source code, assets, and any system logic contained herein must not be used for financial gain, commercial purposes, or to develop competing products or services.
 
 ## 5. Intellectual Property
-All rights, title, and intellectual property within this project, including but not limited to the source code, design elements, and associated media, belong exclusively to **Ontomeel** and the developers, **VIVAGO DIGITAL**.
+All rights, title, and intellectual property within this project, including but not limited to the source code, design elements, and associated media, belong exclusively to **Ontomeel** and the developers, **VIVAGO TECHNOLOGIES**.
 
 ---
 **Disclaimer**
