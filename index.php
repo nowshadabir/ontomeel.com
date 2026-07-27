@@ -215,24 +215,7 @@ endforeach; ?>
                         class="object-cover w-full h-full transform hover:scale-105 transition-transform duration-1000">
                     <div class="absolute inset-0 bg-gradient-to-t from-brand-900/80 to-transparent"></div>
                 </div>
-                <!-- Floating Badge -->
-                <div
-                    class="absolute -bottom-6 -right-6 lg:-right-12 glass-dark p-6 rounded-xl animate-float max-w-xs shadow-2xl">
-                    <div class="flex items-start gap-4">
-                        <div class="bg-brand-gold/20 p-3 rounded-full text-brand-gold flex-shrink-0">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="font-serif font-bold text-lg mt-1">আনলিমিটেড বই পড়া</h4>
-                            <p class="text-sm text-gray-400 mt-1">আমাদের ৫০,০০০+ বইয়ের বিশাল সংগ্রহ থেকে আপনার
-                                পছন্দের বই বেছে নিন।</p>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             <div class="order-1 lg:order-2 reveal">
@@ -281,109 +264,124 @@ endforeach; ?>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-center">
 
-            <!-- Plan 1 -->
-            <div
-                class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-shadow duration-300 reveal">
-                <h3 class="text-2xl font-serif text-brand-900 mb-2 font-bold">সাধারণ পাঠক</h3>
-                <div class="flex items-baseline gap-1 mb-6">
-                    <span class="text-4xl font-bold text-brand-900">৳২০০</span>
-                    <span class="text-gray-500 text-sm">/মাস</span>
+            <!-- General Reader Plan -->
+            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full">
+                <div>
+                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাধারণ পাঠক</h3>
+                    <p class="text-gray-500 text-sm mb-8 font-anek">বই ও কফির আড্ডায় যারা মেতে উঠতে ভালোবাসেন।</p>
+                    <div class="flex items-baseline gap-1 mb-8">
+                        <span class="text-5xl font-bold text-brand-900 font-anek">৳৫০০</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>ব্র্যান্ডেড টি-শার্ট</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>বই ক্রয়ে ১০% ছাড়</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>কミュニটি লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="space-y-4 mb-8 text-sm text-gray-600">
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> একসাথে ২টি বই ধার নিতে পারবেন</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> ডিজিটাল লাইব্রেরি অ্যাক্সেস</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> বই কেনায় ৫% ছাড়</li>
-                </ul>
-                <button
-                    class="w-full py-3 border border-brand-900 text-brand-900 font-medium rounded hover:bg-brand-900 hover:text-white transition-colors">প্ল্যানটি
-                    কিনুন</button>
+                <a href="membership/request.php?plan=General"
+                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">প্ল্যানটি বেছে নিন</a>
             </div>
 
-            <!-- Plan 2 (Featured) -->
-            <div class="bg-brand-900 p-8 rounded-2xl shadow-2xl relative transform md:-translate-y-4 reveal"
-                style="transition-delay: 100ms;">
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full text-center">
-                    <span
-                        class="bg-brand-gold text-brand-900 text-xs font-bold uppercase tracking-wider py-1.5 px-6 rounded-full inline-block">সবচেয়ে
-                        জনপ্রিয়</span>
+            <!-- Regular Reader Plan (Featured) -->
+            <div class="bg-brand-900 p-12 rounded-3xl shadow-2xl relative transform lg:scale-105 border border-brand-gold/30 hover:border-brand-gold hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full" style="transition-delay: 100ms;">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-gold text-brand-900 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest font-anek shadow-xl">
+                    সর্বাধিক জনপ্রিয়
                 </div>
-                <h3 class="text-2xl font-serif text-white mb-2 font-bold mt-2">বইপ্রেমী</h3>
-                <div class="flex items-baseline gap-1 mb-6">
-                    <span class="text-4xl font-bold text-white">৳৫০০</span>
-                    <span class="text-gray-400 text-sm">/মাস</span>
+                <div>
+                    <h3 class="text-2xl font-anek font-bold text-white mb-2">নিয়মিত পাঠক</h3>
+                    <p class="text-gray-400 text-sm mb-8 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই。</p>
+                    <div class="flex items-baseline gap-1 mb-8">
+                        <span class="text-5xl font-bold text-white font-anek text-gradient-gold">৳১০০০</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 text-gray-300 font-anek text-base">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>ব্র্যান্ডেড টি-শার্ট ও টোট ব্যাগ</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>সাধারণ পাঠকের সব সুবিধা + অতিরিক্ত ৫% (মোট ১৫%) ছাড়</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>ক্রাফট কাউন্টার থেকে কেনাকাটার সুবিধা</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>চমকপ্রদ বুকমার্ক/সাহিত্যিক পোস্টকার্ড</span>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="space-y-4 mb-8 text-sm text-gray-300">
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> একসাথে ৫টি বই ধার নিতে পারবেন</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> ই-বুক ও অডিওবুক অ্যাক্সেস</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> বই কেনায় ১৫% ছাড়</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> ফ্রি হোম ডেলিভারি</li>
-                </ul>
-                <button
-                    class="w-full py-3 bg-brand-gold text-brand-900 font-bold rounded hover:bg-white transition-colors">প্ল্যানটি
-                    কিনুন</button>
+                <a href="membership/request.php?plan=BookLover"
+                    class="block text-center w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-xl shadow-brand-gold/20 text-lg">প্ল্যানটি বেছে নিন</a>
             </div>
 
-            <!-- Plan 3 -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-shadow duration-300 reveal"
-                style="transition-delay: 200ms;">
-                <h3 class="text-2xl font-serif text-brand-900 mb-2 font-bold">সংগ্রাহক</h3>
-                <div class="flex items-baseline gap-1 mb-6">
-                    <span class="text-4xl font-bold text-brand-900">৳১০০০</span>
-                    <span class="text-gray-500 text-sm">/মাস</span>
+            <!-- Literature Enthusiast Plan -->
+            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full" style="transition-delay: 200ms;">
+                <div>
+                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাহিত্য অনুরাগী</h3>
+                    <p class="text-gray-500 text-sm mb-8 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য。</p>
+                    <div class="flex items-baseline gap-1 mb-8">
+                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১৫০০</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>ব্র্যান্ডেড টি-শার্ট, টোট ব্যাগ ও মগ</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>নিয়মিত পাঠকের সব সুবিধা + অতিরিক্ত ৫% (মোট ২০%) ছাড়</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>কাট-ফ্লাওয়ার কাউন্টার থেকে কেনাকাটার সুবিধা</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>প্রিমিয়াম ধার নেওয়ার অধিকার (বর্ধিত সময়, অগ্রাধিকারমূলক শিরোনাম)</span>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="space-y-4 mb-8 text-sm text-gray-600">
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> আনলিমিটেড বই ধার</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> রেয়ার এডিশনের আর্লি অ্যাক্সেস</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> বই কেনায় ২৫% ছাড়</li>
-                    <li class="flex items-center gap-3"><svg class="w-5 h-5 text-brand-gold" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg> ভিআইপি লাউঞ্জ অ্যাক্সেস</li>
-                </ul>
-                <button
-                    class="w-full py-3 border border-brand-900 text-brand-900 font-medium rounded hover:bg-brand-900 hover:text-white transition-colors">প্ল্যানটি
-                    কিনুন</button>
+                <a href="membership/request.php?plan=Collector"
+                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">প্ল্যানটি বেছে নিন</a>
             </div>
 
         </div>
