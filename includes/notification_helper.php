@@ -171,7 +171,7 @@ function send_notification_instantly($to, $type, $data)
                 <a href=\"https://ontomeel.com/dashboard\" style=\"background-color: $color; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">View Your Order</a>
             </p>
             <div style=\"margin-top: 40px; border-top: 1px solid #eeeeee; padding-top: 15px; font-size: 12px; color: #888888; text-align: center;\">
-                <p><strong>Ontomeel Bookshop</strong><br>Online Store</p>
+                <p><strong>Ontomeel Bookshop</strong><br>A Premium Store</p>
                 <p>&copy; " . date('Y') . " All Rights Reserved.</p>
                 <p><a href=\"https://ontomeel.com/unsubscribe.php?email=" . urlencode($to) . "\" style=\"color: #888888;\">Unsubscribe</a></p>
             </div>

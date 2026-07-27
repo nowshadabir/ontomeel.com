@@ -3,7 +3,7 @@ $lang = isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'bn']) ? $_GET['l
 
 if ($lang === 'en') {
     $page_title = 'About Us | Ontomeel';
-    $page_description = 'Ontomeel is an online bookstore dedicated to making quality books easily accessible to readers everywhere.';
+    $page_description = 'Ontomeel is an A Premium bookstore dedicated to making quality books easily accessible to readers everywhere.';
     $page_keywords = 'About Us, Ontomeel, Bookstore, Bookshop';
 } else {
     $page_title = 'আমাদের সম্পর্কে | অন্ত্যমিল';
@@ -27,7 +27,7 @@ include 'includes/header.php';
         </span>
         <h1 class="text-5xl md:text-7xl font-serif text-white mb-6 animate-slide-up" style="animation-delay: 0.2s">
             <?php if ($lang === 'en'): ?>
-                Ontomeel - Online <span class="text-gradient-gold">Bookstore</span>
+                Ontomeel - A Premium <span class="text-gradient-gold">Bookstore</span>
             <?php else: ?>
                 অন্ত্যমিল - <span class="text-gradient-gold">বুকস্টোর</span> (অনলাইন ও অফলাইন)
             <?php endif; ?>
@@ -49,13 +49,13 @@ include 'includes/header.php';
         <?php if ($lang === 'en'): ?>
         <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 leading-relaxed text-gray-700 space-y-6">
             <p class="text-lg font-light">
-                Ontomeel is an online bookstore dedicated to making quality books easily accessible to readers everywhere. We offer a vast collection of books across various genres, including fiction, non-fiction, academic, children's literature, and self-development.
+                Ontomeel is an A Premium bookstore dedicated to making quality books easily accessible to readers everywhere. We offer a vast collection of books across various genres, including fiction, non-fiction, academic, children's literature, and self-development.
             </p>
             <p class="text-lg font-light">
                 Our mission is to foster a reading culture by providing a convenient, reliable, and customer-friendly platform for book lovers. We strive to connect readers with knowledge, inspiration, and stories that enrich their lives.
             </p>
             <p class="text-lg font-light">
-                At Ontomeel, we are committed to delivering an excellent shopping experience through a carefully curated catalog, secure online transactions, timely delivery, and responsive customer support.
+                At Ontomeel, we are committed to delivering an excellent shopping experience through a carefully curated catalog, secure A Online transactions, timely delivery, and responsive customer support.
             </p>
         </div>
 
