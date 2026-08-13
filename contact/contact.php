@@ -40,10 +40,11 @@ include '../includes/header.php';
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-serif text-brand-900 mb-2">আমাদের অবস্থান</h3>
+                    <h3 class="text-xl font-serif text-brand-900 mb-2">আমাদের অবস্থান ও ডেলিভারি</h3>
                     <div class="space-y-3 text-gray-600 font-light text-sm leading-relaxed">
                         <p><strong class="font-medium text-brand-900">শোরুম:</strong><br>শপ নং ৬, চেইঞ্জিং ক্লোজেট বিল্ডিং, মোটেল লাবণী রোড, কক্সবাজার।</p>
                         <p><strong class="font-medium text-brand-900">নিবন্ধিত ঠিকানা (ট্রেড লাইসেন্স):</strong><br>আজিজুল হক রোড, পশ্চিম জয়দেবপুর, গাজীপুর সদর, গাজীপুর–১৭০০।</p>
+                        <p><strong class="font-medium text-brand-900">ডেলিভারি সময়সূচী:</strong><br>ঢাকা সিটির ভেতরে: ৫ দিন | ঢাকা সিটির বাইরে: ১০ দিন</p>
                     </div>
                 </div>
 

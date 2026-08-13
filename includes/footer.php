@@ -9,10 +9,13 @@
                     <span class="font-serif text-3xl font-bold tracking-wide mt-1">অন্ত্যমিল<span
                             class="text-brand-gold">.</span></span>
                 </a>
-                <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                    একটি প্রিমিয়াম বুকস্টোর এবং লাইব্রেরির অপূর্ব মেলবন্ধন। আপনার পছন্দের গল্পগুলো খুঁজে নিন আমাদের
-                    কাছে।
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                    একটি প্রিমিয়াম বুকস্টোর এবং লাইব্রেরির অপূর্ব মেলবন্ধন। আপনার পছন্দের গল্পগুলো খুঁজে নিন আমাদের কাছে।
                 </p>
+                <div class="text-xs text-gray-400 space-y-2 border-t border-gray-800 pt-4 mb-6">
+                    <p><strong class="text-gray-300 font-medium">নিবন্ধিত ঠিকানা:</strong> আজিজুল হক রোড, পশ্চিম জয়দেবপুর, গাজীপুর সদর, গাজীপুর–১৭০০।</p>
+                    <p><strong class="text-gray-300 font-medium">ডেলিভারি সময়:</strong> ঢাকার ভেতরে ৫ দিন | ঢাকার বাইরে ১০ দিন</p>
+                </div>
             </div>
 
             <div>
