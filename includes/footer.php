@@ -63,7 +63,7 @@
         </div>
 
         <div class="border-t border-gray-800 pt-8 flex justify-center items-center">
-            <p class="text-gray-500 text-sm text-center">© Developed by: <a href="https://www.facebook.com/vivagotechnologies/"
+            <p class="text-gray-500 text-sm text-center">© Developed by: <a href="https://vivagotechnologies.com"
                     target="_blank" class="hover:text-brand-gold transition-colors">VIVAGO TECHNOLOGIES</a></p>
         </div>
     </div>
