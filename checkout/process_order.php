@@ -92,6 +92,9 @@ switch ($payment_method) {
     case 'nagad':
         $db_payment_method = 'Nagad';
         break;
+    case 'sslcommerz':
+        $db_payment_method = 'SSLCommerz';
+        break;
     case 'card':
         $db_payment_method = 'Card';
         break;
@@ -229,53 +232,54 @@ try {
 
     $pdo->commit();
 
-    // Send Notification Email
-    try {
-        // We use the email captured from the form ($email variable)
-        $target_email = $email;
+    // Send Notification Email ONLY if payment is already done (e.g. Wallet/Fund) or COD
+    if ($payment_status === 'Paid' || $payment_method === 'cod') {
+        try {
+            // We use the email captured from the form ($email variable)
+            $target_email = $email;
 
-        // Breadcrumb Log
-        $log_id = $invoice_no ?? 'UNKNOWN';
-        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: Order #$log_id | User ID: " . ($user_id ?: 'GUEST') . " | Email: $target_email\n", FILE_APPEND);
+            // Breadcrumb Log
+            $log_id = $invoice_no ?? 'UNKNOWN';
+            file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: Order #$log_id | User ID: " . ($user_id ?: 'GUEST') . " | Email: $target_email\n", FILE_APPEND);
 
-        if ($target_email) {
-            $notif_data = [
-                'name' => $name,
-                'invoice_no' => $invoice_no,
-                'amount' => $total_amount,
-                'address' => $shipping_addr
-            ];
-            
-            // ... (rest of book detail logic) ...
-            if (!empty($cart)) {
-                $firstItem = $cart[0];
-                $itemId = $firstItem['id'];
-                $isPreorder = (strpos($itemId, 'pre_') === 0);
+            if ($target_email) {
+                $notif_data = [
+                    'name' => $name,
+                    'invoice_no' => $invoice_no,
+                    'amount' => $total_amount,
+                    'address' => $shipping_addr
+                ];
                 
-                if ($isPreorder) {
-                    $realId = substr($itemId, 4);
-                    $stmt = $pdo->prepare("SELECT title, author FROM pre_orders WHERE id = ?");
-                    $stmt->execute([$realId]);
-                    $info = $stmt->fetch();
-                    $notif_data['is_preorder'] = true;
-                } else {
-                    $stmt = $pdo->prepare("SELECT title, author FROM books WHERE id = ?");
-                    $stmt->execute([$itemId]);
-                    $info = $stmt->fetch();
+                if (!empty($cart)) {
+                    $firstItem = $cart[0];
+                    $itemId = $firstItem['id'];
+                    $isPreorder = (strpos($itemId, 'pre_') === 0);
+                    
+                    if ($isPreorder) {
+                        $realId = substr($itemId, 4);
+                        $stmt = $pdo->prepare("SELECT title, author FROM pre_orders WHERE id = ?");
+                        $stmt->execute([$realId]);
+                        $info = $stmt->fetch();
+                        $notif_data['is_preorder'] = true;
+                    } else {
+                        $stmt = $pdo->prepare("SELECT title, author FROM books WHERE id = ?");
+                        $stmt->execute([$itemId]);
+                        $info = $stmt->fetch();
+                    }
+
+                    if ($info) {
+                        $notif_data['book_title_en'] = $info['title']; // Using title as fallback
+                        $notif_data['book_author_en'] = $info['author'];
+                    }
                 }
 
-                if ($info) {
-                    $notif_data['book_title_en'] = $info['title']; // Using title as fallback
-                    $notif_data['book_author_en'] = $info['author'];
-                }
+                $result = send_notification($target_email, 'order_placed', $notif_data);
+                file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: send_notification triggered. Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
             }
-
-            $result = send_notification($target_email, 'order_placed', $notif_data);
-            file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT: send_notification triggered. Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
+        } catch (Exception $e) {
+            file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+            error_log("Mail Error in Checkout: " . $e->getMessage());
         }
-    } catch (Exception $e) {
-        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] CHECKOUT ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
-        error_log("Mail Error in Checkout: " . $e->getMessage());
     }
 
     sendResponse(true, 'অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।', ['order_id' => $invoice_no]);

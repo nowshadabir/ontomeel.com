@@ -48,6 +48,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'base_url' => $_POST['base_url'] ?? ''
                     ], JSON_PRETTY_PRINT));
                 }
+            } elseif ($method_key === 'sslcommerz') {
+                $ssl_config_dir = '../../sslcommerz';
+                if (!is_dir($ssl_config_dir)) {
+                    mkdir($ssl_config_dir, 0755, true);
+                }
+                file_put_contents($ssl_config_dir . '/config.json', json_encode([
+                    'store_id' => $_POST['store_id'] ?? '',
+                    'store_passwd' => $_POST['store_passwd'] ?? '',
+                    'is_sandbox' => $_POST['is_sandbox'] ?? '1'
+                ], JSON_PRETTY_PRINT));
             }
             
             echo json_encode(['success' => true]);

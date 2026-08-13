@@ -150,7 +150,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                 <div onclick="selectPayment('bkash')" id="pay-bkash"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#D12053]/50 transition-all flex items-center justify-between group">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
                                             <div id="dot-bkash" class="w-2.5 h-2.5 bg-[#D12053] rounded-full hidden"></div>
                                         </div>
                                         <span
@@ -167,7 +167,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                 <div onclick="selectPayment('nagad')" id="pay-nagad"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-[#EF1F23]/50 transition-all flex items-center justify-between group">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
                                             <div id="dot-nagad" class="w-2.5 h-2.5 bg-[#EF1F23] rounded-full hidden"></div>
                                         </div>
                                         <span
@@ -184,7 +184,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                 <div onclick="selectPayment('cod')" id="pay-cod"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-900/50 transition-all flex items-center justify-between group">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
                                             <div id="dot-cod" class="w-2.5 h-2.5 bg-brand-900 rounded-full hidden"></div>
                                         </div>
                                         <span class="font-anek font-bold text-brand-900">ক্যাশ অন ডেলিভারি</span>
@@ -202,7 +202,7 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                 <div onclick="selectPayment('fund')" id="pay-fund"
                                     class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
                                             <div id="dot-fund" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
                                         </div>
                                         <div class="flex flex-col">
@@ -214,7 +214,26 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                                 available</span>
                                         </div>
                                     </div>
-                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors" fill="none"
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors shrink-0" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
+                                    </svg>
+                                </div>
+                            <?php
+        elseif ($method['method_key'] == 'sslcommerz'): ?>
+                                <!-- Option: SSLCommerz -->
+                                <div onclick="selectPayment('sslcommerz')" id="pay-sslcommerz"
+                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
+                                    <div class="flex items-center gap-3 min-w-0 pr-2">
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
+                                            <div id="dot-sslcommerz" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
+                                        </div>
+                                        <span
+                                            class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors text-sm truncate">কার্ড / মোবাইল ব্যাংকিং</span>
+                                    </div>
+                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors shrink-0" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
@@ -407,7 +426,7 @@ endif; ?>
         }
 
         // Handle dots
-        const dots = ['bkash', 'nagad', 'cod', 'fund'];
+        const dots = ['bkash', 'nagad', 'cod', 'fund', 'sslcommerz'];
         dots.forEach(d => {
             const dot = document.getElementById(`dot-${d}`);
             if (dot) dot.classList.add('hidden');
@@ -504,11 +523,13 @@ endif; ?>
     }
 
     function confirmOrder() {
-        const name = document.getElementById('cust-name').value;
-        const phone = document.getElementById('cust-phone').value;
-        const email = document.getElementById('cust-email').value;
-        const addr = document.getElementById('cust-address').value;
-        const city = document.getElementById('cust-city').value;
+        if (isOrderSubmitting) return;
+
+        const name = document.getElementById('cust-name').value.trim();
+        const phone = document.getElementById('cust-phone').value.trim();
+        const email = document.getElementById('cust-email').value.trim();
+        const addr = document.getElementById('cust-address').value.trim();
+        const city = document.getElementById('cust-city').value.trim();
 
         if (!name || !phone || !email || !addr) {
             showToast('দয়া করে সব তথ্য পূরণ করুন (ইমেইল সহ)।');
@@ -538,6 +559,23 @@ endif; ?>
             return;
         }
 
+        const orderBtn = document.querySelector('button[onclick="confirmOrder()"]');
+        const originalBtnHtml = orderBtn ? orderBtn.innerHTML : '';
+
+        // Disable button & show spinner
+        isOrderSubmitting = true;
+        if (orderBtn) {
+            orderBtn.disabled = true;
+            orderBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            orderBtn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>প্রসেসিং হচ্ছে...</span>
+            `;
+        }
+
         const location = document.querySelector('input[name="location"]:checked').value;
         const formData = new FormData();
         formData.append('name', name);
@@ -562,6 +600,15 @@ endif; ?>
                     if (selectedPayMethod === 'bkash') {
                         // Start bKash flow
                         initiateBkash(data.order_id, finalAmount);
+                        return;
+                    } else if (selectedPayMethod === 'sslcommerz') {
+                        // Clear Cart & Redirect to SSLCommerz initiation
+                        if (checkoutType === 'borrow') {
+                            localStorage.removeItem('antyam_borrow_cart');
+                        } else {
+                            localStorage.removeItem('antyam_cart');
+                        }
+                        window.location.href = '../sslcommerz/initiate.php?order_id=' + data.order_id;
                         return;
                     }
 

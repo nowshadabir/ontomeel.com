@@ -1486,6 +1486,9 @@ function bn_num($num)
                                         <img src="../../assets/img/nagad-logo.jpg" class="w-8 h-auto"
                                             onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
                                         <?php
+                                    elseif ($method['method_key'] == 'sslcommerz'): ?>
+                                        <img src="../../assets/img/footer_banner.png" class="w-10 h-auto object-contain">
+                                        <?php
                                     elseif ($method['method_key'] == 'cod'): ?>
                                         <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -1524,7 +1527,7 @@ function bn_num($num)
                         </div>
 
                         <div class="space-y-4">
-                            <?php if ($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad'): ?>
+                            <?php if ($method['method_key'] == 'bkash' || $method['method_key'] == 'nagad' || $method['method_key'] == 'sslcommerz'): ?>
                                 <button
                                     onclick="openPaymentConfigModal('<?php echo $method['method_key']; ?>', <?php echo htmlspecialchars(json_encode($config), ENT_QUOTES); ?>)"
                                     class="w-full py-4 bg-brand-light text-brand-900 rounded-2xl font-anek font-bold text-xs hover:bg-brand-900 hover:text-white transition-all">API
@@ -3801,6 +3804,24 @@ function bn_num($num)
                     <div class="space-y-2">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Merchant Phone</label>
                         <input type="text" name="merchant_phone" value="${config.merchant_phone || ''}" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                `;
+            } else if (methodKey === 'sslcommerz') {
+                fieldsHtml = `
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Store ID *</label>
+                        <input type="text" name="store_id" value="${config.store_id || ''}" placeholder="e.g. ontom67b5e..." class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Store Password *</label>
+                        <input type="password" name="store_passwd" value="${config.store_passwd || ''}" placeholder="e.g. ontom67b5e@ssl" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-2">Environment Mode</label>
+                        <select name="is_sandbox" class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:ring-2 focus:ring-brand-gold outline-none transition-all font-anek">
+                            <option value="1" ${config.is_sandbox == '1' || config.is_sandbox === true ? 'selected' : ''}>Sandbox (Testing Mode)</option>
+                            <option value="0" ${config.is_sandbox == '0' || config.is_sandbox === false ? 'selected' : ''}>Live (Production Mode)</option>
+                        </select>
                     </div>
                 `;
             }

@@ -428,7 +428,11 @@ endif; ?>
         switchStep('step-2', 'step-1');
     }
 
+    let isPreOrderSubmitting = false;
+
     async function submitPreOrder() {
+        if (isPreOrderSubmitting) return;
+
         const addr = document.getElementById('po-address').value.trim();
         const senderNum = document.getElementById('po-sender-number').value.trim();
 
@@ -442,6 +446,8 @@ endif; ?>
             showError('পেমেন্ট নিশ্চিত করতে শর্তাবলী, প্রাইভেসি পলিসি এবং রিটার্ন পলিসিতে সম্মতি দিন');
             return;
         }
+
+        isPreOrderSubmitting = true;
 
         // Switch to Step 3 (Verifying Animation)
         switchStep('step-2', 'step-3');
@@ -479,6 +485,7 @@ endif; ?>
                     document.getElementById('final-order-id').innerText = '#' + data.order_id;
                     switchStep('step-3', 'step-4');
                 } else {
+                    isPreOrderSubmitting = false;
                     showError(data.message || 'একটি সমস্যা হয়েছে।');
                     switchStep('step-3', 'step-2');
                 }
@@ -489,6 +496,7 @@ endif; ?>
             const remainingTime = Math.max(0, minAnimDuration - elapsedTime);
             
             setTimeout(() => {
+                isPreOrderSubmitting = false;
                 showError('নেটওয়ার্ক সমস্যা। আবার চেষ্টা করুন।');
                 switchStep('step-3', 'step-2');
             }, remainingTime);
