@@ -285,8 +285,15 @@ endif; ?>
                     </div>
                 </div>
 
+                <div class="mt-6 mb-4 flex items-start gap-3">
+                    <input type="checkbox" id="terms-agree" class="mt-1 w-4 h-4 text-brand-gold rounded border-gray-300 focus:ring-brand-gold cursor-pointer" required>
+                    <label for="terms-agree" class="text-xs text-gray-600 font-anek leading-relaxed cursor-pointer">
+                        আমি অন্ত্যমিলের <a href="<?php echo $path_prefix ?? ''; ?>terms.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">শর্তাবলী</a>, <a href="<?php echo $path_prefix ?? ''; ?>privacy.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">প্রাইভেসি পলিসি</a> এবং <a href="<?php echo $path_prefix ?? ''; ?>refund.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">রিটার্ন ও রিফান্ড নীতি</a> পড়েছি এবং সম্মত আছি।
+                    </label>
+                </div>
+
                 <button onclick="confirmOrder()"
-                    class="w-full mt-10 bg-brand-900 text-white py-5 rounded-[20px] font-anek font-bold text-lg hover:bg-brand-gold hover:text-brand-900 transition-all duration-500 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-3">
+                    class="w-full mt-2 bg-brand-900 text-white py-5 rounded-[20px] font-anek font-bold text-lg hover:bg-brand-gold hover:text-brand-900 transition-all duration-500 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-3">
                     <span><?php echo($checkout_type == 'borrow') ? 'ধার নিশ্চিত করুন' : 'অর্ডার কনফার্ম করুন'; ?></span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -511,6 +518,12 @@ endif; ?>
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             showToast('সঠিক ইমেইল এড্রেস প্রদান করুন।');
+            return;
+        }
+
+        const agreeCheckbox = document.getElementById('terms-agree');
+        if (!agreeCheckbox || !agreeCheckbox.checked) {
+            showToast('অর্ডার সম্পন্ন করতে শর্তাবলী, প্রাইভেসি পলিসি এবং রিটার্ন পলিসিতে সম্মতি দিন।');
             return;
         }
         

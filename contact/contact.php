@@ -41,10 +41,10 @@ include '../includes/header.php';
                         </svg>
                     </div>
                     <h3 class="text-xl font-serif text-brand-900 mb-2">আমাদের অবস্থান</h3>
-                    <p class="text-gray-600 font-light leading-relaxed">
-                        শপ নং ৬, চেইঞ্জিং ক্লোজেট বিল্ডিং,<br>
-                        মোটেল লাবণী রোড, কক্সবাজার।
-                    </p>
+                    <div class="space-y-3 text-gray-600 font-light text-sm leading-relaxed">
+                        <p><strong class="font-medium text-brand-900">শোরুম:</strong><br>শপ নং ৬, চেইঞ্জিং ক্লোজেট বিল্ডিং, মোটেল লাবণী রোড, কক্সবাজার।</p>
+                        <p><strong class="font-medium text-brand-900">নিবন্ধিত ঠিকানা (ট্রেড লাইসেন্স):</strong><br>আজিজুল হক রোড, পশ্চিম জয়দেবপুর, গাজীপুর সদর, গাজীপুর–১৭০০।</p>
+                    </div>
                 </div>
 
                 <!-- Phone & Email -->

@@ -230,7 +230,13 @@ endif; ?>
                     </div>
                 </div>
             </div>
-            <div class="mt-8 flex flex-col-reverse sm:flex-row justify-between gap-4">
+            <div class="mt-6 mb-2 flex items-start gap-3">
+                <input type="checkbox" id="po-terms-agree" class="mt-1 w-4 h-4 text-[#D12053] rounded border-gray-300 focus:ring-[#D12053] cursor-pointer" required>
+                <label for="po-terms-agree" class="text-xs text-gray-600 font-anek leading-relaxed cursor-pointer">
+                    আমি অন্ত্যমিলের <a href="../terms.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">শর্তাবলী</a>, <a href="../privacy.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">প্রাইভেসি পলিসি</a> এবং <a href="../refund.php" target="_blank" class="text-brand-900 font-bold underline hover:text-brand-gold">রিটার্ন ও রিফান্ড নীতি</a> পড়েছি এবং সম্মত আছি।
+                </label>
+            </div>
+            <div class="mt-6 flex flex-col-reverse sm:flex-row justify-between gap-4">
                 <button onclick="goToStep1()"
                     class="w-full sm:w-auto text-brand-900 px-6 py-4 font-anek font-bold hover:text-brand-gold transition-all flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -428,6 +434,12 @@ endif; ?>
 
         if (!senderNum) {
             showError('দয়া করে পেমেন্ট করার নম্বরটি লিখুন');
+            return;
+        }
+
+        const agreeCheckbox = document.getElementById('po-terms-agree');
+        if (!agreeCheckbox || !agreeCheckbox.checked) {
+            showError('পেমেন্ট নিশ্চিত করতে শর্তাবলী, প্রাইভেসি পলিসি এবং রিটার্ন পলিসিতে সম্মতি দিন');
             return;
         }
 
