@@ -6,6 +6,7 @@ Disallow: /login/
 Disallow: /signup/
 Disallow: /includes/
 Disallow: /bkash/
+Disallow: /sslcommerz/
 Disallow: /checkout/
 Disallow: /pre-order-checkout/
 

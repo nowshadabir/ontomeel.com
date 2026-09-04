@@ -65,7 +65,7 @@ include 'includes/header.php';
             <ul class="space-y-4 text-gray-700 font-light">
                 <li><strong class="font-medium">Business Name:</strong> Ontomeel</li>
                 <li><strong class="font-medium">Business Type:</strong> Bookstore (Offline and Online)</li>
-                <li><strong class="font-medium">Website:</strong> <a href="http://www.ontomeel.com" class="text-brand-gold hover:underline">www.ontomeel.com</a></li>
+                <li><strong class="font-medium">Website:</strong> <a href="https://www.ontomeel.com" class="text-brand-gold hover:underline">www.ontomeel.com</a></li>
                 <li><strong class="font-medium">Email:</strong> <a href="mailto:info@ontomeel.com" class="text-brand-gold hover:underline">info@ontomeel.com</a></li>
                 <li><strong class="font-medium">Phone:</strong> <a href="tel:+8801330975787" class="text-brand-gold hover:underline">+8801330975787</a></li>
                 <li><strong class="font-medium">Address:</strong> Shop No 6, Changing Closet Building, Motel Laboni Road, Cox's Bazar</li>
@@ -109,7 +109,7 @@ include 'includes/header.php';
             <ul class="space-y-4 text-gray-700 font-light">
                 <li><strong class="font-medium">ব্যবসার নাম:</strong> অন্ত্যমিল</li>
                 <li><strong>ব্যবসার ধরন:</strong> বুকস্টোর (অনলাইন ও অফলাইন)</li>
-                <li><strong class="font-medium">ওয়েবসাইট:</strong> <a href="http://www.ontomeel.com" class="text-brand-gold hover:underline">www.ontomeel.com</a></li>
+                <li><strong class="font-medium">ওয়েবসাইট:</strong> <a href="https://www.ontomeel.com" class="text-brand-gold hover:underline">www.ontomeel.com</a></li>
                 <li><strong class="font-medium">ইমেইল:</strong> <a href="mailto:info@ontomeel.com" class="text-brand-gold hover:underline">info@ontomeel.com</a></li>
                 <li><strong class="font-medium">ফোন:</strong> <a href="tel:+8801330975787" class="text-brand-gold hover:underline">+৮৮০১৩৩০৯৭৫৭৮৭</a></li>
                 <li><strong class="font-medium">শোরুমের ঠিকানা:</strong> শপ নং ৬, চেইঞ্জিং ক্লোজেট বিল্ডিং, মোটেল লাবণী রোড, কক্সবাজার।</li>

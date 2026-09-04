@@ -5,7 +5,10 @@
 .env.*.local
 *.env
 config.php
+!/sslcommerz/config.php
 credentials.json
+config.json
+*/config.json
 includes/db_connect.php
 
 # --- Database & Backups ---
@@ -53,4 +56,3 @@ desktop.ini
 # Specific to local development environments
 .phpunit.result.cache
 .antigravityignore
-.htaccess

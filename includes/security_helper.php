@@ -25,15 +25,15 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
     ini_set('session.use_strict_mode', 1);
-    ini_set('session.cookie_samesite', 'Strict');
-    // Secure flag only if HTTPS is on
-    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_samesite', 'Lax');
+    // Secure flag if HTTPS is on (including behind reverse proxies/Cloudflare)
+    $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    if ($isHttps) {
         ini_set('session.cookie_secure', 1);
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
 }
-
-// Force HTTPS (uncomment in production)
-// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
 /**
  * Generate CSRF token
@@ -167,11 +167,25 @@ function get_rate_limit_remaining($identifier, $max_attempts = 5)
 function init_secure_session()
 {
     if (session_status() == PHP_SESSION_NONE) {
-        // Set secure session parameters
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
-        ini_set('session.use_strict_mode', 1);
-        ini_set('session.cookie_samesite', 'Strict');
+        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+        if (PHP_VERSION_ID >= 70300) {
+            session_set_cookie_params([
+                'lifetime' => 86400 * 30,
+                'path' => '/',
+                'domain' => '',
+                'secure' => $isHttps,
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+        } else {
+            ini_set('session.cookie_httponly', 1);
+            ini_set('session.cookie_secure', $isHttps ? 1 : 0);
+            ini_set('session.use_strict_mode', 1);
+            ini_set('session.cookie_samesite', 'Lax');
+            session_set_cookie_params(86400 * 30, '/');
+        }
 
         session_start();
 

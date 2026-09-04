@@ -1,0 +1,59 @@
+# ==============================================================================
+# Security Hardening & Access Control for Ontomeel
+# ==============================================================================
+
+# 1. Disable directory browsing
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 2. Block access to hidden directories and files (like .git, .git/*, .env, etc.)
+    RewriteRule (^|/)\.(?!well-known) - [F,L,NC]
+
+    # 3. Block access to sensitive configuration, backup, and database directories/files
+    RewriteRule \.(env|json|sql|log|md|sh|bak|backup|config|ini)$ - [F,L,NC]
+    RewriteRule ^(database|backups)/ - [F,L,NC]
+</IfModule>
+
+# Fallback protection via FilesMatch (for Apache 2.2 & 2.4)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "\.(env|json|sql|log|md|sh|bak|backup|config|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Explicit file blocks
+<Files ".env">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</Files>
+
+<Files "config.json">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</Files>

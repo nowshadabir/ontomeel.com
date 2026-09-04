@@ -375,6 +375,7 @@ endif; ?>
 </div>
 
 <script>
+    let isOrderSubmitting = false;
     const checkoutType = "<?php echo $checkout_type; ?>";
     const currentUserFund = <?php echo (int)$user_balance; ?>;
     const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
@@ -397,15 +398,17 @@ endif; ?>
 
     function showToast(message) {
         const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toast-message');
-        toastMsg.innerText = message;
-        toast.classList.remove('translate-y-20', 'opacity-0', 'invisible');
-        toast.classList.add('translate-y-0', 'opacity-100', 'visible');
+        const toastMsg = document.getElementById('toast-message') || document.getElementById('toast-msg');
+        if (toastMsg) toastMsg.innerText = message;
+        if (toast) {
+            toast.classList.remove('translate-y-20', 'opacity-0', 'invisible');
+            toast.classList.add('translate-y-0', 'opacity-100', 'visible');
 
-        setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0', 'invisible');
-            toast.classList.remove('translate-y-0', 'opacity-100', 'visible');
-        }, 5000);
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'invisible');
+                toast.classList.remove('translate-y-0', 'opacity-100', 'visible');
+            }, 5000);
+        }
     }
 
 
@@ -562,6 +565,16 @@ endif; ?>
         const orderBtn = document.querySelector('button[onclick="confirmOrder()"]');
         const originalBtnHtml = orderBtn ? orderBtn.innerHTML : '';
 
+        // Helper to reset button state on failure
+        const resetOrderButton = () => {
+            isOrderSubmitting = false;
+            if (orderBtn) {
+                orderBtn.disabled = false;
+                orderBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                orderBtn.innerHTML = originalBtnHtml;
+            }
+        };
+
         // Disable button & show spinner
         isOrderSubmitting = true;
         if (orderBtn) {
@@ -576,7 +589,8 @@ endif; ?>
             `;
         }
 
-        const location = document.querySelector('input[name="location"]:checked').value;
+        const locInput = document.querySelector('input[name="location"]:checked');
+        const location = locInput ? locInput.value : 'inside';
         const formData = new FormData();
         formData.append('name', name);
         formData.append('phone', phone);
@@ -635,11 +649,13 @@ endif; ?>
                         createConfetti();
                     }, 100);
                 } else {
+                    resetOrderButton();
                     showToast('অর্ডার প্রসেস করতে ত্রুটি হয়েছে: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                resetOrderButton();
                 showToast('অর্ডার প্রসেস করতে একটি নেটওয়ার্ক ত্রুটি হয়েছে।');
             });
     }
