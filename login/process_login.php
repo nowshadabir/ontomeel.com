@@ -50,7 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['membership_id'] = $user['membership_id'];
-                $_SESSION['membership_plan'] = $user['membership_plan'];
+
+                // Synchronize membership expiration state
+                $user_plan = $user['membership_plan'] ?? 'None';
+                if ($user_plan !== 'None' && !empty($user['plan_expire_date'])) {
+                    if (strtotime($user['plan_expire_date']) < time()) {
+                        $user_plan = 'None';
+                        $pdo->prepare("UPDATE members SET membership_plan = 'None' WHERE id = ?")->execute([$user['id']]);
+                    }
+                }
+                $_SESSION['membership_plan'] = $user_plan;
 
                 header("Location: ../dashboard/");
                 exit();

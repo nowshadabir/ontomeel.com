@@ -8,13 +8,25 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
-    $member_id = $_SESSION['user_id'];
+    require_once __DIR__ . '/../includes/security_helper.php';
+
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (!verify_csrf_token($csrf_token)) {
+        die("নিরাপত্তা যাচাই ব্যর্থ হয়েছে (CSRF Invalid)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।");
+    }
+
+    $member_id = (int)$_SESSION['user_id'];
     $plan = trim($_POST['plan'] ?? '');
-    $payment_method = trim($_POST['payment_method'] ?? '');
+    $payment_method = trim($_POST['payment_method'] ?? 'bkash');
     $trx_id = trim($_POST['trx_id'] ?? '');
     $amount = (float) ($_POST['amount'] ?? 0);
 
-    if (empty($plan) || empty($payment_method) || empty($trx_id) || $amount <= 0) {
+    $valid_plans = ['General', 'BookLover', 'Collector'];
+    if (!in_array($plan, $valid_plans)) {
+        die("অবৈধ প্ল্যান নির্বাচন করা হয়েছে।");
+    }
+
+    if (empty($trx_id) || $amount <= 0) {
         die("সব তথ্য সঠিকভাবে প্রদান করা আবশ্যক।");
     }
 

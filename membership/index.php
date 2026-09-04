@@ -5,14 +5,17 @@ include '../includes/db_connect.php';
 include '../includes/header.php';
 
 $current_user_plan = 'None';
+$plan_expire_date = null;
 if (isset($_SESSION['user_id'])) {
-    $stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT membership_plan, plan_expire_date FROM members WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_data = $stmt->fetch();
     if ($user_data) {
         $current_user_plan = $user_data['membership_plan'];
+        $plan_expire_date = $user_data['plan_expire_date'];
     }
 }
+$is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) && strtotime($plan_expire_date) > time());
 ?>
 
 <!-- Membership Hero -->
@@ -27,7 +30,7 @@ if (isset($_SESSION['user_id'])) {
 
         <!-- Active Notice -->
         <div class="mt-10 inline-flex items-center gap-4 px-8 py-4 bg-white/10 backdrop-blur-md border border-brand-gold/30 rounded-full shadow-2xl">
-            <p class="text-brand-gold font-anek font-bold tracking-wide text-sm md:text-base">আমাদের মেম্বারশিপ প্রোগ্রাম এখন উন্মুক্ত! আজই যুক্ত হোন অন্ত্যমিল পরিবারে。</p>
+            <p class="text-brand-gold font-anek font-bold tracking-wide text-sm md:text-base">আমাদের মেম্বারশিপ প্রোগ্রাম এখন উন্মুক্ত! আজই যুক্ত হোন অন্ত্যমিল পরিবারে।</p>
         </div>
 
         <?php if (isset($_GET['request']) && $_GET['request'] == 'success'): ?>
@@ -36,9 +39,9 @@ if (isset($_SESSION['user_id'])) {
             </div>
         <?php endif; ?>
 
-        <?php if ($current_user_plan != 'None'): ?>
-            <div class="mt-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 max-w-lg mx-auto shadow-2xl">
-                <span class="text-brand-gold text-xs font-bold uppercase tracking-widest mb-1 block font-anek">আপনার বর্তমান প্ল্যান</span>
+        <?php if ($is_plan_active): ?>
+            <div class="mt-12 bg-white/10 backdrop-blur-md border border-brand-gold/30 rounded-3xl p-8 max-w-lg mx-auto shadow-2xl">
+                <span class="text-brand-gold text-xs font-bold uppercase tracking-widest mb-1 block font-anek">আপনার বর্তমান মেম্বারশিপ</span>
                 <h3 class="text-3xl font-anek font-extrabold text-white mb-2">
                     <?php
                     $plan_names = [
@@ -49,9 +52,10 @@ if (isset($_SESSION['user_id'])) {
                     echo $plan_names[$current_user_plan] ?? $current_user_plan;
                     ?>
                 </h3>
-                <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-1.5 rounded-full mt-2">
+                <p class="text-xs text-brand-gold font-mono font-bold mb-3">মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($plan_expire_date)); ?></p>
+                <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-1.5 rounded-full">
                     <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <p class="text-green-300 text-xs font-anek font-bold tracking-wide">আপনার মেম্বারশিপ এখন সক্রিয় আছে</p>
+                    <p class="text-green-300 text-xs font-anek font-bold tracking-wide">মেম্বারশিপ সক্রিয় আছে</p>
                 </div>
             </div>
         <?php endif; ?>
@@ -154,7 +158,13 @@ if (isset($_SESSION['user_id'])) {
                     </ul>
                 </div>
                 <a href="request.php?plan=General"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">প্ল্যানটি বেছে নিন</a>
+                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
+                    <?php 
+                        if ($is_plan_active && $current_user_plan === 'General') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_plan_active) echo 'এই প্ল্যানে পরিবর্তন';
+                        else echo 'প্ল্যানটি বেছে নিন';
+                    ?>
+                </a>
             </div>
 
             <!-- Regular Reader Plan (Featured) -->
@@ -164,7 +174,7 @@ if (isset($_SESSION['user_id'])) {
                 </div>
                 <div>
                     <h3 class="text-2xl font-anek font-bold text-white mb-2">নিয়মিত পাঠক</h3>
-                    <p class="text-gray-400 text-sm mb-8 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই。</p>
+                    <p class="text-gray-400 text-sm mb-8 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
                     <div class="flex items-baseline gap-1 mb-8">
                         <span class="text-5xl font-bold text-white font-anek text-gradient-gold">৳১০০০</span>
                     </div>
@@ -196,14 +206,20 @@ if (isset($_SESSION['user_id'])) {
                     </ul>
                 </div>
                 <a href="request.php?plan=BookLover"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-xl shadow-brand-gold/20 text-lg">প্ল্যানটি বেছে নিন</a>
+                    class="block text-center w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-xl shadow-brand-gold/20 text-lg">
+                    <?php 
+                        if ($is_plan_active && $current_user_plan === 'BookLover') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
+                        else echo 'প্ল্যানটি বেছে নিন';
+                    ?>
+                </a>
             </div>
 
             <!-- Literature Enthusiast Plan -->
             <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full" style="transition-delay: 200ms;">
                 <div>
                     <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাহিত্য অনুরাগী</h3>
-                    <p class="text-gray-500 text-sm mb-8 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য。</p>
+                    <p class="text-gray-500 text-sm mb-8 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য।</p>
                     <div class="flex items-baseline gap-1 mb-8">
                         <span class="text-5xl font-bold text-brand-900 font-anek">৳১৫০০</span>
                     </div>
@@ -235,7 +251,13 @@ if (isset($_SESSION['user_id'])) {
                     </ul>
                 </div>
                 <a href="request.php?plan=Collector"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">প্ল্যানটি বেছে নিন</a>
+                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
+                    <?php 
+                        if ($is_plan_active && $current_user_plan === 'Collector') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
+                        else echo 'প্ল্যানটি বেছে নিন';
+                    ?>
+                </a>
             </div>
         </div>
     </div>

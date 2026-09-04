@@ -127,7 +127,40 @@ function send_notification_instantly($to, $type, $data)
                 <p>We hope you enjoyed the read!</p>
             ";
             break;
-            
+        case 'membership_activated':
+            $subject = "Membership Activated! - " . htmlspecialchars($data['plan_name'] ?? 'Ontomeel');
+            $title = "Welcome to Ontomeel Membership!";
+            $color = "#cda873"; // Brand Gold
+            $content = "
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>Congratulations! Your Ontomeel membership plan <strong>" . htmlspecialchars($data['plan_name']) . "</strong> has been successfully activated.</p>
+                <div style=\"background: #faf8f5; border: 1px solid #e8dfd0; border-radius: 8px; padding: 15px; margin: 15px 0;\">
+                    <p style=\"margin: 4px 0;\"><strong>Membership ID:</strong> " . htmlspecialchars($data['membership_id'] ?? 'N/A') . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Plan:</strong> " . htmlspecialchars($data['plan_name']) . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Valid Until:</strong> " . htmlspecialchars($data['expire_date']) . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Fee Paid:</strong> BDT " . number_format($data['amount'] ?? 0, 2) . " (" . htmlspecialchars($data['payment_method'] ?? 'Online') . ")</p>
+                </div>
+                <p><strong>Your Member Benefits:</strong></p>
+                <ul>
+                    <li>Free book borrowing from our community library collection.</li>
+                    <li>Exclusive member discount on all book purchases.</li>
+                    <li>Exclusive member privileges and access.</li>
+                </ul>
+                <p>Visit your dashboard to start borrowing books today!</p>
+            ";
+            break;
+
+        case 'membership_cancelled':
+            $subject = "Membership Request Update - Ontomeel";
+            $title = "Membership Request Not Confirmed";
+            $color = "#dc2626";
+            $content = "
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
+                <p>We could not verify your membership request for the <strong>" . htmlspecialchars($data['plan_name'] ?? 'selected') . "</strong> plan.</p>
+                <p>If you made a payment or believe this was in error, please reply to this email or contact us at <a href=\"mailto:info@ontomeel.com\">info@ontomeel.com</a> with your transaction details.</p>
+            ";
+            break;
+
         case 'password_recovery':
             $subject = "Recovery Code: " . $data['otp'] . " - Ontomeel";
             $title = "Password Recovery";
