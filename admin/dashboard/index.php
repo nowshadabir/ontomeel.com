@@ -94,7 +94,7 @@ $members_stmt = $pdo->query("SELECT * FROM members ORDER BY created_at DESC");
 $admin_members = $members_stmt->fetchAll();
 
 // Fetch Payment Methods
-$payments_stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY id ASC");
+$payments_stmt = $pdo->query("SELECT * FROM payment_methods WHERE method_key != 'fund' ORDER BY id ASC");
 $payment_methods = $payments_stmt->fetchAll();
 
 // Fetch full admin profile data
@@ -931,12 +931,6 @@ function bn_num($num)
                                         </td>
                                         <td class="px-10 py-6 text-center">
                                             <div class="flex items-center justify-end gap-2">
-                                                <div class="text-right mr-4">
-                                                    <div class="text-xs font-bold text-brand-900">
-                                                        ৳<?php echo bn_num($member['acc_balance']); ?></div>
-                                                    <div class="text-[8px] text-gray-400 uppercase tracking-widest">ওয়ালেট
-                                                        ব্যালেন্স</div>
-                                                </div>
                                                 <button class="text-gray-400 hover:text-brand-900 transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

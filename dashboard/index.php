@@ -18,8 +18,6 @@ if (!$user) {
     exit();
 }
 
-$wallet_balance = $user['acc_balance'] ?? 0;
-
 $plan_names_bn = [
     'General' => 'সাধারণ পাঠক',
     'BookLover' => 'নিয়মিত পাঠক',
@@ -350,7 +348,7 @@ function getDaysRemaining($due_date)
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <!-- Membership Plan Stats -->
                 <div
                     class="dashboard-card bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 transition-all duration-300">
@@ -384,39 +382,6 @@ endif; ?>
                         <a href="../membership/"
                             class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2 hover:underline block leading-none">প্ল্যান
                             পরিবর্তন করুন →</a>
-                    </div>
-                </div>
-
-                <!-- Account Fund Stats -->
-                <div
-                    class="dashboard-card bg-brand-900 p-8 rounded-[32px] shadow-xl shadow-brand-900/10 border border-brand-900/5 transition-all duration-300">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="p-3 bg-brand-gold/20 rounded-2xl text-brand-gold">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <span
-                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">অ্যাকাউন্ট
-                            ফান্ড</span>
-                    </div>
-                    <div class="space-y-4">
-                        <p class="text-3xl font-anek font-bold text-brand-gold">৳
-                            <?php echo number_format($wallet_balance); ?>
-                        </p>
-                        <!-- <button onclick="openAddFundModal()"
-                            class="w-full py-2 bg-brand-gold text-brand-900 rounded-xl font-anek font-bold transition-all hover:bg-white text-xs shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            তহবিল যোগ করুন
-                        </button> -->
-                        <div class="py-2 text-[10px] text-brand-gold/50 font-anek font-bold border border-brand-gold/20 rounded-xl text-center uppercase tracking-widest">তহবিল যোগ করা সাময়িকভাবে বন্ধ আছে</div>
-                        <a href="#"
-                            class="text-[10px] text-white/50 font-bold uppercase tracking-widest mt-2 hover:text-brand-gold transition-colors block text-center leading-none">লেনদেন
-                            দেখুন →</a>
                     </div>
                 </div>
 
@@ -858,16 +823,6 @@ endif; ?>
 endif; ?>
                                 <span class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">ID:
                                     <?php echo htmlspecialchars($user['membership_id']); ?></span>
-                                <div
-                                    class="bg-brand-900 text-brand-gold px-4 py-2 rounded-full flex items-center gap-2">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                        </path>
-                                    </svg>
-                                    <span class="text-xs font-bold font-anek">তহবিল:
-                                        ৳<?php echo number_format($user['acc_balance']); ?></span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1032,56 +987,6 @@ endif; ?>
         </div>
     </div>
 
-    <!-- Add Fund Modal (Disabled) -->
-    <!-- <div id="add-fund-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-md transition-opacity" onclick="closeAddFundModal()">
-        </div>
-        <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden animate-slide-up">
-            <div class="p-8">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-2xl font-anek font-bold text-brand-900 text-center">তহবিল যোগ করুন</h3>
-                    <button onclick="closeAddFundModal()" class="text-gray-400 hover:text-brand-900 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <form action="process_add_fund.php" method="POST" class="space-y-6">
-                    <div class="space-y-2">
-                        <label
-                            class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">পরিমাণ
-                            সিলেক্ট করুন</label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button type="button" onclick="setAmount(100)"
-                                class="py-3 px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold font-anek hover:border-brand-gold hover:bg-brand-gold/5 transition-all">৳১০০</button>
-                            <button type="button" onclick="setAmount(500)"
-                                class="py-3 px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold font-anek hover:border-brand-gold hover:bg-brand-gold/5 transition-all">৳৫০০</button>
-                            <button type="button" onclick="setAmount(1000)"
-                                class="py-3 px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold font-anek hover:border-brand-gold hover:bg-brand-gold/5 transition-all">৳১০০০</button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">অন্য
-                            পরিমাণ (৳)</label>
-                        <input type="number" name="amount" id="custom-amount" required placeholder="0.00" min="1"
-                            class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all font-anek text-brand-900 text-xl font-bold">
-                    </div>
-
-                    <div class="pt-4">
-                        <button type="submit"
-                            class="w-full py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all duration-300 shadow-xl shadow-brand-900/10 mb-2">
-                            টপ-আপ নিশ্চিত করুন
-                        </button>
-                        <p class="text-[10px] text-gray-400 text-center uppercase tracking-wider">বিকাশ/নগদ/রকেট পেমেন্ট
-                            গেটওয়ের মাধ্যমে পেমেন্ট করুন</p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div> -->
 
     <!-- Success Message Toast (Optional but good) -->
     <?php if (isset($_GET['update']) && $_GET['update'] == 'success'): ?>
@@ -1127,8 +1032,6 @@ endif; ?>
 
     <script>
         const sidebar = document.getElementById('dashboard-sidebar');
-        const addFundModal = document.getElementById('add-fund-modal');
-        const customAmountInput = document.getElementById('custom-amount');
 
         function toggleSidebar() {
             const overlay = document.getElementById('sidebar-overlay');
@@ -1163,22 +1066,6 @@ endif; ?>
             if (window.innerWidth < 1024) {
                 toggleSidebar();
             }
-        }
-
-        function openAddFundModal() {
-            addFundModal.classList.remove('hidden');
-            addFundModal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeAddFundModal() {
-            addFundModal.classList.add('hidden');
-            addFundModal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
-
-        function setAmount(val) {
-            customAmountInput.value = val;
         }
 
         // Countdown timer for cancel buttons

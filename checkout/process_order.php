@@ -47,6 +47,9 @@ if ($checkout_type === 'borrow' && !$user_id) {
 
 // Check if payment method is active (only for 'buy' or pre-order)
 if ($checkout_type === 'buy') {
+    if ($payment_method === 'fund') {
+        sendResponse(false, 'ওয়ালেট পেমেন্ট সিস্টেমটি বর্তমানে বন্ধ রয়েছে। অনুগ্রহ করে অন্য কোনো পেমেন্ট মাধ্যম নির্বাচন করুন।');
+    }
     try {
         $pay_stmt = $pdo->prepare("SELECT is_active FROM payment_methods WHERE method_key = ?");
         $pay_stmt->execute([$payment_method]);
@@ -83,9 +86,6 @@ if ($checkout_type === 'borrow') {
 // Payment method mapping for older PHP versions
 $db_payment_method = 'Cash';
 switch ($payment_method) {
-    case 'fund':
-        $db_payment_method = 'Wallet';
-        break;
     case 'bkash':
         $db_payment_method = 'Bkash';
         break;
@@ -135,23 +135,6 @@ try {
         }
     }
 
-    // 2. Wallet logic
-    if ($payment_method === 'fund' && $checkout_type === 'buy' && $total_amount > 0) {
-        $stmt = $pdo->prepare("SELECT acc_balance FROM members WHERE id = ? FOR UPDATE");
-        $stmt->execute([$user_id]);
-        $current_balance = (float) $stmt->fetchColumn();
-
-        if ($current_balance < $total_amount) {
-            $pdo->rollBack();
-            sendResponse(false, 'আপনার অ্যাকাউন্ট ফান্ডে পর্যাপ্ত ব্যালেন্স নেই।');
-        }
-
-        $pdo->prepare("UPDATE members SET acc_balance = acc_balance - ? WHERE id = ?")
-            ->execute([$total_amount, $user_id]);
-
-        $pdo->prepare("INSERT INTO transactions (member_id, amount, type, description) VALUES (?, ?, 'Purchase', ?)")
-            ->execute([$user_id, $total_amount, 'Book purchase via Wallet']);
-    }
 
     // Fetch shipping charges from settings
     function getSetting($pdo, $key, $default = '') {
@@ -172,7 +155,7 @@ try {
 
     // 3. Create Main Order
     $invoice_no = 'OM-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -5));
-    $payment_status = ($payment_method === 'fund') ? 'Paid' : 'Pending';
+    $payment_status = 'Pending';
     $shipping_cost = ($checkout_type === 'borrow' || $total_amount <= 0) ? 0 : $selected_charge;
     $subtotal = max(0, $total_amount - $shipping_cost);
 

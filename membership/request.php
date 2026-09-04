@@ -1,6 +1,6 @@
 <?php
 // membership/request.php
-// Membership subscription payment page with SSLCommerz, Wallet Balance, and Manual bKash
+// Membership subscription payment page with SSLCommerz and Manual bKash
 
 $page_title = 'মেম্বারশিপ পেমেন্ট ও অ্যাক্টিভেশন | অন্ত্যমিল';
 $path_prefix = '../';
@@ -99,7 +99,6 @@ $error_code = trim($_GET['error'] ?? '');
 
             $current_user_plan = $member['membership_plan'] ?? 'None';
             $plan_expire_date  = $member['plan_expire_date'] ?? null;
-            $wallet_balance    = (float)($member['acc_balance'] ?? 0);
             $is_active_plan    = ($current_user_plan !== 'None' && $plan_expire_date && strtotime($plan_expire_date) > time());
 
             // Check if there is a pending manual request
@@ -107,19 +106,6 @@ $error_code = trim($_GET['error'] ?? '');
             $stmt->execute([$user_id]);
             $pending_req = $stmt->fetch(PDO::FETCH_ASSOC);
         ?>
-
-            <!-- Error Notification Banner -->
-            <?php if ($error_code === 'insufficient_balance'): ?>
-                <div class="mb-8 p-5 bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-sm flex items-center gap-4 animate-slide-up">
-                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-sm text-red-900 mb-0.5">ওয়ালেটে অপর্যাপ্ত ব্যালেন্স</h4>
-                        <p class="text-xs text-red-600">আপনার বর্তমান ওয়ালেট ব্যালেন্স (৳<?php echo number_format($wallet_balance, 2); ?>) নির্বাচিত প্ল্যানের ফি পরিশোধের জন্য পর্যাপ্ত নয়। আপনি অনলাইন পেমেন্ট (SSLCommerz) ব্যবহার করে সাথে সাথেই সক্রিয় করতে পারেন।</p>
-                    </div>
-                </div>
-            <?php endif; ?>
 
             <!-- Renewal or Upgrade Banner -->
             <?php if ($is_active_plan): ?>
@@ -245,45 +231,7 @@ $error_code = trim($_GET['error'] ?? '');
                         </form>
                     </div>
 
-                    <!-- METHOD 2: Pay with Wallet Balance -->
-                    <?php 
-                        $has_sufficient_balance = ($wallet_balance >= $current_plan['price']);
-                    ?>
-                    <div class="p-6 rounded-3xl border border-gray-200 hover:border-brand-gold/40 transition-all bg-gray-50/70">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-brand-900/10 text-brand-900 flex items-center justify-center font-bold text-base shrink-0">
-                                    👛
-                                </div>
-                                <div>
-                                    <h4 class="text-sm sm:text-base font-bold text-brand-900">ওয়ালেট ব্যালেন্স থেকে পরিশোধ</h4>
-                                    <p class="text-xs text-gray-500">আপনার বর্তমান ব্যালেন্স: <strong class="text-brand-900 font-mono">৳<?php echo number_format($wallet_balance, 2); ?></strong></p>
-                                </div>
-                            </div>
-                            <?php if ($has_sufficient_balance): ?>
-                                <span class="px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">পর্যাপ্ত ব্যালেন্স</span>
-                            <?php else: ?>
-                                <span class="px-2.5 py-0.5 bg-gray-200 text-gray-600 rounded-full text-[10px] font-bold">ব্যালেন্স কম</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <?php if ($has_sufficient_balance): ?>
-                            <form action="process_wallet.php" method="POST" class="mt-4">
-                                <input type="hidden" name="plan" value="<?php echo htmlspecialchars($plan_key); ?>">
-                                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                <button type="submit" onclick="return confirm('আপনার ওয়ালেট থেকে ৳<?php echo $current_plan['price']; ?> কর্তন করে মেম্বারশিপ সক্রিয় করতে চান?')" class="w-full py-3.5 bg-white border-2 border-brand-900 text-brand-900 hover:bg-brand-900 hover:text-white rounded-2xl font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2">
-                                    <span>ওয়ালেট দিয়ে কনফার্ম করুন (৳<?php echo number_format($current_plan['price']); ?>)</span>
-                                </button>
-                            </form>
-                        <?php else: ?>
-                            <div class="mt-3 flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-200">
-                                <span>আরও প্রয়োজন: <strong class="text-brand-900 font-mono">৳<?php echo number_format($current_plan['price'] - $wallet_balance, 2); ?></strong></span>
-                                <a href="../dashboard/index.php" class="text-brand-gold font-bold hover:underline">ড্যাশবোর্ড থেকে ফান্ড যোগ করুন →</a>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- METHOD 3: Manual bKash TrxID Verification (Collapsible / Secondary) -->
+                    <!-- METHOD 2: Manual bKash TrxID Verification (Collapsible / Secondary) -->
                     <div class="p-6 rounded-3xl border border-gray-200 bg-white">
                         <details class="group cursor-pointer">
                             <summary class="flex items-center justify-between list-none">

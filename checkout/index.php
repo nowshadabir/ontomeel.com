@@ -197,31 +197,6 @@ $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
                                     </svg>
                                 </div>
                             <?php
-        elseif ($method['method_key'] == 'fund'): ?>
-                                <!-- Option: Account Fund -->
-                                <div onclick="selectPayment('fund')" id="pay-fund"
-                                    class="payment-card border-2 border-gray-100 p-6 rounded-[32px] cursor-pointer hover:border-brand-gold/50 transition-all flex items-center justify-between group">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-5 h-5 rounded-full border-2 border-gray-100 flex items-center justify-center shrink-0">
-                                            <div id="dot-fund" class="w-2.5 h-2.5 bg-brand-gold rounded-full hidden"></div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <span
-                                                class="font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors">অ্যাকাউন্ট
-                                                ফান্ড</span>
-                                            <span
-                                                class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">৳<?php echo number_format($user_balance); ?>
-                                                available</span>
-                                        </div>
-                                    </div>
-                                    <svg class="w-8 h-8 text-gray-200 group-hover:text-brand-gold transition-colors shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                        </path>
-                                    </svg>
-                                </div>
-                            <?php
         elseif ($method['method_key'] == 'sslcommerz'): ?>
                                 <!-- Option: SSLCommerz -->
                                 <div onclick="selectPayment('sslcommerz')" id="pay-sslcommerz"
@@ -377,7 +352,6 @@ endif; ?>
 <script>
     let isOrderSubmitting = false;
     const checkoutType = "<?php echo $checkout_type; ?>";
-    const currentUserFund = <?php echo (int)$user_balance; ?>;
     const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
 
@@ -429,7 +403,7 @@ endif; ?>
         }
 
         // Handle dots
-        const dots = ['bkash', 'nagad', 'cod', 'fund', 'sslcommerz'];
+        const dots = ['bkash', 'nagad', 'cod', 'sslcommerz'];
         dots.forEach(d => {
             const dot = document.getElementById(`dot-${d}`);
             if (dot) dot.classList.add('hidden');
@@ -556,11 +530,6 @@ endif; ?>
         cartItems.forEach(item => total += (checkoutType === 'borrow' ? 0 : item.price));
         const finalAmount = total + (checkoutType === 'borrow' ? 0 : currentDeliveryCharge);
 
-        // Check if account fund is sufficient
-        if (selectedPayMethod === 'fund' && finalAmount > currentUserFund) {
-            showToast('আপনার অ্যাকাউন্ট ফান্ডে পর্যাপ্ত ব্যালেন্স নেই। বর্তমান ব্যালেন্স: ৳' + currentUserFund);
-            return;
-        }
 
         const orderBtn = document.querySelector('button[onclick="confirmOrder()"]');
         const originalBtnHtml = orderBtn ? orderBtn.innerHTML : '';
