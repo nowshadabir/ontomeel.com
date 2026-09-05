@@ -24,7 +24,7 @@ if (!$order_id || !$status) {
     exit();
 }
 
-$allowed = ['Pending', 'Paid', 'Failed'];
+$allowed = ['Pending', 'Paid', 'Failed', 'Cancelled'];
 if (!in_array($status, $allowed)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status']);
     exit();

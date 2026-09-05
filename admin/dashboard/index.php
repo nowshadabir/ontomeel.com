@@ -38,15 +38,42 @@ $count_stmt = $pdo->prepare("SELECT COUNT(*) FROM books b WHERE (b.title LIKE ? 
 $count_stmt->execute([$search, $search, $search, $cat_id]);
 $total_inventory_books = $count_stmt->fetchColumn();
 
-// Fetch Orders with JOIN
+// Fetch Orders with JOIN - Sorted strictly by latest serial (id DESC)
 $orders_stmt = $pdo->query("SELECT o.*, 
                                    COALESCE(m.full_name, o.guest_name) as full_name, 
                                    COALESCE(m.phone, o.guest_phone) as phone,
                                    COALESCE(m.email, o.guest_email) as email
                             FROM orders o 
                             LEFT JOIN members m ON o.member_id = m.id 
-                            ORDER BY o.order_date DESC");
+                            ORDER BY o.id DESC");
 $admin_orders = $orders_stmt->fetchAll();
+
+// Pre-calculate order statistics for orders dashboard
+$order_stats = [
+    'total_count' => count($admin_orders),
+    'total_sales' => 0,
+    'processing_count' => 0,
+    'ssl_count' => 0,
+    'ssl_amount' => 0,
+    'delivered_count' => 0,
+];
+foreach ($admin_orders as $ord) {
+    if ($ord['payment_status'] === 'Paid') {
+        $order_stats['total_sales'] += (float)$ord['total_amount'];
+    }
+    if ($ord['order_status'] === 'Processing' || $ord['order_status'] === 'On Hold') {
+        $order_stats['processing_count']++;
+    }
+    if ($ord['order_status'] === 'Delivered') {
+        $order_stats['delivered_count']++;
+    }
+    if (stripos($ord['payment_method'], 'sslcommerz') !== false) {
+        $order_stats['ssl_count']++;
+        if ($ord['payment_status'] === 'Paid') {
+            $order_stats['ssl_amount'] += (float)$ord['total_amount'];
+        }
+    }
+}
 
 // Pre-fetch all order items to avoid N+1 queries - PERFORMANCE OPTIMIZATION
 $all_order_items_stmt = $pdo->query("SELECT oi.*, 
@@ -86,7 +113,7 @@ $po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.
                                    JOIN orders o ON oi.order_id = o.id
                                    LEFT JOIN members m ON o.member_id = m.id
                                    JOIN pre_orders po ON oi.preorder_id = po.id
-                                   ORDER BY o.order_date DESC");
+                                   ORDER BY o.id DESC");
 $admin_preorder_bookings = $po_bookings_stmt->fetchAll();
 
 // Fetch Members for Members Tab
@@ -134,7 +161,27 @@ function bn_num($num)
     if ($num === null || $num === '')
         return '০';
     $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, $num);
+    return str_replace(range(0, 9), $bn_digits, (string)$num);
+}
+
+function format_bn_datetime($datetime_str)
+{
+    if (!$datetime_str || $datetime_str === '0000-00-00 00:00:00')
+        return '—';
+    $time = strtotime($datetime_str);
+    if (!$time)
+        return $datetime_str;
+    $months = [
+        'Jan' => 'জানু', 'Feb' => 'ফেব্রু', 'Mar' => 'মার্চ', 'Apr' => 'এপ্রিল',
+        'May' => 'মে', 'Jun' => 'জুন', 'Jul' => 'জুলাই', 'Aug' => 'আগস্ট',
+        'Sep' => 'সেপ্টে', 'Oct' => 'অক্টো', 'Nov' => 'নভে', 'Dec' => 'ডিসে'
+    ];
+    $d = date('d', $time);
+    $m = $months[date('M', $time)] ?? date('M', $time);
+    $y = date('Y', $time);
+    $hour = date('h:i', $time);
+    $ampm = date('A', $time) === 'AM' ? 'AM' : 'PM';
+    return bn_num($d) . ' ' . $m . ' ' . bn_num($y) . ', ' . bn_num($hour) . ' ' . $ampm;
 }
 ?>
 <!DOCTYPE html>
@@ -337,7 +384,7 @@ function bn_num($num)
                 </span>
                 <div class="flex items-center gap-3 pl-4 border-l border-gray-100">
                     <p class="text-sm font-anek font-bold text-brand-900 hidden sm:block">
-                        <?php echo $_SESSION['admin_full_name']; ?>
+                        <?php echo htmlspecialchars($_SESSION['admin_full_name'] ?? $_SESSION['admin_name'] ?? $_SESSION['admin_username'] ?? 'Admin'); ?>
                     </p>
                     <div
                         class="w-10 h-10 rounded-full bg-brand-900 text-brand-gold flex items-center justify-center font-bold">
@@ -439,236 +486,360 @@ function bn_num($num)
 
         <!-- Tab: Orders -->
         <div id="tab-orders" class="p-8 lg:p-12 tab-content hidden">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <!-- Header Title -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div>
-                    <h1 class="text-3xl font-anek font-bold text-brand-900 mb-2">অর্ডার ম্যানেজমেন্ট</h1>
-                    <p class="text-gray-500 font-light">সব কাস্টমার অর্ডারের বিস্তারিত তথ্য ও স্ট্যাটাস আপডেট করুন।</p>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-3xl font-anek font-bold text-brand-900">অর্ডার ম্যানেজমেন্ট</h1>
+                        <span class="px-3 py-1 bg-brand-gold/15 text-brand-900 border border-brand-gold/30 rounded-full text-xs font-bold font-anek">
+                            সর্বশেষ সিরিয়াল প্রথমে
+                        </span>
+                    </div>
+                    <p class="text-gray-500 font-light mt-1">সব কাস্টমার অর্ডারের বিস্তারিত তথ্য, এসএসএলকমার্জ পেমেন্ট যাচাই ও স্ট্যাটাস ব্যবস্থাপনা।</p>
                 </div>
-                <div class="flex gap-4">
-                    <div class="relative">
+                <div class="flex items-center gap-3">
+                    <button onclick="location.reload()" class="px-4 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        রিফ্রেশ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Order Summary Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                <!-- Total Orders -->
+                <div class="bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm relative overflow-hidden group hover:border-brand-gold/30 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider font-anek">মোট অর্ডার</span>
+                        <div class="w-10 h-10 rounded-2xl bg-brand-light flex items-center justify-center text-brand-900">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold font-anek text-brand-900 mb-1">
+                        <?php echo bn_num($order_stats['total_count']); ?>টি
+                    </div>
+                    <p class="text-xs text-emerald-600 font-medium font-anek">
+                        ৳<?php echo bn_num(number_format($order_stats['total_sales'])); ?> সংগৃহীত
+                    </p>
+                </div>
+
+                <!-- Processing / Needs Action -->
+                <div class="bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm relative overflow-hidden group hover:border-amber-200 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-amber-600 uppercase tracking-wider font-anek">প্রসেসিং / অপেক্ষমাণ</span>
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold font-anek text-amber-700 mb-1">
+                        <?php echo bn_num($order_stats['processing_count']); ?>টি
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium font-anek">
+                        ডেলিভারি পদক্ষেপ প্রয়োজন
+                    </p>
+                </div>
+
+                <!-- SSLCommerz Gateway Volume -->
+                <div class="bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider font-anek flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            এসএসএলকমার্জ
+                        </span>
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold font-anek text-emerald-800 mb-1">
+                        <?php echo bn_num($order_stats['ssl_count']); ?>টি অনলাইন
+                    </div>
+                    <p class="text-xs text-gray-500 font-medium font-anek">
+                        ৳<?php echo bn_num(number_format($order_stats['ssl_amount'])); ?> গেটওয়েতে পেইড
+                    </p>
+                </div>
+
+                <!-- Delivered -->
+                <div class="bg-white p-6 rounded-[28px] border border-gray-100 shadow-sm relative overflow-hidden group hover:border-blue-200 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-wider font-anek">সফল ডেলিভারি</span>
+                        <div class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold font-anek text-blue-700 mb-1">
+                        <?php echo bn_num($order_stats['delivered_count']); ?>টি
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium font-anek">
+                        সম্পন্ন ও পৌঁছানো হয়েছে
+                    </p>
+                </div>
+            </div>
+
+            <!-- Interactive Filter & Search Controls -->
+            <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm mb-6 space-y-4">
+                <!-- Status Filter Pills -->
+                <div class="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2 overflow-x-auto py-1 max-w-full">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1 hidden sm:inline">স্ট্যাটাস:</span>
+                        <button onclick="setOrderStatusFilter('all', this)" class="order-status-filter-btn active px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-brand-900 text-white shadow-sm" data-status="all">
+                            সব অর্ডার (<?php echo bn_num(count($admin_orders)); ?>)
+                        </button>
+                        <button onclick="setOrderStatusFilter('Processing', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="Processing">
+                            প্রসেসিং
+                        </button>
+                        <button onclick="setOrderStatusFilter('On Hold', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="On Hold">
+                            অন হোল্ড
+                        </button>
+                        <button onclick="setOrderStatusFilter('Confirmed', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="Confirmed">
+                            কনফার্মড
+                        </button>
+                        <button onclick="setOrderStatusFilter('Shipped', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="Shipped">
+                            শিপড
+                        </button>
+                        <button onclick="setOrderStatusFilter('Delivered', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="Delivered">
+                            ডেলিভারড
+                        </button>
+                        <button onclick="setOrderStatusFilter('Cancelled', this)" class="order-status-filter-btn px-4 py-2 rounded-xl text-xs font-bold font-anek transition-all bg-gray-100 text-gray-600 hover:bg-gray-200" data-status="Cancelled">
+                            বাতিল
+                        </button>
+                    </div>
+
+                    <div class="text-xs text-gray-500 font-anek">
+                        প্রদর্শিত: <span id="orders-visible-count" class="font-bold text-brand-900"><?php echo bn_num(count($admin_orders)); ?></span>টি
+                    </div>
+                </div>
+
+                <!-- Secondary Filters: Search + Payment Gateway Filter + Payment Status -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    <!-- Search Input -->
+                    <div class="md:col-span-6 relative">
                         <input type="text" id="orderSearchInput" onkeyup="filterOrders()"
-                            placeholder="অর্ডার আইডি বা নাম সার্চ..."
-                            class="bg-white border border-gray-100 rounded-2xl px-6 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-gold font-anek w-80 shadow-sm">
-                        <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none"
+                            placeholder="অর্ডার #সিরিয়াল, ইনভয়েস, নাম, ফোন, বা TrxID দিয়ে খুঁজুন..."
+                            class="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl pl-12 pr-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-inner">
+                        <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
+
+                    <!-- Payment Gateway Filter -->
+                    <div class="md:col-span-3">
+                        <select id="orderGatewayFilter" onchange="filterOrders()"
+                            class="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-inner appearance-none cursor-pointer">
+                            <option value="all">সব পেমেন্ট মাধ্যম</option>
+                            <option value="sslcommerz">SSLCommerz (গেটওয়ে)</option>
+                            <option value="bkash">bKash (বিকাশ)</option>
+                            <option value="nagad">Nagad (নগদ)</option>
+                            <option value="cash">Cash / COD (ক্যাশ অন ডেলিভারি)</option>
+                            <option value="card">Card / POS</option>
+                        </select>
+                    </div>
+
+                    <!-- Payment Status Filter -->
+                    <div class="md:col-span-3">
+                        <select id="orderPayStatusFilter" onchange="filterOrders()"
+                            class="w-full bg-gray-50 border border-transparent focus:bg-white focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-inner appearance-none cursor-pointer">
+                            <option value="all">সব পেমেন্ট স্ট্যাটাস</option>
+                            <option value="paid">পেইড (Paid)</option>
+                            <option value="pending">পেন্ডিং (Pending)</option>
+                            <option value="failed">ব্যর্থ / বাতিল (Failed)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
+            <!-- Orders Table Container -->
             <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-gray-50/80 border-b border-gray-100">
                             <tr>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    ID</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    কাস্টমার</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    বই</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    টাইপ</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    মূল্য</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    পেমেন্ট</th>
-                                <th
-                                    class="px-10 py-5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    স্ট্যাটাস</th>
-                                <th
-                                    class="px-10 py-5 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    অ্যাকশন</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    অর্ডার
+                                </th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    গ্রাহক
+                                </th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    পেমেন্ট
+                                </th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    স্ট্যাটাস
+                                </th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    মোট
+                                </th>
+                                <th class="px-6 py-4 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider font-anek">
+                                    বিস্তারিত
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php foreach ($admin_orders as $order):
                                 $items = getOrderItems($order['id'], $order_items_by_order);
                                 $items_list = implode(', ', array_column($items, 'title'));
-                                $status_color = 'bg-gray-100 text-gray-600';
-                                if ($order['order_status'] == 'Processing')
-                                    $status_color = 'bg-orange-100 text-orange-600';
-                                if ($order['order_status'] == 'Confirmed')
-                                    $status_color = 'bg-amber-100 text-amber-600';
-                                if ($order['order_status'] == 'Shipped')
-                                    $status_color = 'bg-blue-100 text-blue-600';
-                                if ($order['order_status'] == 'Delivered')
-                                    $status_color = 'bg-green-100 text-green-600';
-                                if ($order['order_status'] == 'Cancelled')
-                                    $status_color = 'bg-red-100 text-red-600';
-                                ?>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="px-10 py-6 text-sm font-bold text-brand-900">
-                                        #<?php echo $order['invoice_no']; ?></td>
-                                    <td class="px-10 py-6">
-                                        <div class="text-sm font-bold text-brand-900"><?php echo $order['full_name']; ?>
-                                        </div>
-                                        <div class="text-[10px] text-gray-400"><?php echo $order['phone']; ?></div>
-                                    </td>
-                                    <td class="px-10 py-6 text-sm text-gray-500 truncate max-w-[200px]">
-                                        <?php echo $items_list; ?>
-                                    </td>
-                                    <td class="px-10 py-6">
-                                        <?php if ($order['notes'] == 'Borrow Order'): ?>
-                                            <span
-                                                class="px-2 py-1 bg-purple-100 text-purple-600 rounded text-[9px] font-bold uppercase">Borrow</span>
-                                            <?php
-                                        else: ?>
-                                            <span
-                                                class="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[9px] font-bold uppercase">Buy</span>
-                                            <?php
-                                        endif; ?>
-                                    </td>
-                                    <td class="px-10 py-6 text-sm font-bold text-brand-900">
-                                        ৳<?php echo bn_num(number_format($order['total_amount'])); ?></td>
-                                    <td class="px-10 py-6">
-                                        <div class="flex flex-col gap-1 relative">
-                                            <span
-                                                class="text-[10px] text-gray-400 font-bold tracking-wider uppercase"><?php echo $order['payment_method']; ?></span>
-                                            <button
-                                                onclick="toggleActionMenu('pay-menu-<?php echo $order['id']; ?>', event)"
-                                                class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest w-fit transition-all hover:ring-2 hover:ring-offset-2 <?php echo $order['payment_status'] == 'Paid' ? 'bg-green-100 text-green-600 hover:ring-green-200' : 'bg-red-100 text-red-600 hover:ring-red-200'; ?>">
-                                                <?php echo $order['payment_status'] == 'Paid' ? 'Paid' : 'Pending'; ?>
-                                            </button>
-
-                                            <!-- Payment Status Dropdown -->
-                                            <div id="pay-menu-<?php echo $order['id']; ?>"
-                                                class="action-menu w-32 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
-                                                <button onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
-                                                    class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">Paid</button>
-                                                <button
-                                                    onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Pending')"
-                                                    class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">Pending</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-10 py-6 relative">
-                                        <?php if (in_array($order['order_status'], ['Delivered', 'Cancelled'])): ?>
-                                            <span
-                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest opacity-80 cursor-not-allowed">
-                                                <?php
-                                                $st = $order['order_status'];
-                                                if ($st == 'Delivered')
-                                                    echo 'ডেলিভারড';
-                                                else if ($st == 'Cancelled')
-                                                    echo 'বাতিল';
-                                                ?>
+                                $item_count = count($items);
+                                
+                                $status_val = $order['order_status'];
+                                $pay_status_val = $order['payment_status'];
+                                $pay_method_lower = strtolower($order['payment_method'] ?? '');
+                                $is_ssl = (strpos($pay_method_lower, 'sslcommerz') !== false);
+                                $is_bkash = (strpos($pay_method_lower, 'bkash') !== false);
+                                $is_nagad = (strpos($pay_method_lower, 'nagad') !== false);
+                                $is_website = !empty($order['shipping_address']) || $is_ssl;
+                                
+                                // Status color mapping
+                                $status_badge_class = 'bg-gray-100 text-gray-600';
+                                $status_label = $status_val;
+                                if ($status_val == 'Processing') {
+                                    $status_badge_class = 'bg-orange-50 text-orange-700 border border-orange-200';
+                                    $status_label = 'প্রসেসিং';
+                                } elseif ($status_val == 'Confirmed') {
+                                    $status_badge_class = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+                                    $status_label = 'কনফার্মড';
+                                } elseif ($status_val == 'Shipped') {
+                                    $status_badge_class = 'bg-blue-50 text-blue-700 border border-blue-200';
+                                    $status_label = 'শিপড';
+                                } elseif ($status_val == 'Delivered') {
+                                    $status_badge_class = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                                    $status_label = 'ডেলিভারড';
+                                } elseif ($status_val == 'Cancelled') {
+                                    $status_badge_class = 'bg-red-50 text-red-700 border border-red-200';
+                                    $status_label = 'বাতিল';
+                                } elseif ($status_val == 'On Hold') {
+                                    $status_badge_class = 'bg-purple-50 text-purple-700 border border-purple-200';
+                                    $status_label = 'অন হোল্ড';
+                                }
+                                
+                                // Search keywords for fast client-side searching
+                                $search_tokens = strtolower($order['id'] . ' ' . $order['invoice_no'] . ' ' . ($order['full_name'] ?? '') . ' ' . ($order['phone'] ?? '') . ' ' . ($order['email'] ?? '') . ' ' . ($order['shipping_address'] ?? '') . ' ' . ($order['trx_id'] ?? '') . ' ' . ($order['payment_id'] ?? '') . ' ' . $items_list . ' ' . $order['payment_method']);
+                            ?>
+                                <tr class="order-row hover:bg-brand-light/30 transition-colors cursor-pointer group" 
+                                    data-order-id="<?php echo $order['id']; ?>"
+                                    data-search="<?php echo htmlspecialchars($search_tokens); ?>"
+                                    data-status="<?php echo htmlspecialchars($status_val); ?>"
+                                    data-gateway="<?php echo htmlspecialchars($pay_method_lower); ?>"
+                                    data-paystatus="<?php echo strtolower($pay_status_val); ?>"
+                                    onclick="viewOrderDetails(<?php echo htmlspecialchars(json_encode($order), ENT_QUOTES); ?>, <?php echo htmlspecialchars(json_encode($items), ENT_QUOTES); ?>)">
+                                    
+                                    <!-- 1. Serial & Invoice & Date -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-lg bg-brand-900 text-white font-mono font-bold text-xs shadow-xs">
+                                                #<?php echo $order['id']; ?>
                                             </span>
-                                            <?php
-                                        else: ?>
-                                            <button onclick="toggleActionMenu('status-menu-<?php echo $order['id']; ?>', event)"
-                                                class="px-3 py-1 <?php echo $status_color; ?> rounded-full text-[10px] font-bold uppercase tracking-widest transition-all hover:ring-2 hover:ring-offset-2 <?php
-                                                    if ($order['order_status'] == 'Processing')
-                                                        echo 'hover:ring-orange-200';
-                                                    else if ($order['order_status'] == 'Confirmed')
-                                                        echo 'hover:ring-amber-200';
-                                                    else if ($order['order_status'] == 'Shipped')
-                                                        echo 'hover:ring-blue-200';
-                                                    ?>">
-                                                <?php
-                                                $st = $order['order_status'];
-                                                if ($st == 'Processing')
-                                                    echo 'পেন্ডিং';
-                                                else if ($st == 'Confirmed')
-                                                    echo 'কনফার্মড';
-                                                else if ($st == 'Shipped')
-                                                    echo 'শিপড';
-                                                else
-                                                    echo $st;
-                                                ?>
-                                            </button>
-
-                                            <!-- Order Status Dropdown -->
-                                            <div id="status-menu-<?php echo $order['id']; ?>"
-                                                class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Processing')"
-                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-orange-600 hover:bg-orange-50 border-b border-gray-50">পেন্ডিং</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
-                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-amber-600 hover:bg-amber-50 border-b border-gray-50">কনফার্মড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
-                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-blue-600 hover:bg-blue-50 border-b border-gray-50">শিপড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')"
-                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-green-600 hover:bg-green-50 border-b border-gray-50">ডেলিভারড</button>
-                                                <button onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
-                                                    class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase text-red-600 hover:bg-red-50">বাতিল</button>
-                                            </div>
-                                            <?php
-                                        endif; ?>
-                                    </td>
-                                    <td class="px-10 py-6 text-right">
-                                        <div class="flex justify-end items-center gap-2">
-                                            <button
-                                                onclick="viewOrderDetails(<?php echo htmlspecialchars(json_encode($order), ENT_QUOTES); ?>, <?php echo htmlspecialchars(json_encode($items), ENT_QUOTES); ?>)"
-                                                class="w-10 h-10 flex items-center justify-center rounded-full bg-brand-light/50 text-brand-gold hover:bg-brand-gold hover:text-white transition-all">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </button>
-                                            <div class="relative">
-                                                <button
-                                                    onclick="toggleActionMenu('action-menu-<?php echo $order['id']; ?>', event)"
-                                                    class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:bg-gray-200 hover:text-brand-900 transition-all">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                                                    </svg>
-                                                </button>
-                                                <div id="action-menu-<?php echo $order['id']; ?>"
-                                                    class="action-menu w-40 bg-white rounded-xl shadow-2xl border border-gray-100 hidden overflow-hidden transition-all duration-200 z-[99999]">
-                                                    <?php if ($order['payment_status'] == 'Pending'): ?>
-                                                        <button
-                                                            onclick="updatePaymentStatus(<?php echo $order['id']; ?>, 'Paid')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 border-b border-gray-50">পেমেন্ট
-                                                            পেড</button>
-                                                        <?php
-                                                    endif; ?>
-                                                    <?php if ($order['order_status'] == 'Processing'): ?>
-                                                        <button
-                                                            onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Confirmed')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50">কনফার্ম
-                                                            করুন</button>
-                                                        <?php
-                                                    endif; ?>
-                                                    <?php if (in_array($order['order_status'], ['Processing', 'Confirmed'])): ?>
-                                                        <button
-                                                            onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Shipped')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:bg-blue-50">শিপড
-                                                            করুন</button>
-                                                        <?php
-                                                    endif; ?>
-                                                    <?php if ($order['order_status'] == 'Shipped'): ?>
-                                                        <button
-                                                            onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Delivered')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50">ডেলিভারড
-                                                            করুন</button>
-                                                        <?php
-                                                    endif; ?>
-                                                    <?php if ($order['order_status'] != 'Delivered' && $order['order_status'] != 'Cancelled'): ?>
-                                                        <button
-                                                            onclick="updateOrderStatus(<?php echo $order['id']; ?>, 'Cancelled')"
-                                                            class="w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50">বাতিল
-                                                            করুন</button>
-                                                        <?php
-                                                    endif; ?>
-                                                </div>
-                                            </div>
+                                            <?php if ($is_website): ?>
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
+                                                    🌐 ওয়েবসাইট
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-medium">
+                                                    🏪 শোরুম
+                                                </span>
+                                            <?php endif; ?>
                                         </div>
+                                        <div class="font-mono text-xs font-semibold text-gray-700 group-hover:text-brand-gold transition-colors">
+                                            <?php echo htmlspecialchars($order['invoice_no']); ?>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400 mt-0.5">
+                                            <?php echo format_bn_datetime($order['order_date']); ?>
+                                        </div>
+                                    </td>
+
+                                    <!-- 2. Customer -->
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-brand-900 text-sm group-hover:text-brand-gold transition-colors">
+                                            <?php echo htmlspecialchars($order['full_name'] ?: 'গেস্ট কাস্টমার'); ?>
+                                            <?php if (!empty($order['member_id'])): ?>
+                                                <span class="text-[9px] px-1.5 py-0.2 rounded bg-brand-light text-brand-900 font-normal ml-1">মেম্বার</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="text-xs text-gray-500 font-mono mt-0.5">
+                                            <?php echo htmlspecialchars($order['phone'] ?: 'N/A'); ?>
+                                        </div>
+                                    </td>
+
+                                    <!-- 3. Payment -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                                            <?php if ($is_ssl): ?>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r from-[#00529C] to-[#007AC2] text-white text-[10px] font-bold shadow-xs">
+                                                    SSLCommerz
+                                                </span>
+                                            <?php elseif ($is_bkash): ?>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 border border-pink-200 text-[10px] font-bold">
+                                                    bKash
+                                                </span>
+                                            <?php elseif ($is_nagad): ?>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 text-[10px] font-bold">
+                                                    Nagad
+                                                </span>
+                                            <?php elseif (strpos($pay_method_lower, 'card') !== false): ?>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
+                                                    Card / POS
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-semibold">
+                                                    <?php echo htmlspecialchars($order['payment_method'] ?: 'Cash on Delivery'); ?>
+                                                </span>
+                                            <?php endif; ?>
+
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider <?php 
+                                                echo $pay_status_val == 'Paid' ? 'bg-emerald-100 text-emerald-800' : 
+                                                    (in_array($pay_status_val, ['Failed', 'Cancelled']) ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'); ?>">
+                                                ● <?php echo $pay_status_val ?: 'Pending'; ?>
+                                            </span>
+                                        </div>
+
+                                        <?php if (!empty($order['trx_id'])): ?>
+                                            <div class="text-[10px] text-gray-400 font-mono truncate max-w-[150px]" title="<?php echo htmlspecialchars($order['trx_id']); ?>">
+                                                Tx: <?php echo htmlspecialchars($order['trx_id']); ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if (strpos($order['notes'] ?? '', 'Risk Level 1') !== false || $order['order_status'] === 'On Hold'): ?>
+                                            <div class="inline-block text-[9px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.2 rounded mt-0.5">
+                                                ⚠️ রিস্ক ফ্ল্যাগ
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <!-- 4. Order Status -->
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 <?php echo $status_badge_class; ?> rounded-full text-[11px] font-bold shadow-xs">
+                                            <span>●</span>
+                                            <span><?php echo $status_label; ?></span>
+                                        </span>
+                                    </td>
+
+                                    <!-- 5. Total Amount -->
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-extrabold text-brand-900">
+                                            ৳<?php echo bn_num(number_format($order['total_amount'])); ?>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400">
+                                            <?php echo bn_num($item_count); ?>টি বই
+                                        </div>
+                                    </td>
+
+                                    <!-- 6. Eye Action Button (Popup Modal) -->
+                                    <td class="px-6 py-4 text-center" onclick="event.stopPropagation()">
+                                        <button type="button"
+                                            onclick="viewOrderDetails(<?php echo htmlspecialchars(json_encode($order), ENT_QUOTES); ?>, <?php echo htmlspecialchars(json_encode($items), ENT_QUOTES); ?>)"
+                                            title="অর্ডারের সম্পূর্ণ বিবরণ ও ঠিকানা দেখতে ক্লিক করুন"
+                                            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-900 text-brand-gold hover:bg-brand-gold hover:text-brand-900 transition-all font-anek text-xs font-bold shadow-xs group/btn cursor-pointer">
+                                            <svg class="w-4 h-4 transition-transform group-hover/btn:scale-125" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            <span>বিস্তারিত</span>
+                                        </button>
                                     </td>
                                 </tr>
-                                <?php
-                            endforeach; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -2530,7 +2701,7 @@ function bn_num($num)
 
     <!-- Order Details Modal -->
     <div id="order-details-modal" class="fixed inset-0 bg-brand-900/60 z-[100] hidden items-center justify-center p-4">
-        <div class="bg-white rounded-[40px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div class="bg-white rounded-[40px] w-full max-w-3xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <button onclick="closeOrderDetailsModal()"
                 class="absolute top-8 right-8 text-gray-400 hover:text-brand-900 transition-colors z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3284,83 +3455,277 @@ function bn_num($num)
             const modal = document.getElementById('order-details-modal');
             const content = document.getElementById('order-details-content');
 
+            window.currentViewingOrder = order;
+            window.currentViewingItems = items;
+
+            // Format date & time nicely
+            let orderDateFormatted = '';
+            try {
+                const d = new Date(order.order_date);
+                orderDateFormatted = d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }) + ' | ' + d.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                orderDateFormatted = order.order_date;
+            }
+
+            // Status badges styling
+            const statusConfig = {
+                'Processing': { bg: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500', label: 'পেন্ডিং / প্রসেসিং' },
+                'On Hold': { bg: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-500', label: 'অন হোল্ড (যাচাই)' },
+                'Confirmed': { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500', label: 'কনফার্মড' },
+                'Shipped': { bg: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'শিপড' },
+                'Delivered': { bg: 'bg-green-50 text-green-700 border-green-200', dot: 'bg-green-500', label: 'ডেলিভারড' },
+                'Cancelled': { bg: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500', label: 'বাতিল' }
+            };
+            const currentStatus = statusConfig[order.order_status] || { bg: 'bg-gray-100 text-gray-700 border-gray-200', dot: 'bg-gray-400', label: order.order_status };
+
+            // Payment badge styling
+            const payStatus = order.payment_status || 'Pending';
+            let payBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+            if (payStatus === 'Paid') payBadgeClass = 'bg-green-50 text-green-700 border-green-200';
+            else if (payStatus === 'Failed' || payStatus === 'Cancelled') payBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+
+            const isSSL = (order.payment_method || '').toLowerCase() === 'sslcommerz';
+            const isRisk = (order.notes && order.notes.includes('Risk Level 1')) || order.order_status === 'On Hold';
+
+            // Items HTML
             let itemsHtml = '';
-            items.forEach(item => {
+            (items || []).forEach(item => {
+                const coverSrc = item.cover_image ? 
+                    (item.cover_image.startsWith('http') ? item.cover_image : 
+                        (item.preorder_id ? '../../assets/img/preorders/' + item.cover_image.trim() : '../../admin/assets/book-images/' + item.cover_image.trim())) 
+                    : 'https://via.placeholder.com/100x140?text=Book';
+
                 itemsHtml += `
-                    <div class="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
-                        <div class="w-10 h-14 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                            <img src="${item.cover_image ? (item.cover_image.startsWith('http') ? item.cover_image : (item.preorder_id ? '../../assets/img/preorders/' + item.cover_image.trim() : '../../admin/assets/book-images/' + item.cover_image.trim())) : 'https://via.placeholder.com/100x140?text=Book'}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100x140?text=Book'">
+                    <div class="flex items-center gap-4 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                        <div class="w-12 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 shadow-xs border border-gray-200/60">
+                            <img src="${coverSrc}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/100x140?text=Book'">
                         </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-brand-900 leading-tight text-sm">${item.title}</p>
-                            <p class="text-[10px] text-gray-400">${bn_num(item.quantity)}টি x ৳${bn_num(item.unit_price)}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-brand-900 leading-snug text-sm line-clamp-1">${item.title}</p>
+                            <p class="text-xs text-gray-500 font-anek mt-0.5">${bn_num(item.quantity)} টি × ৳${bn_num(item.unit_price)}</p>
                         </div>
-                        <p class="font-bold text-brand-900">৳${bn_num(item.total_price)}</p>
+                        <div class="text-right">
+                            <p class="font-bold text-brand-900 font-anek text-sm">৳${bn_num(item.total_price)}</p>
+                        </div>
                     </div>
                 `;
             });
 
             content.innerHTML = `
-                <div class="space-y-6">
-                    <div class="flex justify-between items-start">
+                <div class="space-y-6 font-anek">
+                    <!-- Modal Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100 pr-8">
                         <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">অর্ডার আইডি</p>
-                            <h4 class="text-xl font-bold text-brand-900">#${order.invoice_no}</h4>
+                            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span class="px-3 py-1 bg-brand-900 text-white font-mono font-bold text-xs rounded-xl shadow-xs">
+                                    সিরিয়াল #${order.id}
+                                </span>
+                                <span class="px-3 py-1 bg-gray-100 text-brand-900 font-mono text-xs rounded-xl border border-gray-200 font-semibold flex items-center gap-1.5">
+                                    ইনভয়েস: ${order.invoice_no}
+                                    <button type="button" onclick="copyToClipboard('${order.invoice_no}', 'ইনভয়েস')" class="text-gray-400 hover:text-brand-900 transition-colors" title="কপি করুন">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    </button>
+                                </span>
+                                <span class="px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 ${currentStatus.bg}">
+                                    <span class="w-2 h-2 rounded-full ${currentStatus.dot}"></span>
+                                    ${currentStatus.label}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-anek flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                অর্ডার সম্পন্ন: ${orderDateFormatted}
+                            </p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">অর্ডার তারিখ</p>
-                            <p class="font-bold text-brand-900">${new Date(order.order_date).toLocaleDateString('bn-BD')}</p>
+
+                        <!-- Header Action: Print -->
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="printOrderInvoice(window.currentViewingOrder, window.currentViewingItems)"
+                                class="px-4 py-2 bg-gray-100 hover:bg-brand-900 hover:text-white text-gray-700 rounded-xl font-anek font-bold text-xs flex items-center gap-2 transition-all shadow-xs border border-gray-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                ইনভয়েস প্রিন্ট
+                            </button>
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 p-6 rounded-2xl flex flex-wrap gap-8 border border-gray-100">
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ক্রেতার নাম</p>
-                            <p class="text-sm font-bold text-brand-900">${order.full_name}</p>
+                    <!-- Risk Warning Banner if SSLCommerz Risk Level 1 -->
+                    ${isRisk ? `
+                        <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex items-start gap-3 text-red-800">
+                            <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="font-bold text-sm font-anek mb-0.5">⚠️ গেটওয়ে ঝুঁকি সতর্কতা (Risk Flag 1)</h5>
+                                <p class="text-xs text-red-700 leading-relaxed font-anek">
+                                    SSLCommerz পেমেন্ট গেটওয়ে এই ট্রানজেকশনে ঝুঁকি শনাক্ত করেছে। পার্সেল ডেলিভারি দেওয়ার আগে গ্রাহকের নাম, ফোন নম্বর এবং পেমেন্ট ট্রানজেকশন আইডি ফোন কলের মাধ্যমে যাচাই করে নিশ্চিত করুন।
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ফোন নম্বর</p>
-                            <p class="text-sm font-bold text-brand-900 tracking-wider">${order.phone}</p>
+                    ` : ''}
+
+                    <!-- Payment Gateway & Verification Section -->
+                    <div class="bg-gradient-to-br ${isSSL ? 'from-blue-50/60 to-indigo-50/40 border-blue-200/80' : 'from-gray-50 to-gray-50/50 border-gray-200/80'} rounded-3xl p-5 border shadow-xs space-y-3">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-500 font-anek">পেমেন্ট গেটওয়ে ও মাধ্যম:</span>
+                                ${isSSL ? `
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#00529C] to-[#007AC2] text-white font-bold text-xs shadow-xs">
+                                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+                                        SSLCommerz
+                                    </span>
+                                ` : `
+                                    <span class="px-3 py-1 rounded-xl bg-white text-brand-900 border border-gray-200 font-bold text-xs">
+                                        ${order.payment_method || 'Cash on Delivery'}
+                                    </span>
+                                `}
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs text-gray-500 font-anek">পেমেন্ট স্ট্যাটাস:</span>
+                                <span class="px-3 py-1 rounded-xl text-xs font-bold border ${payBadgeClass}">
+                                    ● ${payStatus}
+                                </span>
+                                ${payStatus !== 'Paid' ? `
+                                    <button type="button" onclick="updatePaymentStatus(${order.id}, 'Paid')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold font-anek transition-all shadow-xs flex items-center gap-1 cursor-pointer">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        পেইড মার্ক করুন
+                                    </button>
+                                ` : `
+                                    <button type="button" onclick="updatePaymentStatus(${order.id}, 'Pending')" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-[11px] font-bold font-anek transition-all flex items-center gap-1 cursor-pointer">
+                                        পেন্ডিং করুন
+                                    </button>
+                                `}
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-gray-400">ইমেইল</p>
-                            <p class="text-sm font-bold text-brand-900">${order.email || '(Guest Order)'}</p>
+
+                        <!-- SSLCommerz Transaction & Validation IDs -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-200/60 text-xs">
+                            <div class="bg-white/80 rounded-2xl p-3 border border-gray-200/80 flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-0.5">Trx ID (ট্রানজেকশন)</p>
+                                    <p class="font-mono font-bold text-brand-900 truncate" title="${order.trx_id || 'N/A'}">${order.trx_id || '<span class="text-gray-400 font-normal">বিদ্যমান নেই</span>'}</p>
+                                </div>
+                                ${order.trx_id ? `
+                                    <button type="button" onclick="copyToClipboard('${order.trx_id}', 'Trx ID')" class="p-2 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-brand-900 transition-colors shrink-0" title="Trx ID কপি">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    </button>
+                                ` : ''}
+                            </div>
+
+                            <div class="bg-white/80 rounded-2xl p-3 border border-gray-200/80 flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-0.5">Validation ID (ভ্যালিডেশন)</p>
+                                    <p class="font-mono font-bold text-brand-900 truncate" title="${order.payment_id || 'N/A'}">${order.payment_id || '<span class="text-gray-400 font-normal">বিদ্যমান নেই</span>'}</p>
+                                </div>
+                                ${order.payment_id ? `
+                                    <button type="button" onclick="copyToClipboard('${order.payment_id}', 'Validation ID')" class="p-2 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-brand-900 transition-colors shrink-0" title="Validation ID কপি">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    </button>
+                                ` : ''}
+                            </div>
                         </div>
+
+                        ${order.notes ? `
+                            <div class="bg-white/90 rounded-2xl p-3 border border-gray-200/80 text-xs font-anek">
+                                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-0.5">অর্ডার নোট / গেটওয়ে লগ:</span>
+                                <span class="text-gray-700">${order.notes}</span>
+                            </div>
+                        ` : ''}
                     </div>
 
-                    <div class="bg-gray-50 p-6 rounded-2xl space-y-4">
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">শিপিং অ্যাড্রেস</p>
-                            <p class="text-sm text-brand-900 leading-relaxed italic">"${order.shipping_address}"</p>
+                    <!-- Customer & Shipping Information Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Customer Info -->
+                        <div class="bg-gray-50/70 p-5 rounded-3xl border border-gray-100 space-y-3">
+                            <h5 class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-anek flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                ক্রেতার তথ্য
+                            </h5>
+                            <div>
+                                <p class="text-sm font-bold text-brand-900 font-anek">${order.full_name || 'N/A'}</p>
+                                <p class="text-xs text-gray-600 font-mono mt-1 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    <a href="tel:${order.phone}" class="hover:underline">${order.phone || 'N/A'}</a>
+                                </p>
+                                <p class="text-xs text-gray-600 mt-1 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    ${order.email ? `<a href="mailto:${order.email}" class="hover:underline text-blue-600">${order.email}</a>` : '<span class="text-gray-400 italic">(Guest Order)</span>'}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">পেমেন্ট মেথড</p>
-                            <div class="bg-white px-4 py-2 rounded-lg inline-block border border-gray-100">
-                                <span class="text-xs font-bold text-brand-900">${order.payment_method}</span>
-                                <span class="mx-2 text-gray-200">|</span>
-                                <span class="text-xs font-bold ${order.payment_status === 'Paid' ? 'text-green-600' : 'text-orange-600'}">${order.payment_status === 'Paid' ? 'Paid' : 'Pending'}</span>
+
+                        <!-- Shipping Address -->
+                        <div class="bg-gradient-to-br ${order.shipping_address ? 'from-amber-50/50 to-orange-50/30 border-amber-200/70' : 'from-gray-50 to-gray-50/50 border-gray-100'} p-5 rounded-3xl border space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <h5 class="text-[11px] font-bold uppercase tracking-wider ${order.shipping_address ? 'text-amber-900' : 'text-gray-400'} font-anek flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 ${order.shipping_address ? 'text-amber-600' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    ${order.shipping_address ? '🌐 ওয়েবসাইট ডেলিভারি ঠিকানা' : '🏪 ডেলিভারি ধরন'}
+                                </h5>
+                                ${order.shipping_address ? `
+                                    <button type="button" onclick="copyToClipboard('${order.shipping_address.replace(/'/g, "\\'")}', 'ডেলিভারি ঠিকানা')" class="text-xs font-bold text-amber-800 hover:text-brand-900 transition-colors flex items-center gap-1 cursor-pointer" title="সম্পূর্ণ ঠিকানা কপি করুন">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                        ঠিকানা কপি
+                                    </button>
+                                ` : ''}
+                            </div>
+                            <div class="text-xs text-gray-800 leading-relaxed font-anek bg-white p-3.5 rounded-2xl border border-amber-200/40 shadow-xs">
+                                ${order.shipping_address ? order.shipping_address : '<span class="text-gray-400 italic">ইন-স্টোর / সরাসরি শোরুম সেলস (কোনো শিপিং ঠিকানা নেই)</span>'}
                             </div>
                         </div>
                     </div>
 
+                    <!-- Items Section -->
                     <div>
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">অর্ডার আইটেম</p>
-                        <div class="space-y-1">${itemsHtml}</div>
+                        <h5 class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-anek mb-3 flex items-center justify-between">
+                            <span>অর্ডারকৃত আইটেম (${bn_num(items.length)}টি বই)</span>
+                        </h5>
+                        <div class="bg-gray-50/40 rounded-3xl p-3 border border-gray-100 divide-y divide-gray-100">
+                            ${itemsHtml}
+                        </div>
                     </div>
 
-                    <div class="pt-4 border-t border-gray-100">
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="text-gray-500">সাবটোটাল</span>
+                    <!-- Pricing Summary -->
+                    <div class="bg-gray-50/70 rounded-3xl p-5 border border-gray-100 space-y-2.5">
+                        <div class="flex justify-between text-xs font-anek">
+                            <span class="text-gray-500">বইয়ের সাবটোটাল</span>
                             <span class="font-bold text-brand-900">৳${bn_num(order.subtotal)}</span>
                         </div>
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="text-gray-500">শিপিং চার্জ</span>
+                        <div class="flex justify-between text-xs font-anek">
+                            <span class="text-gray-500">ডেলিভারি চার্জ</span>
                             <span class="font-bold text-brand-900">৳${bn_num(order.shipping_cost)}</span>
                         </div>
-                        <div class="flex justify-between text-lg mt-4 pt-4 border-t border-dashed border-gray-200">
-                            <span class="font-anek font-bold text-brand-900">সর্বমোট</span>
-                            <span class="font-anek font-extrabold text-brand-gold">৳${bn_num(order.total_amount)}</span>
+                        <div class="flex justify-between text-base pt-3 border-t border-dashed border-gray-300 font-anek items-center">
+                            <span class="font-bold text-brand-900">সর্বমোট প্রদেয় মূল্য</span>
+                            <span class="font-black text-brand-gold text-lg">৳${bn_num(order.total_amount)}</span>
                         </div>
+                    </div>
+
+                    <!-- Quick Status Updates Toolbar in Modal -->
+                    <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 font-anek">স্ট্যাটাস দ্রুত পরিবর্তন করুন:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'Processing')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'Processing' ? 'bg-orange-600 text-white shadow-xs' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
+                                    প্রসেসিং
+                                </button>
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'On Hold')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'On Hold' ? 'bg-purple-600 text-white shadow-xs' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}">
+                                    অন হোল্ড
+                                </button>
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'Confirmed')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'Confirmed' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}">
+                                    কনফার্মড
+                                </button>
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'Shipped')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'Shipped' ? 'bg-blue-600 text-white shadow-xs' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}">
+                                    শিপড
+                                </button>
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'Delivered')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'Delivered' ? 'bg-green-600 text-white shadow-xs' : 'bg-green-50 text-green-700 hover:bg-green-100'}">
+                                    ডেলিভারড
+                                </button>
+                                <button type="button" onclick="updateOrderStatus(${order.id}, 'Cancelled')" class="px-3 py-1.5 rounded-xl text-xs font-bold font-anek transition-all ${order.order_status === 'Cancelled' ? 'bg-red-600 text-white shadow-xs' : 'bg-red-50 text-red-700 hover:bg-red-100'}">
+                                    বাতিল
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeOrderDetailsModal()" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-brand-900 rounded-xl font-anek font-bold text-xs transition-all self-end sm:self-auto">
+                            বন্ধ করুন
+                        </button>
                     </div>
                 </div>
             `;
@@ -3368,6 +3733,175 @@ function bn_num($num)
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
+        }
+
+        function printOrderInvoice(order, items) {
+            if (!order) return;
+            const printWindow = window.open('', '_blank', 'width=850,height=900');
+            if (!printWindow) {
+                alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজারের পপ-আপ অনুমতি দিন।');
+                return;
+            }
+
+            let orderDate = '';
+            try {
+                const d = new Date(order.order_date);
+                orderDate = d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + d.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                orderDate = order.order_date || '';
+            }
+
+            let itemsRows = '';
+            (items || []).forEach((item, idx) => {
+                itemsRows += `
+                    <tr>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; font-family: monospace;">${idx + 1}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; font-weight: 600;">${item.title || 'বই'}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center;">${bn_num(item.quantity || 1)}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right;">৳${bn_num(item.unit_price || 0)}</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">৳${bn_num(item.total_price || 0)}</td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <!DOCTYPE html>
+                <html lang="bn">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Invoice #${order.invoice_no || order.id} - Ontomeel</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                        body { font-family: 'Anek Bangla', sans-serif; color: #1e1e2d; padding: 40px; background: #fff; line-height: 1.5; font-size: 14px; }
+                        .invoice-card { max-width: 750px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+                        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f3f4f6; padding-bottom: 20px; margin-bottom: 25px; }
+                        .brand-title { font-size: 28px; font-weight: 800; color: #1e1e2d; }
+                        .brand-sub { font-size: 12px; color: #c5a975; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+                        .invoice-meta { text-align: right; }
+                        .inv-num { font-size: 18px; font-weight: 800; color: #1e1e2d; font-family: 'Outfit', monospace; }
+                        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+                        .info-box { background: #f9fafb; padding: 18px; border-radius: 14px; border: 1px solid #f3f4f6; }
+                        .info-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+                        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+                        .items-table th { background: #f9fafb; padding: 10px 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
+                        .totals-table { width: 320px; margin-left: auto; margin-bottom: 25px; }
+                        .totals-table td { padding: 6px 8px; }
+                        .totals-table .grand-total { border-top: 2px dashed #d1d5db; font-size: 16px; font-weight: 800; color: #1e1e2d; padding-top: 10px; }
+                        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+                        .badge-paid { background: #dcfce7; color: #15803d; }
+                        .badge-pending { background: #fef3c7; color: #b45309; }
+                        .footer-note { text-align: center; border-top: 1px solid #f3f4f6; padding-top: 20px; color: #9ca3af; font-size: 12px; }
+                        @media print {
+                            body { padding: 0; }
+                            .invoice-card { border: none; box-shadow: none; padding: 20px; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="text-align: right; margin-bottom: 15px; max-width: 750px; margin-left: auto; margin-right: auto;">
+                        <button onclick="window.print()" style="background: #1e1e2d; color: #fff; border: none; padding: 10px 22px; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: sans-serif;">🖨️ এখনই প্রিন্ট করুন</button>
+                    </div>
+                    <div class="invoice-card">
+                        <div class="header">
+                            <div>
+                                <h1 class="brand-title">অন্তমিল</h1>
+                                <p class="brand-sub">ONTOMEEL.COM</p>
+                                <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">বইয়ের বিশ্বস্ত অনলাইন ঠিকানা</p>
+                            </div>
+                            <div class="invoice-meta">
+                                <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase; font-weight: 700;">ইনভয়েস নম্বর</div>
+                                <div class="inv-num">#${order.invoice_no || order.id}</div>
+                                <div style="font-size: 12px; color: #4b5563; margin-top: 4px;">অর্ডার সিরিয়াল: <strong>#${order.id}</strong></div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">তারিখ: ${orderDate}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="info-box">
+                                <div class="info-title">গ্রাহকের বিবরণ</div>
+                                <div style="font-weight: 700; font-size: 15px; color: #111827;">${order.full_name || 'N/A'}</div>
+                                <div style="color: #4b5563; font-size: 13px; margin-top: 3px;">ফোন: ${order.phone || 'N/A'}</div>
+                                <div style="color: #6b7280; font-size: 12px; margin-top: 2px;">${order.email || ''}</div>
+                                <div style="margin-top: 8px; font-size: 12px; color: #374151; line-height: 1.4;">
+                                    <strong>ঠিকানা:</strong> ${order.shipping_address || 'N/A'}
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <div class="info-title">পেমেন্ট ও ডেলিভারি তথ্য</div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                    <span style="color: #6b7280;">পেমেন্ট মেথড:</span>
+                                    <strong>${order.payment_method || 'Cash on Delivery'}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                    <span style="color: #6b7280;">পেমেন্ট স্ট্যাটাস:</span>
+                                    <span class="badge ${(order.payment_status === 'Paid') ? 'badge-paid' : 'badge-pending'}">${order.payment_status || 'Pending'}</span>
+                                </div>
+                                ${order.trx_id ? `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-family: monospace; font-size: 11px;">
+                                    <span style="color: #6b7280;">Trx ID:</span>
+                                    <strong>${order.trx_id}</strong>
+                                </div>` : ''}
+                                ${order.payment_id ? `
+                                <div style="display: flex; justify-content: space-between; font-family: monospace; font-size: 11px;">
+                                    <span style="color: #6b7280;">Val ID:</span>
+                                    <span style="color: #4b5563;">${order.payment_id}</span>
+                                </div>` : ''}
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; padding-top: 6px; border-top: 1px solid #e5e7eb;">
+                                    <span style="color: #6b7280;">অর্ডার স্ট্যাটাস:</span>
+                                    <strong>${order.order_status || 'Processing'}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px; text-align: center;">ক্রম</th>
+                                    <th style="text-align: left;">বইয়ের নাম</th>
+                                    <th style="width: 70px; text-align: center;">পরিমাণ</th>
+                                    <th style="width: 90px; text-align: right;">একক মূল্য</th>
+                                    <th style="width: 100px; text-align: right;">মোট</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsRows}
+                            </tbody>
+                        </table>
+
+                        <table class="totals-table">
+                            <tr>
+                                <td style="color: #6b7280;">সাবটোটাল:</td>
+                                <td style="text-align: right; font-weight: 600;">৳${bn_num(order.subtotal || 0)}</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #6b7280;">শিপিং চার্জ:</td>
+                                <td style="text-align: right; font-weight: 600;">৳${bn_num(order.shipping_cost || 0)}</td>
+                            </tr>
+                            <tr class="grand-total">
+                                <td>সর্বমোট প্রদেয়:</td>
+                                <td style="text-align: right; color: #c5a975;">৳${bn_num(order.total_amount || 0)}</td>
+                            </tr>
+                        </table>
+
+                        <div class="footer-note">
+                            জ্ঞানার্জনের পথে অন্তমিল আপনার পাশে। যেকোনো সহায়তায় যোগাযোগ করুন: <strong>ontomeel.com</strong>
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() { window.print(); }, 500);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
         }
 
         function viewPreOrderDetails(booking) {
@@ -3718,23 +4252,101 @@ function bn_num($num)
             const bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
             return num.toString().replace(/[0-9]/g, w => bn_digits[+w]);
         }
+        let currentOrderStatusFilter = 'all';
+
+        function setOrderStatusFilter(status, btn) {
+            currentOrderStatusFilter = status;
+            document.querySelectorAll('.order-status-filter-btn').forEach(b => {
+                b.classList.remove('bg-brand-900', 'text-white');
+                b.classList.add('bg-gray-100', 'text-gray-600');
+            });
+            if (btn) {
+                btn.classList.remove('bg-gray-100', 'text-gray-600');
+                btn.classList.add('bg-brand-900', 'text-white');
+            }
+            filterOrders();
+        }
+
         function filterOrders() {
             const input = document.getElementById('orderSearchInput');
-            const filter = input.value.toLowerCase();
-            const tbody = document.querySelector('#tab-orders tbody');
-            const tr = tbody.getElementsByTagName('tr');
+            const filterText = (input ? input.value : '').toLowerCase().trim();
+            const gatewayFilter = document.getElementById('orderGatewayFilter') ? document.getElementById('orderGatewayFilter').value.toLowerCase() : 'all';
+            const payStatusFilter = document.getElementById('orderPayStatusFilter') ? document.getElementById('orderPayStatusFilter').value.toLowerCase() : 'all';
 
-            for (let i = 0; i < tr.length; i++) {
-                const id = tr[i].getElementsByTagName('td')[0].textContent.toLowerCase();
-                const name = tr[i].getElementsByTagName('td')[1].textContent.toLowerCase();
-                const books = tr[i].getElementsByTagName('td')[2].textContent.toLowerCase();
+            const rows = document.querySelectorAll('#tab-orders tr.order-row');
+            let visibleCount = 0;
 
-                if (id.indexOf(filter) > -1 || name.indexOf(filter) > -1 || books.indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+            rows.forEach(row => {
+                const searchTokens = row.getAttribute('data-search') || '';
+                const orderStatus = row.getAttribute('data-status') || '';
+                const gateway = row.getAttribute('data-gateway') || '';
+                const payStatus = row.getAttribute('data-paystatus') || '';
+
+                // Check status filter
+                const matchesStatus = (currentOrderStatusFilter === 'all') || (orderStatus === currentOrderStatusFilter);
+
+                // Check search filter
+                const matchesSearch = !filterText || searchTokens.includes(filterText);
+
+                // Check gateway filter
+                let matchesGateway = true;
+                if (gatewayFilter !== 'all') {
+                    if (gatewayFilter === 'cash') {
+                        matchesGateway = gateway.includes('cash') || gateway.includes('cod');
+                    } else {
+                        matchesGateway = gateway.includes(gatewayFilter);
+                    }
                 }
+
+                // Check payment status filter
+                let matchesPayStatus = true;
+                if (payStatusFilter !== 'all') {
+                    matchesPayStatus = payStatus === payStatusFilter;
+                }
+
+                if (matchesStatus && matchesSearch && matchesGateway && matchesPayStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const countEl = document.getElementById('orders-visible-count');
+            if (countEl) {
+                countEl.textContent = bn_num(visibleCount);
             }
+        }
+
+        function copyToClipboard(text, label) {
+            if (!text) return;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast((label || 'তথ্য') + ' কপি করা হয়েছে!');
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(text, label);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text, label);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, label) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast((label || 'তথ্য') + ' কপি করা হয়েছে!');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
         }
         function togglePaymentMethod(methodKey, isActive) {
             fetch('update_payment_method.php', {

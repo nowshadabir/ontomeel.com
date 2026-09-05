@@ -24,7 +24,7 @@ if (!$order_id || !$status) {
     exit();
 }
 
-$allowed = ['Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+$allowed = ['Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'On Hold'];
 if (!in_array($status, $allowed)) {
     echo json_encode(['success' => false, 'message' => 'Invalid status']);
     exit();
@@ -55,7 +55,7 @@ try {
     // ── Status Transition Logic ──────────────────────────────────────
     //
     // WORKFLOW:
-    //   User places order → stock is ALREADY deducted → order_status = 'Processing'
+    //   User places order → stock is ALREADY deducted → order_status = 'Processing' (or 'On Hold' for SSLCommerz risk)
     //
     //   Admin marks Shipped:
     //     → order_status = 'Delivered' (visible as done to customer)
@@ -65,12 +65,11 @@ try {
     //     → Restore inventory (stock back)
     //     → Cancel borrow records if borrow order
     //     → Refund logic:
-    //         Wallet → refund acc_balance
-    //         Bkash/Nagad/Card (Paid) → refund to acc_balance as credit
+    //         Wallet / SSLCommerz / Bkash / Nagad / Card (Paid) → refund to acc_balance as credit if member
     //         Cash (COD) → no refund
     // ─────────────────────────────────────────────────────────────────
 
-    if ($status === 'Shipped' && in_array($prev_status, ['Processing', 'Confirmed'])) {
+    if ($status === 'Shipped' && in_array($prev_status, ['Processing', 'Confirmed', 'On Hold'])) {
         // Admin ships → mark as Shipped
         $new_db_status = 'Shipped';
 
@@ -100,7 +99,7 @@ try {
                 ->execute([$order_id]);
         }
 
-    } elseif ($status === 'Cancelled' && in_array($prev_status, ['Processing', 'Confirmed', 'Shipped'])) {
+    } elseif ($status === 'Cancelled' && in_array($prev_status, ['Processing', 'Confirmed', 'Shipped', 'On Hold'])) {
 
         // Restore inventory
         foreach ($items as $item) {
@@ -117,13 +116,12 @@ try {
 
         // Refund logic
         $paid_amount = (float) $order['total_amount'];
-        $method = $order['payment_method'];  // Wallet, Cash, Bkash, Nagad, Card
+        $method = $order['payment_method'];  // Wallet, Cash, Bkash, Nagad, Card, SSLCommerz
 
-        // Rule 10a, 10c: If payment made by Bkash/Nagad or Wallet, refund to account fund
-        // We handle this if status is Paid OR if it's Mobile Banking/Wallet (assuming payment was made)
-        if ($paid_amount > 0) {
+        // Refund to account fund if member exists and payment was electronic
+        if ($paid_amount > 0 && !empty($order['member_id'])) {
             $should_refund = false;
-            if (in_array($method, ['Wallet', 'Bkash', 'Nagad', 'Card'])) {
+            if (in_array($method, ['Wallet', 'Bkash', 'Nagad', 'Card', 'SSLCommerz']) || $order['payment_status'] === 'Paid') {
                 $should_refund = true;
             }
 
@@ -136,7 +134,7 @@ try {
                 $pdo->prepare("INSERT INTO transactions (member_id, amount, type, description, reference_id) VALUES (?, ?, 'Refund', ?, ?)")
                     ->execute([$order['member_id'], $paid_amount, $desc, $order['invoice_no']]);
 
-                // Set order payment status to Paid if it was pending but we are refunding (meaning we acknowledge payment was made)
+                // Set order payment status to Paid if it was pending but we are refunding
                 $pdo->prepare("UPDATE orders SET payment_status = 'Paid' WHERE id = ?")
                     ->execute([$order_id]);
             }
@@ -145,12 +143,12 @@ try {
         $pdo->prepare("UPDATE orders SET order_status = 'Cancelled' WHERE id = ?")
             ->execute([$order_id]);
 
-    } elseif ($status === 'Confirmed' && $prev_status === 'Processing') {
-        // Just move to confirmed state
+    } elseif ($status === 'Confirmed' && in_array($prev_status, ['Processing', 'On Hold'])) {
+        // Move to confirmed state
         $pdo->prepare("UPDATE orders SET order_status = 'Confirmed' WHERE id = ?")
             ->execute([$order_id]);
         
-        // If it's a pre-order, mark as Paid (as user likely sent bKash/Nagad info which admin verified)
+        // If it's a pre-order, mark as Paid
         $checkPO = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ? AND preorder_id IS NOT NULL");
         $checkPO->execute([$order_id]);
         $is_preorder = $checkPO->fetchColumn() > 0;
@@ -160,7 +158,7 @@ try {
                 ->execute([$order_id]);
         }
     } else {
-        // For any other manual status change (e.g. Processing → Delivered directly)
+        // For any other manual status change (e.g. On Hold, Processing)
         $pdo->prepare("UPDATE orders SET order_status = ? WHERE id = ?")
             ->execute([$status, $order_id]);
 
