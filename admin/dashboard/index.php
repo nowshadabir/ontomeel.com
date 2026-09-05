@@ -3816,7 +3816,7 @@ function format_bn_datetime($datetime_str)
                     <div class="invoice-card">
                         <div class="header">
                             <div>
-                                <h1 class="brand-title">অন্তমিল</h1>
+                                <h1 class="brand-title">অন্ত্যমিল</h1>
                                 <p class="brand-sub">ONTOMEEL.COM</p>
                                 <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">বইয়ের বিশ্বস্ত অনলাইন ঠিকানা</p>
                             </div>
@@ -3897,7 +3897,7 @@ function format_bn_datetime($datetime_str)
                         </table>
 
                         <div class="footer-note">
-                            জ্ঞানার্জনের পথে অন্তমিল আপনার পাশে। যেকোনো সহায়তায় যোগাযোগ করুন: <strong>ontomeel.com</strong>
+                            জ্ঞানার্জনের পথে অন্ত্যমিল আপনার পাশে। যেকোনো সহায়তায় যোগাযোগ করুন: <strong>ontomeel.com</strong>
                         </div>
                     </div>
                     <script>
