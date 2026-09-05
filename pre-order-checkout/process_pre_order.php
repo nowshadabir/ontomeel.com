@@ -1,44 +1,78 @@
 <?php
 session_start();
 require_once '../includes/db_connect.php';
-require_once '../includes/notification_helper.php';
 
 header('Content-Type: application/json');
 
+if (!function_exists('getSetting')) {
+    function getSetting($pdo, $key, $default = '')
+    {
+        try {
+            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+            return $val !== false ? $val : $default;
+        } catch (Exception $e) {
+            return $default;
+        }
+    }
+}
+
 try {
     $user_id = $_SESSION['user_id'] ?? null;
-    $preorder_id = $_POST['preorder_id'] ?? 0;
-    $name = $_POST['name'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $sender_number = $_POST['sender_number'] ?? '';
-    $total_amount = $_POST['total_amount'] ?? 0;
+    $preorder_id = (int)($_POST['preorder_id'] ?? 0);
+    $name = trim($_POST['name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $c_location = trim($_POST['location'] ?? 'inside');
 
-    if (empty($preorder_id) || empty($address) || empty($sender_number) || empty($name) || empty($phone)) {
-        echo json_encode(['success' => false, 'message' => 'প্রয়োজনীয় তথ্য প্রদান করুন (নাম, মোবাইল, ঠিকানা এবং ট্রাঞ্জেকশন আইডি)']);
+    if (empty($preorder_id) || empty($address) || empty($name) || empty($phone)) {
+        echo json_encode(['success' => false, 'message' => 'প্রয়োজনীয় সব তথ্য প্রদান করুন (নাম, মোবাইল নম্বর এবং ঠিকানা)।']);
         exit();
     }
 
-    // Email is required for order updates
+    if (strlen($phone) < 11) {
+        echo json_encode(['success' => false, 'message' => 'সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন।']);
+        exit();
+    }
+
+    // Email is required for payment receipts and order status
     if (empty($email)) {
-        echo json_encode(['success' => false, 'message' => 'অনুগ্রহ করে আপনার ইমেইল এড্রেস দিন']);
+        echo json_encode(['success' => false, 'message' => 'অনুগ্রহ করে আপনার ইমেইল এড্রেস দিন।']);
         exit();
     }
 
-    // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['success' => false, 'message' => 'সঠিক ইমেইল এড্রেস দিন']);
+        echo json_encode(['success' => false, 'message' => 'সঠিক ইমেইল এড্রেস প্রদান করুন।']);
         exit();
     }
 
-    // Check if Transaction ID already exists
-    $stmt = $pdo->prepare("SELECT id FROM orders WHERE trx_id = ?");
-    $stmt->execute([$sender_number]);
-    if ($stmt->fetch()) {
-        echo json_encode(['success' => false, 'message' => 'এই ট্রাঞ্জেকশন আইডিটি ইতিপূর্বেই ব্যবহার করা হয়েছে। অনুগ্রহ করে সঠিক আইডিটি দিন অথবা আমাদের সাথে যোগাযোগ করুন।']);
+    // Verify pre-order item existence
+    $po_stmt = $pdo->prepare("SELECT * FROM pre_orders WHERE id = ?");
+    $po_stmt->execute([$preorder_id]);
+    $pre_order = $po_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$pre_order) {
+        echo json_encode(['success' => false, 'message' => 'প্রি-অর্ডার বইটি খুঁজে পাওয়া যায়নি।']);
         exit();
     }
+
+    if ($pre_order['status'] !== 'Open') {
+        echo json_encode(['success' => false, 'message' => 'এই বইটির প্রি-বুকিং বর্তমানে বন্ধ রয়েছে।']);
+        exit();
+    }
+
+    // Calculate accurate pricing from database
+    $item_price = ($pre_order['discount_price'] > 0) ? (float)$pre_order['discount_price'] : (float)$pre_order['price'];
+    $is_free_delivery = (isset($pre_order['free_delivery']) && (int)$pre_order['free_delivery'] === 1);
+
+    $inside_charge = (float)getSetting($pdo, 'delivery_charge_inside', 60);
+    $outside_charge = (float)getSetting($pdo, 'delivery_charge_outside', 120);
+    $shipping_charge = $is_free_delivery ? 0.00 : (($c_location === 'outside') ? $outside_charge : $inside_charge);
+
+    $subtotal = $item_price;
+    $total_amount = $subtotal + $shipping_charge;
 
     // Generate Invoice Number
     $invoice_prefix = 'PRE-';
@@ -49,112 +83,66 @@ try {
     if ($last_invoice) {
         $last_num = (int)substr($last_invoice, -4);
         $new_num = str_pad($last_num + 1, 4, '0', STR_PAD_LEFT);
-    }
-    else {
+    } else {
         $new_num = '0001';
     }
     $invoice_no = "{$invoice_prefix}{$year}-{$new_num}";
 
     $pdo->beginTransaction();
 
-
-    // Insert Order
+    // Insert Order with SSLCommerz method and Pending payment status
     $stmt = $pdo->prepare("
         INSERT INTO orders (
             invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, 
             payment_status, payment_method, trx_id, order_status, shipping_address, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Bkash', ?, 'Processing', ?, 'Pre-order Booking')
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'SSLCommerz', NULL, 'Processing', ?, 'Pre-order Booking')
     ");
 
-    // Fetch free_delivery status for this pre-order
-    $po_stmt = $pdo->prepare("SELECT free_delivery FROM pre_orders WHERE id = ?");
-    $po_stmt->execute([$preorder_id]);
-    $is_free_delivery = (int)($po_stmt->fetchColumn() ?: 0);
-
-    // Fetch shipping charges from settings
-    function getSetting($pdo, $key, $default = '')
-    {
-        try {
-            $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
-            $stmt->execute([$key]);
-            $val = $stmt->fetchColumn();
-            return $val !== false ? $val : $default;
-        }
-        catch (Exception $e) {
-            return $default;
-        }
-    }
-
-    $c_location = $_POST['location'] ?? 'inside';
-    $inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
-    $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
-    $selected_charge = ($c_location === 'inside') ? $inside_charge : $outside_charge;
-
-    $shipping_cost = ($is_free_delivery === 1) ? 0 : $selected_charge;
-    $subtotal = $total_amount - $shipping_cost;
-
     $stmt->execute([
-        $invoice_no, $user_id, $name, $phone, $email, $subtotal, $shipping_cost, $total_amount,
-        $sender_number, $address
+        $invoice_no,
+        $user_id,
+        $name,
+        $phone,
+        $email,
+        $subtotal,
+        $shipping_charge,
+        $total_amount,
+        $address
     ]);
 
-    $order_id = $pdo->lastInsertId();
+    $order_id = (int)$pdo->lastInsertId();
 
-    // Insert Order Item (pre-order specific)
-    $stmt = $pdo->prepare("
+    // Insert Order Item (linked with preorder_id)
+    $item_stmt = $pdo->prepare("
         INSERT INTO order_items (order_id, book_id, preorder_id, quantity, unit_price, total_price) 
         VALUES (?, NULL, ?, 1, ?, ?)
     ");
-    $stmt->execute([$order_id, $preorder_id, $subtotal, $subtotal]);
+    $item_stmt->execute([$order_id, $preorder_id, $subtotal, $subtotal]);
 
-    // Ensure member address is updated ONLY IF LOGGED IN
+    // Update member profile address if member is logged in and had no saved address
     if ($user_id) {
-        $stmt = $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')");
-        $stmt->execute([$address, $user_id]);
+        $updateMember = $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')");
+        $updateMember->execute([$address, $user_id]);
     }
 
     $pdo->commit();
 
-    // Send Notification Email
-    try {
-        // Get pre-order book details - Database Safe (no _en columns)
-        $poStmt = $pdo->prepare("SELECT title, author FROM pre_orders WHERE id = ?");
-        $poStmt->execute([$preorder_id]);
-        $po_info = $poStmt->fetch();
+    // Return order ID and redirect URL to SSLCommerz initiation
+    echo json_encode([
+        'success'      => true,
+        'order_id'     => $order_id,
+        'invoice_no'   => $invoice_no,
+        'redirect_url' => '../sslcommerz/initiate.php?order_id=' . $order_id
+    ]);
 
-        $notif_data = [
-            'name' => $name,
-            'invoice_no' => $invoice_no,
-            'amount' => $total_amount,
-            'address' => $address,
-            'guest' => !$user_id,
-            'is_preorder' => true
-        ];
-
-        if ($po_info) {
-            $notif_data['book_title'] = $po_info['title'];
-            $notif_data['book_title_en'] = $po_info['title']; // Fallback
-            $notif_data['book_author'] = $po_info['author'];
-            $notif_data['book_author_en'] = $po_info['author']; // Fallback
-        }
-
-        $result = send_notification($email, 'order_placed', $notif_data);
-        
-        // Log the trigger for debugging
-        file_put_contents(__DIR__ . '/../mail_debug.log', "[" . date('Y-m-d H:i:s') . "] PRE-ORDER: Invoice #$invoice_no | Email: $email | Result: " . ($result['success'] ? 'OK' : 'FAIL - ' . ($result['message'] ?? '')) . "\n", FILE_APPEND);
-    }
-    catch (Exception $e) {
-        // Log mail error but don't fail the order
-        error_log("Mail Error in Pre-order: " . $e->getMessage());
-    }
-
-    echo json_encode(['success' => true, 'order_id' => $invoice_no]);
-
-}
-catch (PDOException $e) {
+} catch (PDOException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'ডাটাবেস ত্রুটি: ' . $e->getMessage()]);
+} catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    echo json_encode(['success' => false, 'message' => 'ত্রুটি: ' . $e->getMessage()]);
 }
-?>

@@ -1,0 +1,9 @@
+# ==============================================================================
+# Pre-booking URL Rewrite Rules
+# ==============================================================================
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^book/([^/]+)/?$ book-details.php?slug=$1 [L,QSA]
+</IfModule>

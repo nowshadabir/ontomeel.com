@@ -116,7 +116,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 $stmt = $pdo->prepare("UPDATE orders SET payment_status = 'Paid', order_status = ?, payment_id = ?, trx_id = ?, payment_method = 'SSLCommerz', notes = ? WHERE id = ?");
                 $stmt->execute([$new_order_status, $val_id, $tran_id, $notes, $order_id]);
 
-                if (!$wasAlreadyPaid && !empty($orderData['guest_email'])) {
+                $recipient_email = trim($orderData['guest_email'] ?? '');
+                if (empty($recipient_email) && !empty($orderData['member_id'])) {
+                    $mStmt = $pdo->prepare("SELECT email FROM members WHERE id = ?");
+                    $mStmt->execute([(int)$orderData['member_id']]);
+                    $recipient_email = trim($mStmt->fetchColumn() ?: '');
+                }
+
+                if (!$wasAlreadyPaid && !empty($recipient_email)) {
                     try {
                         require_once __DIR__ . '/../includes/notification_helper.php';
                         $notif_data = [
@@ -125,7 +132,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                             'amount' => $verified_amount ?: $orderData['total_amount'],
                             'address' => $orderData['shipping_address']
                         ];
-                        send_notification($orderData['guest_email'], 'order_placed', $notif_data);
+
+                        $itemInfoStmt = $pdo->prepare("SELECT oi.preorder_id, 
+                                                              COALESCE(b.title, po.title) as title, 
+                                                              COALESCE(b.title_en, po.title_en) as title_en, 
+                                                              COALESCE(b.author, po.author) as author, 
+                                                              COALESCE(b.author_en, po.author_en) as author_en 
+                                                       FROM order_items oi 
+                                                       LEFT JOIN books b ON oi.book_id = b.id 
+                                                       LEFT JOIN pre_orders po ON oi.preorder_id = po.id 
+                                                       WHERE oi.order_id = ? LIMIT 1");
+                        $itemInfoStmt->execute([$order_id]);
+                        $itemInfo = $itemInfoStmt->fetch(PDO::FETCH_ASSOC);
+                        if ($itemInfo) {
+                            $notif_data['book_title'] = $itemInfo['title'];
+                            $notif_data['book_title_en'] = $itemInfo['title_en'] ?: $itemInfo['title'];
+                            $notif_data['book_author'] = $itemInfo['author'];
+                            $notif_data['book_author_en'] = $itemInfo['author_en'] ?: $itemInfo['author'];
+                            if (!empty($itemInfo['preorder_id'])) {
+                                $notif_data['is_preorder'] = true;
+                            }
+                        }
+
+                        send_notification($recipient_email, 'order_placed', $notif_data);
                     } catch (Exception $e) {
                         error_log("SSLCommerz IPN email notification error: " . $e->getMessage());
                     }

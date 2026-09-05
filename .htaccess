@@ -14,6 +14,9 @@ Options -Indexes
     # 3. Block access to sensitive configuration, backup, and database directories/files
     RewriteRule \.(env|json|sql|log|md|sh|bak|backup|config|ini)$ - [F,L,NC]
     RewriteRule ^(database|backups)/ - [F,L,NC]
+
+    # 4. Pre-booking slug rewrite rule
+    RewriteRule ^pre-booking/book/([^/]+)/?$ pre-booking/book-details.php?slug=$1 [L,QSA]
 </IfModule>
 
 # Fallback protection via FilesMatch (for Apache 2.2 & 2.4)

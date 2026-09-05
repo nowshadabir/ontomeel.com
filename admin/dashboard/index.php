@@ -104,7 +104,7 @@ $preorders_stmt = $pdo->query("SELECT * FROM pre_orders ORDER BY release_date AS
 $admin_preorders = $preorders_stmt->fetchAll();
 
 // Fetch Pre-order Bookings (New)
-$po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.order_date, o.order_status, o.trx_id, o.shipping_address, o.total_amount, 
+$po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.order_date, o.order_status, o.payment_status, o.payment_method, o.trx_id, o.shipping_address, o.total_amount, 
                                           COALESCE(m.full_name, o.guest_name) as full_name, 
                                           COALESCE(m.phone, o.guest_phone) as phone, 
                                           COALESCE(m.email, o.guest_email) as email,
@@ -1593,13 +1593,23 @@ function format_bn_datetime($datetime_str)
                                                 </div>
                                             </td>
                                             <td class="px-8 py-5">
-                                                <?php
-                                                $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
-                                                ?>
-                                                <span
-                                                    class="px-3 py-1 <?php echo $s_class; ?> rounded-full text-[10px] font-bold">
-                                                    <?php echo $booking['order_status']; ?>
-                                                </span>
+                                                <div class="flex flex-col gap-1.5 items-start">
+                                                    <?php
+                                                    $s_class = $booking['order_status'] == 'Delivered' ? 'bg-green-100 text-green-700' : ($booking['order_status'] == 'Processing' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700');
+                                                    ?>
+                                                    <span class="px-3 py-0.5 <?php echo $s_class; ?> rounded-full text-[10px] font-bold">
+                                                        <?php echo $booking['order_status']; ?>
+                                                    </span>
+                                                    <?php if (($booking['payment_status'] ?? '') === 'Paid'): ?>
+                                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-[9px] font-bold">
+                                                            ✓ পরিশোধিত (<?php echo htmlspecialchars($booking['payment_method'] ?? 'SSLCommerz'); ?>)
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[9px] font-bold">
+                                                            ⏳ পেমেন্ট পেন্ডিং
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5 text-right">
                                                 <button
@@ -3946,8 +3956,14 @@ function format_bn_datetime($datetime_str)
                                 <p class="text-xs text-gray-500">পরিমাণ: ${bn_num(booking.quantity)}টি</p>
                             </div>
                             <div>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ট্রানজেকশন আইডি</p>
-                                <p class="text-sm font-bold text-[#D12053] tracking-widest">${booking.trx_id || 'N/A'}</p>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">পেমেন্ট মাধ্যম ও স্ট্যাটাস</p>
+                                <p class="text-xs font-bold text-brand-900 mb-0.5">
+                                    ${booking.payment_method || 'SSLCommerz'} — 
+                                    <span class="${booking.payment_status === 'Paid' ? 'text-emerald-600' : 'text-amber-600'} font-bold">
+                                        ${booking.payment_status === 'Paid' ? 'পরিশোধিত (Paid)' : 'অপেক্ষমান (Pending)'}
+                                    </span>
+                                </p>
+                                <p class="text-xs font-mono text-gray-500 tracking-wider">${booking.trx_id ? 'TrxID: ' + booking.trx_id : 'TrxID: অপেক্ষমান'}</p>
                             </div>
                         </div>
                     </div>
