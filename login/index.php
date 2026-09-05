@@ -160,7 +160,7 @@
                                     name="login_id" 
                                     required 
                                     autocomplete="username"
-                                    placeholder="আপনার ইমেইল বা ফোন (০১৭...)"
+                                    placeholder="আপনার ইমেইল বা ফোন (017...)"
                                     class="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-3.5 pr-10 py-2.5 sm:py-3 text-sm font-anek text-brand-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-brand-gold focus:bg-white transition-all">
                                 <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-brand-gold transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

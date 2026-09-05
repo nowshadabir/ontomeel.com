@@ -204,19 +204,130 @@ if (!$orderData && !empty($tran_id)) {
     $orderData = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+// Helper functions for Bengali formatting on receipt
+if (!function_exists('toBanglaDigits')) {
+    function toBanglaDigits($num) {
+        $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return str_replace(range(0, 9), $bn_digits, (string)$num);
+    }
+}
+
+if (!function_exists('formatBnDateReceipt')) {
+    function formatBnDateReceipt($date_str) {
+        if (!$date_str) return 'N/A';
+        $timestamp = strtotime($date_str);
+        $months_bn = [
+            'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
+            'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
+            'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
+            'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর'
+        ];
+        $day = toBanglaDigits(date('d', $timestamp));
+        $en_month = date('F', $timestamp);
+        $month = $months_bn[$en_month] ?? $en_month;
+        $year = toBanglaDigits(date('Y', $timestamp));
+        $time = toBanglaDigits(date('h:i', $timestamp)) . ' ' . (date('A', $timestamp) === 'AM' ? 'পূর্বাহ্ণ' : 'অপরাহ্ণ');
+        return "{$day} {$month} {$year}, {$time}";
+    }
+}
+
+if (!function_exists('formatBnReleaseMonth')) {
+    function formatBnReleaseMonth($date_str) {
+        if (!$date_str) return 'সেপ্টেম্বর ২০২৬';
+        $timestamp = strtotime($date_str);
+        $months_bn = [
+            'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
+            'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
+            'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
+            'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর'
+        ];
+        $en_month = date('F', $timestamp);
+        $month = $months_bn[$en_month] ?? $en_month;
+        $year = toBanglaDigits(date('Y', $timestamp));
+        return "{$month} {$year}";
+    }
+}
+
+if (!function_exists('getReceiptBookCoverUrl')) {
+    function getReceiptBookCoverUrl($cover_img, $is_po, $path_prefix = '../') {
+        if (empty($cover_img)) {
+            return $path_prefix . 'assets/img/logo.webp';
+        }
+        if (strpos($cover_img, 'http') === 0) {
+            return $cover_img;
+        }
+        $clean = trim($cover_img);
+        if ($is_po) {
+            return $path_prefix . 'assets/img/preorders/' . $clean;
+        }
+        return $path_prefix . 'admin/assets/book-images/' . $clean;
+    }
+}
+
 // Fetch order items if order was found
 $order_items = [];
 if ($orderData) {
     $stmt = $pdo->prepare("SELECT oi.*, 
                                   COALESCE(b.title, po.title) as book_title, 
                                   COALESCE(b.author, po.author) as book_author, 
-                                  COALESCE(b.cover_image, po.cover_image) as cover_image 
+                                  COALESCE(b.cover_image, po.cover_image) as cover_image,
+                                  po.release_date as po_release_date,
+                                  po.slug as po_slug,
+                                  po.is_hot_deal as po_is_hot_deal
                            FROM order_items oi 
                            LEFT JOIN books b ON oi.book_id = b.id 
                            LEFT JOIN pre_orders po ON oi.preorder_id = po.id 
                            WHERE oi.order_id = ?");
     $stmt->execute([$orderData['id']]);
     $order_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Check if this order is a Pre-order
+$is_preorder = false;
+$preorder_item = null;
+foreach ($order_items as $item) {
+    if (!empty($item['preorder_id'])) {
+        $is_preorder = true;
+        if (!$preorder_item) {
+            $preorder_item = $item;
+        }
+    }
+}
+if (!$is_preorder && !empty($orderData['notes']) && stripos($orderData['notes'], 'pre-order') !== false) {
+    $is_preorder = true;
+}
+if (!$is_preorder && !empty($orderData['invoice_no']) && strpos($orderData['invoice_no'], 'PRE-') === 0) {
+    $is_preorder = true;
+}
+
+// Fetch pre-order release date if available
+$release_date_str = '';
+if ($is_preorder) {
+    if (!empty($preorder_item['po_release_date'])) {
+        $release_date_str = $preorder_item['po_release_date'];
+    } elseif (!empty($preorder_item['preorder_id'])) {
+        $poCheck = $pdo->prepare("SELECT release_date FROM pre_orders WHERE id = ?");
+        $poCheck->execute([$preorder_item['preorder_id']]);
+        $release_date_str = $poCheck->fetchColumn() ?: '';
+    } else {
+        $poCheck = $pdo->query("SELECT release_date FROM pre_orders ORDER BY id DESC LIMIT 1");
+        $release_date_str = $poCheck->fetchColumn() ?: '';
+    }
+}
+
+// Customer information resolution
+$customer_name = !empty($orderData['guest_name']) ? $orderData['guest_name'] : '';
+$customer_phone = !empty($orderData['guest_phone']) ? $orderData['guest_phone'] : '';
+$customer_email = !empty($orderData['guest_email']) ? $orderData['guest_email'] : '';
+if (empty($customer_name) && !empty($orderData['member_id'])) {
+    $mStmt = $pdo->prepare("SELECT full_name, phone, email FROM members WHERE id = ?");
+    $mStmt->execute([(int)$orderData['member_id']]);
+    $mRow = $mStmt->fetch(PDO::FETCH_ASSOC);
+    if ($mRow) {
+        $customer_name = $customer_name ?: $mRow['full_name'];
+        $customer_phone = $customer_phone ?: $mRow['phone'];
+        $customer_email = $customer_email ?: $mRow['email'];
+    }
 }
 
 $is_paid = ($orderData && $orderData['payment_status'] === 'Paid');
@@ -237,7 +348,10 @@ if ($orderData) {
 
 // Correct path prefix for assets, tailwind-config, style.css, script.js
 $path_prefix = '../';
-$page_title = $is_paid ? 'পেমেন্ট সফল | অন্ত্যমিল অনলাইন বুকশপ' : 'পেমেন্ট স্ট্যাটাস | অন্ত্যমিল';
+$inv_prefix = !empty($orderData['invoice_no']) ? $orderData['invoice_no'] . ' - ' : '';
+$page_title = $is_paid 
+    ? ($is_preorder ? $inv_prefix . 'প্রি-অর্ডার ক্যাশ রসিদ | অন্ত্যমিল' : $inv_prefix . 'অফিসিয়াল ক্যাশ রসিদ | অন্ত্যমিল') 
+    : 'পেমেন্ট স্ট্যাটাস | অন্ত্যমিল';
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -247,223 +361,558 @@ include __DIR__ . '/../includes/header.php';
 <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
 <?php endif; ?>
 
-<div class="pt-28 pb-20 bg-brand-light min-h-screen font-anek">
-    <div class="max-w-xl mx-auto px-4 sm:px-6">
-        
+<div class="receipt-page-bg">
+    <div class="receipt-wrap">
+
         <?php if (!$is_authorized): ?>
-        <!-- Unauthorized Access Card -->
-        <div class="bg-white rounded-[36px] p-8 text-center border border-gray-100 shadow-xl">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-5">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0 0v2m0-2h2m-2 0H10m11-3.5a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold text-brand-900 mb-2">অননুমোদিত অনুরোধ</h2>
-            <p class="text-gray-500 text-sm mb-6">এই অর্ডারের বিস্তারিত তথ্য দেখার জন্য অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।</p>
-            <div class="space-y-3">
-                <a href="../login/index.php" class="inline-block w-full bg-brand-900 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-brand-gold hover:text-brand-900 transition-all">লগইন পেজে যান</a>
-                <a href="../index.php" class="inline-block w-full bg-gray-100 text-gray-700 py-3 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">হোম পেজ</a>
-            </div>
+        <!-- Unauthorized -->
+        <div class="unauth-card">
+            <div class="unauth-icon">✕</div>
+            <h2>অননুমোদিত অনুরোধ</h2>
+            <p>এই অর্ডারের তথ্য দেখতে আপনার অ্যাকাউন্টে লগইন করুন।</p>
+            <a href="../login/index.php" class="btn-primary">লগইন পেজে যান</a>
+            <a href="../index.php" class="btn-secondary">হোম পেজ</a>
         </div>
+
         <?php else: ?>
-        
-        <!-- Main Card -->
-        <div class="bg-white rounded-[36px] p-6 sm:p-10 text-center border border-gray-100 shadow-2xl relative overflow-hidden">
-            
-            <!-- Top Gradient Accent Bar -->
-            <div class="absolute top-0 left-0 right-0 h-2 <?php echo $is_paid ? 'bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600' : 'bg-gradient-to-r from-amber-400 to-yellow-500'; ?>"></div>
 
-            <?php if ($is_paid): ?>
-                <!-- Animated Success Badge -->
-                <div class="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
-                    <div class="w-20 h-20 bg-gradient-to-tr from-green-500 to-emerald-400 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                        </svg>
+        <!-- ======= SCREEN CARD ======= -->
+        <div class="screen-only">
+            <div class="receipt-card">
+
+                <?php if ($is_paid): ?>
+
+                <!-- Status Icon -->
+                <div class="status-hero">
+                    <div class="status-icon-wrap <?php echo $is_preorder ? 'icon-gold' : 'icon-green'; ?>">
+                        <?php if ($is_preorder): ?>
+                            <span>★</span>
+                        <?php else: ?>
+                            <span>✓</span>
+                        <?php endif; ?>
+                    </div>
+                    <h1 class="status-title">
+                        <?php echo $is_preorder ? 'প্রি-বুকিং সম্পন্ন!' : 'পেমেন্ট সফল হয়েছে!'; ?>
+                    </h1>
+                    <p class="status-sub">
+                        <?php echo $is_preorder
+                            ? 'আপনার প্রি-অর্ডার বুকিং নিশ্চিত হয়েছে। বই প্রকাশের সাথে সাথে অগ্রাধিকার ভিত্তিতে পৌঁছে দেওয়া হবে।'
+                            : 'ধন্যবাদ! পেমেন্ট সফল। শীঘ্রই আপনার বইগুলো পাঠানো হবে।'; ?>
+                    </p>
+                </div>
+
+                <!-- Meta Strip -->
+                <div class="meta-strip">
+                    <div class="meta-item">
+                        <span class="meta-label">ইনভয়েস</span>
+                        <span class="meta-val mono"><?php echo htmlspecialchars($orderData['invoice_no'] ?? 'N/A'); ?></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">তারিখ</span>
+                        <span class="meta-val"><?php echo formatBnDateReceipt($orderData['order_date'] ?? date('Y-m-d H:i:s')); ?></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">পেমেন্ট</span>
+                        <span class="meta-val"><?php echo htmlspecialchars(!empty($card_type) ? $card_type : 'SSLCommerz'); ?></span>
                     </div>
                 </div>
 
-                <h1 class="text-2xl sm:text-3xl font-bold text-brand-900 mb-2">পেমেন্ট সফল হয়েছে!</h1>
-                <p class="text-gray-500 text-sm leading-relaxed mb-8 max-w-md mx-auto">
-                    <?php if ($is_risk): ?>
-                        আপনার পেমেন্ট রেকর্ড করা হয়েছে। সুরক্ষাজনিত চূড়ান্ত যাচাইয়ের পর খুব দ্রুত আপনার অর্ডারটি ডেলিভারির জন্য প্রস্তুত করা হবে।
-                    <?php else: ?>
-                        ধন্যবাদ! আপনার পেমেন্টটি সফলভাবে সম্পন্ন হয়েছে। শীঘ্রই আমাদের টিম আপনার বইগুলো পাঠানো শুরু করবে।
-                    <?php endif; ?>
-                </p>
-
-                <!-- Order Receipt Box -->
-                <div class="bg-gray-50 rounded-3xl p-5 sm:p-6 mb-8 text-left border border-gray-100 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-gray-200/80">
-                        <div>
-                            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">ইনভয়েস নম্বর</span>
-                            <span class="font-bold text-brand-900 font-mono text-base"><?php echo htmlspecialchars($orderData['invoice_no'] ?? 'N/A'); ?></span>
-                        </div>
-                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">পরিশোধিত</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 text-xs pt-1">
-                        <div>
-                            <span class="text-gray-400 block mb-0.5">অর্ডার আইডি:</span>
-                            <span class="font-bold text-brand-900 font-mono">#<?php echo htmlspecialchars($orderData['id'] ?? ''); ?></span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block mb-0.5">পেমেন্ট মাধ্যম:</span>
-                            <span class="font-bold text-brand-900"><?php echo !empty($card_type) ? htmlspecialchars($card_type) : 'SSLCommerz'; ?></span>
-                        </div>
-                    </div>
-
-                    <?php if (!empty($orderData['trx_id']) || !empty($tran_id)): ?>
-                    <div class="bg-white p-3 rounded-2xl border border-gray-200/60 flex items-center justify-between text-xs">
-                        <div class="min-w-0 pr-2">
-                            <span class="text-gray-400 text-[10px] block">ট্রানজেকশন নম্বর (TrxID)</span>
-                            <span class="font-mono text-brand-900 font-semibold truncate block select-all text-[11px]">
-                                <?php echo htmlspecialchars($orderData['trx_id'] ?: $tran_id); ?>
-                            </span>
-                        </div>
-                        <button onclick="copyTrxId(this, '<?php echo htmlspecialchars($orderData['trx_id'] ?: $tran_id); ?>')" class="px-2.5 py-1 bg-gray-100 hover:bg-brand-gold hover:text-brand-900 text-gray-600 rounded-lg text-[10px] font-bold transition-all shrink-0">
-                            কপি
-                        </button>
-                    </div>
-                    <?php endif; ?>
-
-                    <!-- Ordered Items List -->
-                    <?php if (!empty($order_items)): ?>
-                    <div class="pt-2">
-                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">অর্ডারকৃত বইসমূহ:</span>
-                        <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                            <?php foreach ($order_items as $item): ?>
-                            <div class="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
-                                <span class="text-brand-900 font-medium truncate max-w-[220px]">
-                                    <?php echo htmlspecialchars($item['book_title'] ?? 'বই'); ?> (×<?php echo $item['quantity']; ?>)
-                                </span>
-                                <span class="font-bold text-brand-900 font-mono">৳<?php echo number_format((float)$item['total_price'], 2); ?></span>
+                <!-- Items -->
+                <div class="section-block">
+                    <p class="section-label"><?php echo $is_preorder ? 'প্রি-অর্ডারকৃত বই' : 'অর্ডারকৃত বইসমূহ'; ?></p>
+                    <?php if ($is_preorder && $preorder_item): ?>
+                        <div class="item-row">
+                            <div class="item-info">
+                                <strong><?php echo htmlspecialchars($preorder_item['book_title'] ?? 'বই'); ?></strong>
+                                <span><?php echo htmlspecialchars($preorder_item['book_author'] ?? ''); ?> &nbsp;·&nbsp; ১ কপি</span>
+                                <?php if (!empty($release_date_str)): ?>
+                                    <span class="release-note">📅 প্রকাশনা: <?php echo formatBnReleaseMonth($release_date_str); ?></span>
+                                <?php endif; ?>
                             </div>
-                            <?php endforeach; ?>
+                            <span class="item-price mono">৳<?php echo number_format((float)($preorder_item['total_price'] ?? $orderData['subtotal']), 2); ?></span>
                         </div>
-                    </div>
+                    <?php elseif (!empty($order_items)): ?>
+                        <?php foreach ($order_items as $item): ?>
+                        <div class="item-row">
+                            <div class="item-info">
+                                <strong><?php echo htmlspecialchars($item['book_title'] ?? 'বই'); ?></strong>
+                                <span><?php echo htmlspecialchars($item['book_author'] ?? ''); ?> &nbsp;·&nbsp; <?php echo $item['quantity']; ?> কপি</span>
+                            </div>
+                            <span class="item-price mono">৳<?php echo number_format((float)$item['total_price'], 2); ?></span>
+                        </div>
+                        <?php endforeach; ?>
                     <?php endif; ?>
+                </div>
 
-                    <!-- Total Amount Paid -->
-                    <div class="pt-3 border-t border-gray-200 flex items-center justify-between">
-                        <span class="font-bold text-gray-700 text-sm">সর্বমোট পরিশোধ:</span>
-                        <span class="text-xl font-bold text-brand-gold font-mono">
-                            ৳<?php echo number_format((float)($orderData['total_amount'] ?? 0), 2); ?>
-                        </span>
+                <!-- Customer + Address -->
+                <div class="two-col">
+                    <div class="section-block">
+                        <p class="section-label">ক্রেতা</p>
+                        <p class="info-name"><?php echo htmlspecialchars($customer_name ?: 'সম্মানিত পাঠক'); ?></p>
+                        <p class="info-line mono"><?php echo htmlspecialchars($customer_phone ?: ''); ?></p>
+                        <?php if (!empty($customer_email)): ?>
+                            <p class="info-line"><?php echo htmlspecialchars($customer_email); ?></p>
+                        <?php endif; ?>
+                    </div>
+                    <div class="section-block">
+                        <p class="section-label">ডেলিভারি ঠিকানা</p>
+                        <p class="info-line"><?php echo htmlspecialchars($orderData['shipping_address'] ?? ''); ?></p>
+                        <?php $loc = array_filter([$orderData['upazila'] ?? '', $orderData['district'] ?? '', $orderData['division'] ?? '']); ?>
+                        <?php if ($loc): ?><p class="info-line"><?php echo implode(', ', $loc); ?></p><?php endif; ?>
                     </div>
                 </div>
 
-            <?php else: ?>
-                <!-- Pending/Verifying Badge -->
-                <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-10 h-10 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
+                <!-- Totals -->
+                <div class="totals-block">
+                    <div class="total-row">
+                        <span>বইয়ের মূল্য</span>
+                        <span class="mono">৳<?php echo number_format((float)($orderData['subtotal'] ?? 0), 2); ?></span>
+                    </div>
+                    <div class="total-row">
+                        <span>ডেলিভারি চার্জ</span>
+                        <span class="mono"><?php $sh = (float)($orderData['shipping_cost'] ?? 0); echo $sh > 0 ? '৳' . number_format($sh, 2) : 'বিনামূল্যে'; ?></span>
+                    </div>
+                    <div class="total-row grand">
+                        <span>সর্বমোট পরিশোধিত</span>
+                        <span class="mono grand-amt">৳<?php echo number_format((float)($orderData['total_amount'] ?? 0), 2); ?></span>
+                    </div>
                 </div>
-                <h1 class="text-2xl font-bold text-brand-900 mb-2">পেমেন্ট যাচাই পেন্ডিং</h1>
-                <p class="text-gray-500 text-sm leading-relaxed mb-6">
-                    আপনার পেমেন্টটি গ্রহণ করা হয়েছে এবং গেটওয়ে থেকে চূড়ান্ত নিশ্চিতকরণ প্রক্রিয়াধীন রয়েছে। খুব শীঘ্রই আপনার ড্যাশবোর্ডে স্ট্যাটাস আপডেট হবে।
-                </p>
 
+                <?php else: ?>
+
+                <!-- Pending -->
+                <div class="status-hero">
+                    <div class="status-icon-wrap icon-amber">⏳</div>
+                    <h1 class="status-title">পেমেন্ট যাচাই পেন্ডিং</h1>
+                    <p class="status-sub">আপনার পেমেন্টটি গেটওয়ে থেকে নিশ্চিতকরণ প্রক্রিয়াধীন। ড্যাশবোর্ডে শীঘ্রই আপডেট হবে।</p>
+                </div>
                 <?php if ($orderData): ?>
-                <div class="bg-gray-50 p-4 rounded-2xl mb-6 text-xs text-gray-500 text-left">
-                    <div class="flex justify-between mb-1">
-                        <span>অর্ডার নম্বর:</span>
-                        <strong class="font-mono text-brand-900">#<?php echo htmlspecialchars($orderData['id']); ?></strong>
+                <div class="meta-strip">
+                    <div class="meta-item">
+                        <span class="meta-label">ইনভয়েস</span>
+                        <span class="meta-val mono"><?php echo htmlspecialchars($orderData['invoice_no']); ?></span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>ইনভয়েস নম্বর:</span>
-                        <strong class="font-mono text-brand-900"><?php echo htmlspecialchars($orderData['invoice_no']); ?></strong>
+                    <div class="meta-item">
+                        <span class="meta-label">মোট</span>
+                        <span class="meta-val mono">৳<?php echo number_format((float)$orderData['total_amount'], 2); ?></span>
                     </div>
                 </div>
                 <?php endif; ?>
-            <?php endif; ?>
 
-            <!-- Action Buttons -->
-            <div class="space-y-3">
-                <a href="../dashboard/index.php" class="inline-flex items-center justify-center gap-2 w-full bg-brand-900 text-white py-4 rounded-2xl font-bold text-sm hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/10">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    আমার অর্ডার ও ড্যাশবোর্ড দেখুন
-                </a>
+                <?php endif; ?>
 
-                <div class="flex gap-3">
-                    <button onclick="window.print()" class="flex-1 py-3.5 bg-gray-100 text-gray-700 rounded-2xl font-bold text-xs hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        রশিদ প্রিন্ট করুন
-                    </button>
-                    <a href="../index.php" class="flex-1 py-3.5 bg-gray-100 text-gray-700 rounded-2xl font-bold text-xs hover:bg-gray-200 transition-all flex items-center justify-center">
-                        হোম পেজে ফিরে যান
-                    </a>
+                <!-- Action Buttons -->
+                <div class="action-btns">
+                    <?php if ($is_paid): ?>
+                    <button onclick="window.print()" class="btn-primary">রসিদ PDF / প্রিন্ট</button>
+                    <?php endif; ?>
+                    <a href="../dashboard/index.php" class="btn-secondary"><?php echo $is_preorder ? 'প্রি-অর্ডার স্ট্যাটাস' : 'আমার ড্যাশবোর্ড'; ?></a>
+                    <a href="../index.php" class="btn-ghost">← হোম পেজ</a>
                 </div>
-            </div>
 
-        </div>
+            </div>
+        </div><!-- /.screen-only -->
+
+
+        <!-- ======= PRINT / PDF RECEIPT ======= -->
+        <div class="print-only">
+            <div class="print-sheet">
+
+                <!-- Header -->
+                <div class="p-header">
+                    <div class="p-brand">
+                        <img src="../assets/img/logo.webp" alt="অন্ত্যমিল" class="p-logo" onerror="this.style.display='none'">
+                        <div>
+                            <div class="p-brand-name">অন্ত্যমিল</div>
+                            <div class="p-brand-sub">অনলাইন বুকশপ &amp; প্রকাশনা</div>
+                        </div>
+                    </div>
+                    <div class="p-meta">
+                        <div class="p-doc-title"><?php echo $is_preorder ? 'প্রি-অর্ডার রসিদ' : 'পেমেন্ট রসিদ'; ?></div>
+                        <table class="p-meta-table">
+                            <tr><td>ইনভয়েস:</td><td><strong><?php echo htmlspecialchars($orderData['invoice_no'] ?? 'N/A'); ?></strong></td></tr>
+                            <tr><td>তারিখ:</td><td><?php echo formatBnDateReceipt($orderData['order_date'] ?? date('Y-m-d H:i:s')); ?></td></tr>
+                            <tr><td>পেমেন্ট:</td><td><?php echo htmlspecialchars(!empty($card_type) ? $card_type : 'SSLCommerz'); ?></td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="p-divider"></div>
+
+                <!-- Customer & Address -->
+                <div class="p-parties">
+                    <div>
+                        <div class="p-party-label">ক্রেতা</div>
+                        <div class="p-party-name"><?php echo htmlspecialchars($customer_name ?: 'সম্মানিত পাঠক'); ?></div>
+                        <div class="p-party-line"><?php echo htmlspecialchars($customer_phone ?: ''); ?></div>
+                        <?php if (!empty($customer_email)): ?><div class="p-party-line"><?php echo htmlspecialchars($customer_email); ?></div><?php endif; ?>
+                    </div>
+                    <div>
+                        <div class="p-party-label">ডেলিভারি ঠিকানা</div>
+                        <div class="p-party-line"><?php echo htmlspecialchars($orderData['shipping_address'] ?? ''); ?></div>
+                        <?php if ($loc): ?><div class="p-party-line"><?php echo implode(', ', $loc); ?></div><?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="p-divider"></div>
+
+                <!-- Items Table -->
+                <table class="p-items">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left; width:60%">বইয়ের নাম</th>
+                            <th style="text-align:left; width:25%">লেখক</th>
+                            <th style="text-align:center; width:5%">পরিমাণ</th>
+                            <th style="text-align:right; width:10%">মূল্য</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($is_preorder && $preorder_item): ?>
+                        <tr>
+                            <td>
+                                <strong><?php echo htmlspecialchars($preorder_item['book_title'] ?? 'বই'); ?></strong>
+                                <?php if (!empty($release_date_str)): ?><br><small>প্রকাশনা: <?php echo formatBnReleaseMonth($release_date_str); ?></small><?php endif; ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($preorder_item['book_author'] ?? 'অন্ত্যমিল'); ?></td>
+                            <td style="text-align:center">১</td>
+                            <td style="text-align:right">৳<?php echo number_format((float)($preorder_item['total_price'] ?? $orderData['subtotal']), 2); ?></td>
+                        </tr>
+                        <?php elseif (!empty($order_items)): ?>
+                            <?php foreach ($order_items as $item): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($item['book_title'] ?? 'বই'); ?></strong></td>
+                                <td><?php echo htmlspecialchars($item['book_author'] ?? ''); ?></td>
+                                <td style="text-align:center"><?php echo $item['quantity']; ?></td>
+                                <td style="text-align:right">৳<?php echo number_format((float)$item['total_price'], 2); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <!-- Totals -->
+                <div class="p-totals">
+                    <table class="p-totals-table">
+                        <tr>
+                            <td>বইয়ের মূল্য</td>
+                            <td>৳<?php echo number_format((float)($orderData['subtotal'] ?? 0), 2); ?></td>
+                        </tr>
+                        <tr>
+                            <td>ডেলিভারি চার্জ</td>
+                            <td><?php $sh = (float)($orderData['shipping_cost'] ?? 0); echo $sh > 0 ? '৳' . number_format($sh, 2) : 'বিনামূল্যে'; ?></td>
+                        </tr>
+                        <tr class="p-grand">
+                            <td><strong>সর্বমোট পরিশোধিত</strong></td>
+                            <td><strong>৳<?php echo number_format((float)($orderData['total_amount'] ?? 0), 2); ?></strong></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Footer -->
+                <div class="p-footer">
+                    <p>ধন্যবাদ! আপনার কপিটি নিশ্চিত সংরক্ষিত। যেকোনো প্রশ্নে যোগাযোগ করুন।</p>
+                    <p>📞 +৮৮০১৩৩০৯৭৫৭৮৭ &nbsp;|&nbsp; 🌐 ontomeel.com &nbsp;|&nbsp; শপ নং ৬, লাবণী রোড, কক্সবাজার</p>
+                </div>
+
+            </div>
+        </div><!-- /.print-only -->
+
         <?php endif; ?>
 
     </div>
 </div>
 
 <script>
-    // Ensure Cart is cleared upon arriving at payment success
     try {
         localStorage.removeItem('antyam_cart');
         localStorage.removeItem('antyam_borrow_cart');
     } catch(e) {}
 
-    // Confetti Animation on Success
     <?php if ($is_paid): ?>
     function triggerConfetti() {
         const container = document.getElementById('confetti-container');
         if (!container) return;
-        const colors = ['#cda873', '#0a0a0a', '#10B981', '#34D399', '#FBBF24'];
+        const colors = ['#cda873', '#10B981', '#FBBF24', '#F59E0B', '#34D399'];
         for (let i = 0; i < 40; i++) {
             const el = document.createElement('div');
-            el.className = 'confetti-piece';
-            el.style.position = 'absolute';
-            el.style.left = Math.random() * 100 + 'vw';
-            el.style.top = '-20px';
-            el.style.width = Math.random() * 8 + 6 + 'px';
-            el.style.height = Math.random() * 10 + 6 + 'px';
-            el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            el.style.borderRadius = '2px';
-            el.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
-            el.style.opacity = Math.random() * 0.7 + 0.3;
-            el.style.animation = 'fall ' + (Math.random() * 2 + 2) + 's ease-in-out forwards';
-            el.style.animationDelay = (Math.random() * 1.5) + 's';
+            el.style.cssText = `position:absolute;left:${Math.random()*100}vw;top:-20px;width:${Math.random()*8+5}px;height:${Math.random()*10+5}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:2px;opacity:${Math.random()*0.6+0.3};animation:fall ${Math.random()*2+2}s ease-in forwards;animation-delay:${Math.random()*1.5}s`;
             container.appendChild(el);
         }
     }
     document.addEventListener('DOMContentLoaded', triggerConfetti);
     <?php endif; ?>
 
-    function copyTrxId(btn, text) {
-        navigator.clipboard.writeText(text).then(() => {
-            const orig = btn.innerText;
-            btn.innerText = 'কপি হয়েছে!';
-            btn.classList.add('bg-green-100', 'text-green-700');
-            setTimeout(() => {
-                btn.innerText = orig;
-                btn.classList.remove('bg-green-100', 'text-green-700');
-            }, 2000);
-        });
-    }
+    window.addEventListener('beforeprint', function() {
+        document.title = "<?php echo htmlspecialchars($orderData['invoice_no'] ?? 'Invoice'); ?> - অন্ত্যমিল রসিদ";
+    });
 </script>
 
 <style>
 @keyframes fall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+/* ── PAGE WRAPPER ── */
+.receipt-page-bg {
+    min-height: 100vh;
+    background: #f5f3ef;
+    padding: 6rem 1rem 3rem;
+    font-family: 'Anek Bangla', 'Hind Siliguri', sans-serif;
+}
+.receipt-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* ── UNAUTHORIZED ── */
+.unauth-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,.07);
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+.unauth-icon {
+    width: 52px; height: 52px;
+    background: #fee2e2; color: #dc2626;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+}
+
+/* ── SCREEN CARD ── */
+.receipt-card {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 2rem 1.75rem;
+    box-shadow: 0 6px 32px rgba(0,0,0,.08);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Status Hero */
+.status-hero { text-align: center; padding-bottom: .5rem; }
+.status-icon-wrap {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    font-size: 1.75rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: .75rem;
+    font-weight: 900;
+}
+.icon-green  { background: #dcfce7; color: #16a34a; }
+.icon-gold   { background: #fef3c7; color: #b45309; }
+.icon-amber  { background: #fff7ed; color: #ea580c; }
+.status-title { font-size: 1.45rem; font-weight: 800; color: #111; margin: 0 0 .35rem; }
+.status-sub   { font-size: .88rem; color: #6b7280; max-width: 420px; margin: 0 auto; line-height: 1.55; }
+
+/* Meta Strip */
+.meta-strip {
+    display: flex;
+    gap: .75rem;
+    background: #f9f7f4;
+    border-radius: 14px;
+    padding: .9rem 1rem;
+    flex-wrap: wrap;
+}
+.meta-item { flex: 1; min-width: 100px; }
+.meta-label { display: block; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; margin-bottom: .2rem; }
+.meta-val   { font-size: .85rem; font-weight: 600; color: #111; }
+
+/* Section block */
+.section-block { display: flex; flex-direction: column; gap: .3rem; }
+.section-label  { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; margin: 0; }
+
+/* Items */
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: .5rem;
+    padding: .65rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.item-row:last-child { border-bottom: none; }
+.item-info { display: flex; flex-direction: column; gap: .15rem; }
+.item-info strong { font-size: .9rem; color: #111; font-weight: 700; }
+.item-info span  { font-size: .78rem; color: #6b7280; }
+.release-note { font-size: .75rem; color: #b45309; font-weight: 600; }
+.item-price { font-size: .9rem; font-weight: 700; color: #111; white-space: nowrap; }
+
+/* Two col layout */
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+.info-name { font-size: .95rem; font-weight: 700; color: #111; margin: 0; }
+.info-line { font-size: .82rem; color: #4b5563; margin: .1rem 0; }
+
+/* Totals */
+.totals-block {
+    background: #f9f7f4;
+    border-radius: 14px;
+    padding: .9rem 1rem;
+}
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .85rem;
+    color: #4b5563;
+    padding: .25rem 0;
+}
+.total-row.grand {
+    border-top: 1.5px solid #d1d5db;
+    margin-top: .4rem;
+    padding-top: .6rem;
+    font-weight: 800;
+    color: #111;
+    font-size: 1rem;
+}
+.grand-amt { color: #b45309; }
+
+/* Buttons */
+.action-btns { display: flex; flex-direction: column; gap: .65rem; }
+.btn-primary, .btn-secondary, .btn-ghost {
+    display: block;
+    text-align: center;
+    padding: .85rem;
+    border-radius: 16px;
+    font-size: .88rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    transition: opacity .2s;
+}
+.btn-primary  { background: #111; color: #fff; }
+.btn-primary:hover { opacity: .85; }
+.btn-secondary { background: #f3f4f6; color: #374151; }
+.btn-secondary:hover { background: #e5e7eb; }
+.btn-ghost    { background: transparent; color: #9ca3af; font-size: .8rem; padding: .4rem; }
+.btn-ghost:hover { color: #6b7280; }
+.mono { font-family: 'Courier New', Courier, monospace; }
+
+/* ── PRINT ONLY (screen hidden) ── */
+@media screen {
+    .print-only { display: none !important; }
+}
+
+/* ── PRINT / PDF ── */
+@page {
+    size: A4 portrait;
+    margin: 14mm 16mm 14mm 16mm;
 }
 @media print {
-    header, footer, #confetti-container, button, a { display: none !important; }
-    body, .pt-28 { padding-top: 0 !important; background: white !important; }
+    html, body {
+        background: #fff !important;
+        margin: 0 !important; padding: 0 !important;
+        font-family: 'Anek Bangla', 'Hind Siliguri', 'Noto Serif Bengali', Arial, sans-serif !important;
+        color: #111 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Hide everything except the print sheet */
+    header, footer, nav, #confetti-container, .screen-only,
+    .receipt-page-bg > .receipt-wrap > .screen-only,
+    .fixed, .sticky, [id="navbar"], [id="mobile-nav"],
+    .action-btns, script { display: none !important; }
+
+    .receipt-page-bg { padding: 0 !important; background: #fff !important; }
+    .receipt-wrap    { max-width: 100% !important; margin: 0 !important; }
+
+    .print-only  { display: block !important; }
+    .print-sheet {
+        width: 100%;
+        background: #fff;
+        font-size: 11px;
+        line-height: 1.4;
+        color: #111;
+    }
+
+    /* Header */
+    .p-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+    .p-brand { display: flex; align-items: center; gap: 10px; }
+    .p-logo  { width: 42px; height: 42px; object-fit: contain; }
+    .p-brand-name { font-size: 20px; font-weight: 800; color: #111; }
+    .p-brand-sub  { font-size: 9px; color: #6b7280; font-weight: 600; }
+    .p-meta { text-align: right; }
+    .p-doc-title  { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .p-meta-table { border-collapse: collapse; margin-left: auto; }
+    .p-meta-table td { padding: 1px 4px; font-size: 10px; color: #374151; }
+    .p-meta-table td:first-child { color: #9ca3af; text-align: right; }
+    .p-meta-table td:last-child  { text-align: right; }
+
+    /* Divider */
+    .p-divider { border: none; border-top: 1.5px solid #e5e7eb; margin: 8px 0; }
+
+    /* Parties */
+    .p-parties {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .p-party-label { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; margin-bottom: 3px; }
+    .p-party-name  { font-size: 12px; font-weight: 800; color: #111; }
+    .p-party-line  { font-size: 9.5px; color: #374151; }
+
+    /* Items table */
+    .p-items { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10.5px; }
+    .p-items th {
+        background: #f3f4f6 !important;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #374151;
+        padding: 5px 6px;
+        border: 1px solid #e5e7eb;
+    }
+    .p-items td {
+        padding: 6px;
+        border: 1px solid #e5e7eb;
+        vertical-align: top;
+    }
+    .p-items td strong { font-weight: 700; }
+    .p-items td small  { font-size: 9px; color: #b45309; }
+
+    /* Totals */
+    .p-totals { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+    .p-totals-table { border-collapse: collapse; width: 220px; font-size: 10.5px; }
+    .p-totals-table td { padding: 3px 6px; color: #374151; }
+    .p-totals-table td:last-child { text-align: right; font-family: 'Courier New', monospace; }
+    .p-grand td {
+        border-top: 1.5px solid #111;
+        padding-top: 5px;
+        font-size: 12px;
+        color: #111;
+    }
+
+    /* Footer */
+    .p-footer {
+        border-top: 1px solid #e5e7eb;
+        padding-top: 8px;
+        font-size: 9px;
+        color: #6b7280;
+        text-align: center;
+        line-height: 1.5;
+    }
+    .p-footer p { margin: 1px 0; }
 }
-</style>
+
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
+

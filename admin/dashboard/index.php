@@ -104,7 +104,7 @@ $preorders_stmt = $pdo->query("SELECT * FROM pre_orders ORDER BY release_date AS
 $admin_preorders = $preorders_stmt->fetchAll();
 
 // Fetch Pre-order Bookings (New)
-$po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.order_date, o.order_status, o.payment_status, o.payment_method, o.trx_id, o.shipping_address, o.total_amount, 
+$po_bookings_stmt = $pdo->query("SELECT oi.*, o.id as order_id, o.invoice_no, o.order_date, o.order_status, o.payment_status, o.payment_method, o.trx_id, o.shipping_address, o.division, o.district, o.upazila, o.total_amount, 
                                           COALESCE(m.full_name, o.guest_name) as full_name, 
                                           COALESCE(m.phone, o.guest_phone) as phone, 
                                           COALESCE(m.email, o.guest_email) as email,
@@ -3678,6 +3678,13 @@ function format_bn_datetime($datetime_str)
                             </div>
                             <div class="text-xs text-gray-800 leading-relaxed font-anek bg-white p-3.5 rounded-2xl border border-amber-200/40 shadow-xs">
                                 ${order.shipping_address ? order.shipping_address : '<span class="text-gray-400 italic">ইন-স্টোর / সরাসরি শোরুম সেলস (কোনো শিপিং ঠিকানা নেই)</span>'}
+                                ${(order.district || order.division) ? `
+                                    <div class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-1.5">
+                                        ${order.division ? `<span class="px-2.5 py-0.5 bg-gray-100 text-gray-700 rounded-md text-[10px] font-bold">${order.division}</span>` : ''}
+                                        ${order.district ? `<span class="px-2.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-md text-[10px] font-bold">${order.district}</span>` : ''}
+                                        ${order.upazila ? `<span class="px-2.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-[10px] font-bold">${order.upazila}</span>` : ''}
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -3947,6 +3954,13 @@ function format_bn_datetime($datetime_str)
                             <div>
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ডেলিভারি ঠিকানা</p>
                                 <p class="text-sm text-brand-900 leading-relaxed">${booking.shipping_address || 'N/A'}</p>
+                                ${(booking.district || booking.division) ? `
+                                    <div class="mt-2 flex flex-wrap gap-1.5">
+                                        ${booking.division ? `<span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-bold">${booking.division}</span>` : ''}
+                                        ${booking.district ? `<span class="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 rounded text-[10px] font-bold">${booking.district}</span>` : ''}
+                                        ${booking.upazila ? `<span class="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-800 rounded text-[10px] font-bold">${booking.upazila}</span>` : ''}
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                         <div class="space-y-4">

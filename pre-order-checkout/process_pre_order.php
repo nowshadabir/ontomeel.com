@@ -24,15 +24,18 @@ try {
     $name = trim($_POST['name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $division = trim($_POST['division'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+    $upazila = trim($_POST['upazila'] ?? '');
     $address = trim($_POST['address'] ?? '');
-    $c_location = trim($_POST['location'] ?? 'inside');
 
-    if (empty($preorder_id) || empty($address) || empty($name) || empty($phone)) {
-        echo json_encode(['success' => false, 'message' => 'প্রয়োজনীয় সব তথ্য প্রদান করুন (নাম, মোবাইল নম্বর এবং ঠিকানা)।']);
+    if (empty($preorder_id) || empty($address) || empty($name) || empty($phone) || empty($division) || empty($district) || empty($upazila)) {
+        echo json_encode(['success' => false, 'message' => 'প্রয়োজনীয় সব তথ্য প্রদান করুন (নাম, মোবাইল নম্বর, বিভাগ, জেলা, উপজেলা এবং ঠিকানা)।']);
         exit();
     }
 
-    if (strlen($phone) < 11) {
+    $clean_phone = preg_replace('/[^0-9]/', '', $phone);
+    if (strlen($clean_phone) < 11) {
         echo json_encode(['success' => false, 'message' => 'সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন।']);
         exit();
     }
@@ -69,10 +72,21 @@ try {
 
     $inside_charge = (float)getSetting($pdo, 'delivery_charge_inside', 60);
     $outside_charge = (float)getSetting($pdo, 'delivery_charge_outside', 120);
-    $shipping_charge = $is_free_delivery ? 0.00 : (($c_location === 'outside') ? $outside_charge : $inside_charge);
+
+    // Determine if delivery is inside Cox's Bazar Sadar
+    $is_inside = false;
+    if (stripos($district, 'Cox') !== false || mb_strpos($district, 'কক্সবাজার') !== false) {
+        if (empty($upazila) || stripos($upazila, 'Sadar') !== false || mb_strpos($upazila, 'সদর') !== false) {
+            $is_inside = true;
+        }
+    }
+    $shipping_charge = $is_free_delivery ? 0.00 : ($is_inside ? $inside_charge : $outside_charge);
 
     $subtotal = $item_price;
     $total_amount = $subtotal + $shipping_charge;
+
+    // Full combined shipping address
+    $full_shipping_address = implode(', ', array_filter([$address, $upazila, $district, $division]));
 
     // Generate Invoice Number
     $invoice_prefix = 'PRE-';
@@ -90,12 +104,12 @@ try {
 
     $pdo->beginTransaction();
 
-    // Insert Order with SSLCommerz method and Pending payment status
+    // Insert Order with SSLCommerz method, division, district, upazila and Pending payment status
     $stmt = $pdo->prepare("
         INSERT INTO orders (
             invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, 
-            payment_status, payment_method, trx_id, order_status, shipping_address, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'SSLCommerz', NULL, 'Processing', ?, 'Pre-order Booking')
+            payment_status, payment_method, trx_id, order_status, shipping_address, division, district, upazila, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'SSLCommerz', NULL, 'Processing', ?, ?, ?, ?, 'Pre-order Booking')
     ");
 
     $stmt->execute([
@@ -107,7 +121,10 @@ try {
         $subtotal,
         $shipping_charge,
         $total_amount,
-        $address
+        $full_shipping_address,
+        $division,
+        $district,
+        $upazila
     ]);
 
     $order_id = (int)$pdo->lastInsertId();
@@ -122,7 +139,7 @@ try {
     // Update member profile address if member is logged in and had no saved address
     if ($user_id) {
         $updateMember = $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')");
-        $updateMember->execute([$address, $user_id]);
+        $updateMember->execute([$full_shipping_address, $user_id]);
     }
 
     $pdo->commit();

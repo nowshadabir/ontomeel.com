@@ -29,16 +29,27 @@ if (!$user_id) {
 $name = trim($_POST['name'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
 $email = trim($_POST['email'] ?? '');
+$division = trim($_POST['division'] ?? '');
+$district = trim($_POST['district'] ?? '');
+$upazila = trim($_POST['upazila'] ?? '');
 $address = trim($_POST['address'] ?? '');
-$city = trim($_POST['city'] ?? '');
 $payment_method = $_POST['payment_method'] ?? 'cod';
 $checkout_type = $_POST['checkout_type'] ?? 'buy'; // 'buy' or 'borrow'
 $total_amount = (float) ($_POST['total_amount'] ?? 0);
 $cart_raw = $_POST['cart'] ?? '[]';
 $cart = json_decode($cart_raw, true);
 
-if (empty($name) || empty($phone) || empty($email) || empty($address) || empty($cart)) {
-    sendResponse(false, 'সব তথ্য প্রদান করা আবশ্যক (নাম, ফোন, ইমেইল, ঠিকানা)।');
+if (empty($name) || empty($phone) || empty($email) || empty($address) || empty($division) || empty($district) || empty($upazila) || empty($cart)) {
+    sendResponse(false, 'সব তথ্য প্রদান করা আবশ্যক (নাম, ফোন, ইমেইল, বিভাগ, জেলা, উপজেলা এবং সম্পূর্ণ ঠিকানা)।');
+}
+
+$clean_phone = preg_replace('/[^0-9]/', '', $phone);
+if (strlen($clean_phone) < 11) {
+    sendResponse(false, 'সঠিক ১১ ডিজিটের মোবাইল নম্বর প্রদান করুন।');
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    sendResponse(false, 'সঠিক ইমেইল এড্রেস প্রদান করুন।');
 }
 
 if ($checkout_type === 'borrow' && !$user_id) {
@@ -148,10 +159,17 @@ try {
         }
     }
 
-    $c_location = $_POST['location'] ?? 'inside';
+    // Determine inside or outside Cox's Bazar Sadar
+    $is_inside = false;
+    if (stripos($district, 'Cox') !== false || mb_strpos($district, 'কক্সবাজার') !== false) {
+        if (empty($upazila) || stripos($upazila, 'Sadar') !== false || mb_strpos($upazila, 'সদর') !== false) {
+            $is_inside = true;
+        }
+    }
+
     $inside_charge = (int)getSetting($pdo, 'delivery_charge_inside', 60);
     $outside_charge = (int)getSetting($pdo, 'delivery_charge_outside', 120);
-    $selected_charge = ($c_location === 'inside') ? $inside_charge : $outside_charge;
+    $selected_charge = $is_inside ? $inside_charge : $outside_charge;
 
     // 3. Create Main Order
     $invoice_no = 'OM-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -5));
@@ -169,9 +187,9 @@ try {
     }
 
     $notes = $hasPreorder ? 'Pre-order Booking' : (($checkout_type === 'borrow') ? 'Borrow Order' : 'Purchase Order');
-    $shipping_addr = trim($address . ($city ? ', ' . $city : ''));
+    $shipping_addr = implode(', ', array_filter([$address, $upazila, $district, $division]));
 
-    $orderStmt = $pdo->prepare("INSERT INTO orders (invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, payment_status, payment_method, order_status, shipping_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing', ?, ?)");
+    $orderStmt = $pdo->prepare("INSERT INTO orders (invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, payment_status, payment_method, order_status, shipping_address, division, district, upazila, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing', ?, ?, ?, ?, ?)");
     $orderStmt->execute([
         $invoice_no,
         $user_id,
@@ -184,9 +202,18 @@ try {
         $payment_status,
         $db_payment_method,
         $shipping_addr,
+        $division,
+        $district,
+        $upazila,
         $notes
     ]);
     $order_id = $pdo->lastInsertId();
+
+    // Update member address if empty
+    if ($user_id) {
+        $pdo->prepare("UPDATE members SET address = ? WHERE id = ? AND (address IS NULL OR address = '')")
+            ->execute([$shipping_addr, $user_id]);
+    }
 
     // 4. Items & Inventory
     foreach ($cart as $item) {

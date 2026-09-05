@@ -57,6 +57,11 @@ $price = $pre_order['discount_price'] > 0 ? (int)$pre_order['discount_price'] : 
 $is_free_delivery = (isset($pre_order['free_delivery']) && (int)$pre_order['free_delivery'] === 1);
 $delivery_charge = $is_free_delivery ? 0 : $inside_charge;
 $total_amount = $price + $delivery_charge;
+
+// Read Geo Data from JSON files safely on server
+$bd_divisions_json = @file_get_contents(__DIR__ . '/../bd-divisions.json') ?: '{"divisions":[]}';
+$bd_districts_json = @file_get_contents(__DIR__ . '/../bd-districts.json') ?: '{"districts":[]}';
+$bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"upazilas":[]}';
 ?>
 
 <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12 font-anek">
@@ -135,54 +140,84 @@ $total_amount = $price + $delivery_charge;
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2">মোবাইল নম্বর *</label>
                         <input type="tel" id="po-phone" required
                             value="<?php echo htmlspecialchars($user_data['phone']); ?>"
-                            placeholder="০১৭১xxxxxxx"
+                            placeholder="017XXXXXXXX"
                             class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-brand-900 font-semibold font-mono tracking-wider focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-sm">
                     </div>
                     <div class="md:col-span-2 space-y-1.5">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2">ইমেইল এড্রেস (পেমেন্ট রসিদ ও আপডেটের জন্য) *</label>
                         <input type="email" id="po-email" required
                             value="<?php echo htmlspecialchars($user_data['email'] ?? ''); ?>"
-                            placeholder="yourname@gmail.com"
+                            placeholder="name@example.com"
                             class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-brand-900 font-semibold focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-sm">
                     </div>
-                    <div class="md:col-span-2 space-y-1.5">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2">ডেলিভারি এরিয়া *</label>
-                        <?php if ($is_free_delivery): ?>
-                            <div class="p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 bg-green-500 text-white rounded-full flex items-center justify-center shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-brand-900 text-sm">ফ্রি ডেলিভারি অফার সক্রিয়</p>
-                                        <p class="text-xs text-green-700">সারা বাংলাদেশে কোনো অতিরিক্ত ডেলিভারি চার্জ নেই।</p>
+
+                    <!-- Geographic Dropdowns: Division, District, Upazila -->
+                    <div class="md:col-span-2 space-y-3 pt-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2 block">ডেলিভারি এলাকা নির্বাচন করুন *</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <!-- Division Select -->
+                            <div class="space-y-1">
+                                <span class="text-[11px] text-gray-500 font-bold ml-1">বিভাগ (Division)</span>
+                                <div class="relative">
+                                    <select id="po-division" onchange="onDivisionChange()"
+                                        class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-brand-900 font-semibold focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-sm appearance-none cursor-pointer pr-9">
+                                        <option value="">বিভাগ নির্বাচন করুন</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
                                 </div>
-                                <input type="hidden" name="location" value="inside">
                             </div>
-                        <?php else: ?>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="location" value="inside" checked onchange="updateDelivery(this.value)" class="hidden peer">
-                                    <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 peer-checked:ring-2 peer-checked:ring-brand-gold/20 transition-all h-full flex flex-col justify-center">
-                                        <p class="text-sm font-bold text-brand-900">কক্সবাজার শহর</p>
-                                        <p class="text-xs text-gray-400 font-mono mt-0.5">চার্জ: ৳<?php echo $inside_charge; ?></p>
+
+                            <!-- District Select -->
+                            <div class="space-y-1">
+                                <span class="text-[11px] text-gray-500 font-bold ml-1">জেলা (District)</span>
+                                <div class="relative">
+                                    <select id="po-district" onchange="onDistrictChange()" disabled
+                                        class="w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 text-brand-900 font-semibold focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-sm appearance-none cursor-pointer pr-9 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <option value="">প্রথমে বিভাগ বাছুন</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
-                                </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="location" value="outside" onchange="updateDelivery(this.value)" class="hidden peer">
-                                    <div class="p-4 bg-white border border-gray-200 rounded-2xl text-center peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 peer-checked:ring-2 peer-checked:ring-brand-gold/20 transition-all h-full flex flex-col justify-center">
-                                        <p class="text-sm font-bold text-brand-900">আউটসাইড কক্সবাজার (সারাদেশ)</p>
-                                        <p class="text-xs text-gray-400 font-mono mt-0.5">চার্জ: ৳<?php echo $outside_charge; ?></p>
-                                    </div>
-                                </label>
+                                </div>
                             </div>
-                        <?php endif; ?>
+
+                            <!-- Upazila Select -->
+                            <div class="space-y-1">
+                                <span class="text-[11px] text-gray-500 font-bold ml-1">উপজেলা / থানা (Upazila)</span>
+                                <div class="relative">
+                                    <select id="po-upazila" onchange="onUpazilaChange()" disabled
+                                        class="w-full bg-gray-100 border border-gray-200 rounded-2xl px-4 py-3 text-brand-900 font-semibold focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-sm appearance-none cursor-pointer pr-9 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <option value="">প্রথমে জেলা বাছুন</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Charge Status Badge -->
+                        <div id="delivery-badge" class="pt-1">
+                            <?php if ($is_free_delivery): ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 border border-green-200 text-green-700 rounded-full text-xs font-bold">
+                                    <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    সারা বাংলাদেশে ফ্রি ডেলিভারি অফার সক্রিয়
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold">
+                                    <span class="w-2 h-2 rounded-full bg-brand-gold"></span>
+                                    কক্সবাজার সদর: ৳<?php echo $inside_charge; ?> | অন্যান্য এলাকা: ৳<?php echo $outside_charge; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
                     </div>
+
                     <div class="md:col-span-2 space-y-1.5">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2">সম্পূর্ণ ডেলিভারি ঠিকানা *</label>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-2">সম্পূর্ণ ঠিকানা (রোড/মহল্লা/বাড়ি/গ্রাম) *</label>
                         <textarea id="po-address" rows="3" required
-                            placeholder="বাসা/হোল্ডিং নং, রোড, এলাকা, থানা ও জেলা..."
+                            placeholder="বাসা/হোল্ডিং নং, রোড, এলাকা বা গ্রামের নাম লিখুন..."
                             class="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/20 transition-all text-brand-900 text-sm leading-relaxed"><?php echo htmlspecialchars($user_data['address'] ?? ''); ?></textarea>
                     </div>
                 </div>
@@ -204,7 +239,7 @@ $total_amount = $price + $delivery_charge;
                             </div>
                             <h3 class="text-xl font-bold text-brand-900">নিরাপদ অনলাইন পেমেন্ট</h3>
                             <p class="text-xs text-gray-600 leading-relaxed max-w-lg">
-                                SSLCommerz গেটওয়ের মাধ্যমে আপনার পছন্দমতো <strong>বিকাশ, নগদ, রকেট, ডেবিট/ক্রেডিট কার্ড</strong> অথবা <strong>ইন্টারনেট ব্যাংকিং</strong> দিয়ে তাৎক্ষণিকভাবে পেমেন্ট সম্পন্ন করতে পারবেন। কোনো ম্যানুয়াল স্ক্রিনশট বা TrxID দেওয়ার প্রয়োজন নেই।
+                                SSLCommerz গেটওয়ের মাধ্যমে আপনার পছন্দমতো <strong>বিকাশ, নগদ, রকেট, ডেবিট/ক্রেডিট কার্ড</strong> অথবা <strong>ইন্টারনেট ব্যাংকিং</strong> দিয়ে তাৎক্ষণিকভাবে পেমেন্ট সম্পন্ন করতে পারবেন।
                             </p>
                         </div>
                         <div class="flex items-center gap-3 self-center md:self-auto bg-white px-4 py-2 rounded-2xl border border-gray-200/80 shadow-xs shrink-0">
@@ -286,18 +321,161 @@ $total_amount = $price + $delivery_charge;
     let currentDeliveryCharge = insideCharge;
     let totalAmount = <?php echo $total_amount; ?>;
 
-    function updateDelivery(loc) {
-        currentDeliveryCharge = loc === 'inside' ? insideCharge : outsideCharge;
-        totalAmount = basePrice + currentDeliveryCharge;
-        
+    // Embedded Geo Data from server JSON
+    const geoData = {
+        divisions: <?php echo $bd_divisions_json; ?>.divisions || [],
+        districts: <?php echo $bd_districts_json; ?>.districts || [],
+        upazilas: <?php echo $bd_upazilas_json; ?>.upazilas || []
+    };
+
+    function formatGeoName(item) {
+        const hasValidEn = item.name && !item.name.includes('{') && !item.name.includes('}');
+        if (hasValidEn && item.name !== item.bn_name) {
+            return `${item.bn_name} (${item.name})`;
+        }
+        return item.bn_name;
+    }
+
+    // Populate Divisions on load
+    function initGeoDropdowns() {
+        const divSelect = document.getElementById('po-division');
+        divSelect.innerHTML = '<option value="">বিভাগ নির্বাচন করুন</option>';
+        geoData.divisions.forEach(div => {
+            const opt = document.createElement('option');
+            opt.value = div.id;
+            opt.textContent = formatGeoName(div);
+            opt.dataset.name = div.name;
+            opt.dataset.bn = div.bn_name;
+            divSelect.appendChild(opt);
+        });
+    }
+
+    function onDivisionChange() {
+        const divSelect = document.getElementById('po-division');
+        const distSelect = document.getElementById('po-district');
+        const upzSelect = document.getElementById('po-upazila');
+        const selectedDivId = divSelect.value;
+
+        distSelect.innerHTML = '<option value="">জেলা নির্বাচন করুন</option>';
+        upzSelect.innerHTML = '<option value="">প্রথমে জেলা বাছুন</option>';
+        upzSelect.disabled = true;
+        upzSelect.classList.add('bg-gray-100');
+        upzSelect.classList.remove('bg-white');
+
+        if (!selectedDivId) {
+            distSelect.disabled = true;
+            distSelect.classList.add('bg-gray-100');
+            distSelect.classList.remove('bg-white');
+            recalculateDelivery();
+            return;
+        }
+
+        const filteredDistricts = geoData.districts.filter(d => String(d.division_id) === String(selectedDivId));
+        filteredDistricts.forEach(dist => {
+            const opt = document.createElement('option');
+            opt.value = dist.id;
+            opt.textContent = formatGeoName(dist);
+            opt.dataset.name = dist.name;
+            opt.dataset.bn = dist.bn_name;
+            distSelect.appendChild(opt);
+        });
+
+        distSelect.disabled = false;
+        distSelect.classList.remove('bg-gray-100');
+        distSelect.classList.add('bg-white');
+        recalculateDelivery();
+    }
+
+    function onDistrictChange() {
+        const distSelect = document.getElementById('po-district');
+        const upzSelect = document.getElementById('po-upazila');
+        const selectedDistId = distSelect.value;
+
+        upzSelect.innerHTML = '<option value="">উপজেলা / থানা নির্বাচন করুন</option>';
+
+        if (!selectedDistId) {
+            upzSelect.disabled = true;
+            upzSelect.classList.add('bg-gray-100');
+            upzSelect.classList.remove('bg-white');
+            recalculateDelivery();
+            return;
+        }
+
+        const filteredUpazilas = geoData.upazilas.filter(u => String(u.district_id) === String(selectedDistId));
+        filteredUpazilas.forEach(upz => {
+            const opt = document.createElement('option');
+            opt.value = upz.id;
+            opt.textContent = formatGeoName(upz);
+            opt.dataset.name = upz.name;
+            opt.dataset.bn = upz.bn_name;
+            upzSelect.appendChild(opt);
+        });
+
+        upzSelect.disabled = false;
+        upzSelect.classList.remove('bg-gray-100');
+        upzSelect.classList.add('bg-white');
+        recalculateDelivery();
+    }
+
+    function onUpazilaChange() {
+        recalculateDelivery();
+    }
+
+    function recalculateDelivery() {
+        if (isFreeDelivery) {
+            currentDeliveryCharge = 0;
+            updateTotals(0);
+            return;
+        }
+
+        const distSelect = document.getElementById('po-district');
+        const upzSelect = document.getElementById('po-upazila');
+        const selectedDistId = distSelect ? distSelect.value : '';
+        const selectedUpzOpt = upzSelect && upzSelect.selectedIndex > 0 ? upzSelect.options[upzSelect.selectedIndex] : null;
+        const selectedUpzText = selectedUpzOpt ? selectedUpzOpt.textContent : '';
+
+        // District 45 is Cox's Bazar in bd-districts.json
+        // If Cox's Bazar Sadar is selected (or contains সদর / Sadar): inside charge
+        let isInside = false;
+        if (selectedDistId === '45') {
+            if (selectedUpzText.includes('সদর') || selectedUpzText.toLowerCase().includes('sadar')) {
+                isInside = true;
+            } else if (!upzSelect.value) {
+                // Default to inside while district is Cox's Bazar
+                isInside = true;
+            }
+        }
+
+        currentDeliveryCharge = isInside ? insideCharge : outsideCharge;
+        updateTotals(currentDeliveryCharge, isInside);
+    }
+
+    function updateTotals(charge, isInside = false) {
+        totalAmount = basePrice + charge;
+
         const dispDelivery = document.getElementById('display-delivery');
-        if (dispDelivery) dispDelivery.innerText = currentDeliveryCharge;
-        
+        if (dispDelivery) dispDelivery.innerText = charge;
+
         const dispTotal = document.getElementById('display-total');
         if (dispTotal) dispTotal.innerText = totalAmount.toLocaleString();
-        
+
         const btnTotal = document.getElementById('btn-total');
         if (btnTotal) btnTotal.innerText = totalAmount.toLocaleString();
+
+        const badge = document.getElementById('delivery-badge');
+        if (badge && !isFreeDelivery) {
+            if (isInside) {
+                badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-brand-gold"></span>
+                    কক্সবাজার শহর ডেলিভারি চার্জ: ৳${insideCharge}
+                </span>`;
+            } else {
+                badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    আউটসাইড কক্সবাজার (সারাদেশ) ডেলিভারি চার্জ: ৳${outsideCharge}
+                </span>`;
+            }
+        }
     }
 
     function showError(msg) {
@@ -319,10 +497,13 @@ $total_amount = $price + $delivery_charge;
         const name = document.getElementById('po-name').value.trim();
         const phone = document.getElementById('po-phone').value.trim();
         const email = document.getElementById('po-email').value.trim();
+        const divSelect = document.getElementById('po-division');
+        const distSelect = document.getElementById('po-district');
+        const upzSelect = document.getElementById('po-upazila');
         const addr = document.getElementById('po-address').value.trim();
 
-        if (!name || !phone || !email || !addr) {
-            showError('অনুগ্রহ করে আপনার নাম, মোবাইল নম্বর, ইমেইল এবং সম্পূর্ণ ঠিকানা দিন।');
+        if (!name || !phone || !email) {
+            showError('অনুগ্রহ করে আপনার নাম, মোবাইল নম্বর এবং ইমেইল দিন।');
             return;
         }
 
@@ -337,11 +518,39 @@ $total_amount = $price + $delivery_charge;
             return;
         }
 
+        if (!divSelect.value) {
+            showError('অনুগ্রহ করে আপনার বিভাগ নির্বাচন করুন।');
+            divSelect.focus();
+            return;
+        }
+
+        if (!distSelect.value) {
+            showError('অনুগ্রহ করে আপনার জেলা নির্বাচন করুন।');
+            distSelect.focus();
+            return;
+        }
+
+        if (!upzSelect.value) {
+            showError('অনুগ্রহ করে আপনার উপজেলা / থানা নির্বাচন করুন।');
+            upzSelect.focus();
+            return;
+        }
+
+        if (!addr) {
+            showError('অনুগ্রহ করে আপনার সম্পূর্ণ ঠিকানা (রোড/মহল্লা/বাড়ি নং) লিখুন।');
+            document.getElementById('po-address').focus();
+            return;
+        }
+
         const agreeCheckbox = document.getElementById('po-terms-agree');
         if (!agreeCheckbox || !agreeCheckbox.checked) {
             showError('পেমেন্ট এগিয়ে নিতে অন্ত্যমিলের শর্তাবলী ও পলিসিতে সম্মতি দিন।');
             return;
         }
+
+        const divisionText = divSelect.options[divSelect.selectedIndex].textContent;
+        const districtText = distSelect.options[distSelect.selectedIndex].textContent;
+        const upazilaText = upzSelect.options[upzSelect.selectedIndex].textContent;
 
         const btn = document.getElementById('submit-btn');
         const btnText = document.getElementById('btn-text');
@@ -359,16 +568,15 @@ $total_amount = $price + $delivery_charge;
         `;
         if (btnIcon) btnIcon.classList.add('hidden');
 
-        const locationInput = document.querySelector('input[name="location"]:checked') || document.querySelector('input[name="location"][type="hidden"]');
-        const location = locationInput ? locationInput.value : 'inside';
-
         const formData = new FormData();
         formData.append('preorder_id', preOrderId);
         formData.append('name', name);
         formData.append('phone', phone);
         formData.append('email', email);
+        formData.append('division', divisionText);
+        formData.append('district', districtText);
+        formData.append('upazila', upazilaText);
         formData.append('address', addr);
-        formData.append('location', location);
         formData.append('total_amount', totalAmount);
 
         try {
@@ -397,6 +605,8 @@ $total_amount = $price + $delivery_charge;
             showError('নেটওয়ার্ক সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করুন।');
         }
     }
+
+    document.addEventListener('DOMContentLoaded', initGeoDropdowns);
 </script>
 
 <?php include '../includes/footer.php'; ?>
