@@ -39,12 +39,19 @@ $count_stmt->execute([$search, $search, $search, $cat_id]);
 $total_inventory_books = $count_stmt->fetchColumn();
 
 // Fetch Orders with JOIN - Sorted strictly by latest serial (id DESC)
+// Only show website book purchase and borrow orders (Pre-orders are in Pre-orders tab, POS is on pos.ontomeel.com)
 $orders_stmt = $pdo->query("SELECT o.*, 
                                    COALESCE(m.full_name, o.guest_name) as full_name, 
                                    COALESCE(m.phone, o.guest_phone) as phone,
                                    COALESCE(m.email, o.guest_email) as email
                             FROM orders o 
                             LEFT JOIN members m ON o.member_id = m.id 
+                            WHERE (o.notes LIKE 'Purchase Order%' OR o.notes LIKE 'Borrow Order%' OR (o.invoice_no LIKE 'OM-%' AND (o.notes NOT LIKE 'Pre-order%' OR o.notes IS NULL)))
+                              AND (o.invoice_no NOT LIKE 'PRE-%' OR o.invoice_no IS NULL)
+                              AND NOT EXISTS (
+                                  SELECT 1 FROM order_items oi 
+                                  WHERE oi.order_id = o.id AND oi.preorder_id IS NOT NULL
+                              )
                             ORDER BY o.id DESC");
 $admin_orders = $orders_stmt->fetchAll();
 
@@ -492,10 +499,10 @@ function format_bn_datetime($datetime_str)
                     <div class="flex items-center gap-3">
                         <h1 class="text-3xl font-anek font-bold text-brand-900">অর্ডার ম্যানেজমেন্ট</h1>
                         <span class="px-3 py-1 bg-brand-gold/15 text-brand-900 border border-brand-gold/30 rounded-full text-xs font-bold font-anek">
-                            সর্বশেষ সিরিয়াল প্রথমে
+                            ওয়েবসাইট বই ক্রয় ও ধার অর্ডার
                         </span>
                     </div>
-                    <p class="text-gray-500 font-light mt-1">সব কাস্টমার অর্ডারের বিস্তারিত তথ্য, এসএসএলকমার্জ পেমেন্ট যাচাই ও স্ট্যাটাস ব্যবস্থাপনা।</p>
+                    <p class="text-gray-500 font-light mt-1">ওয়েবসাইট থেকে আসা বই ক্রয় ও ধার অর্ডারের বিস্তারিত তথ্য, পেমেন্ট যাচাই ও ডেলিভারি ব্যবস্থাপনা।</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="location.reload()" class="px-4 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2">
@@ -687,7 +694,7 @@ function format_bn_datetime($datetime_str)
                                 $is_ssl = (strpos($pay_method_lower, 'sslcommerz') !== false);
                                 $is_bkash = (strpos($pay_method_lower, 'bkash') !== false);
                                 $is_nagad = (strpos($pay_method_lower, 'nagad') !== false);
-                                $is_website = !empty($order['shipping_address']) || $is_ssl;
+                                $is_borrow = (strpos($order['notes'] ?? '', 'Borrow Order') !== false);
                                 
                                 // Status color mapping
                                 $status_badge_class = 'bg-gray-100 text-gray-600';
@@ -713,7 +720,7 @@ function format_bn_datetime($datetime_str)
                                 }
                                 
                                 // Search keywords for fast client-side searching
-                                $search_tokens = strtolower($order['id'] . ' ' . $order['invoice_no'] . ' ' . ($order['full_name'] ?? '') . ' ' . ($order['phone'] ?? '') . ' ' . ($order['email'] ?? '') . ' ' . ($order['shipping_address'] ?? '') . ' ' . ($order['trx_id'] ?? '') . ' ' . ($order['payment_id'] ?? '') . ' ' . $items_list . ' ' . $order['payment_method']);
+                                $search_tokens = strtolower($order['id'] . ' ' . $order['invoice_no'] . ' ' . ($order['full_name'] ?? '') . ' ' . ($order['phone'] ?? '') . ' ' . ($order['email'] ?? '') . ' ' . ($order['shipping_address'] ?? '') . ' ' . ($order['trx_id'] ?? '') . ' ' . ($order['payment_id'] ?? '') . ' ' . $items_list . ' ' . $order['payment_method'] . ' ' . ($is_borrow ? 'borrow ধার' : 'purchase ক্রয়'));
                             ?>
                                 <tr class="order-row hover:bg-brand-light/30 transition-colors cursor-pointer group" 
                                     data-order-id="<?php echo $order['id']; ?>"
@@ -729,13 +736,13 @@ function format_bn_datetime($datetime_str)
                                             <span class="inline-block px-2.5 py-0.5 rounded-lg bg-brand-900 text-white font-mono font-bold text-xs shadow-xs">
                                                 #<?php echo $order['id']; ?>
                                             </span>
-                                            <?php if ($is_website): ?>
-                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
-                                                    🌐 ওয়েবসাইট
+                                            <?php if ($is_borrow): ?>
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
+                                                    🔄 বই ধার
                                                 </span>
                                             <?php else: ?>
-                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-medium">
-                                                    🏪 শোরুম
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
+                                                    📖 বই ক্রয়
                                                 </span>
                                             <?php endif; ?>
                                         </div>
