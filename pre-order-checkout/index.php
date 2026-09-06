@@ -124,8 +124,8 @@ $bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"
         <!-- Form: Delivery Details -->
         <div class="space-y-8">
             <div>
-                <h2 class="text-lg md:text-xl font-bold text-brand-900 mb-6 flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-brand-900 text-white flex items-center justify-center text-xs font-bold font-mono">১</span>
+                <h2 class="text-lg md:text-xl font-bold text-brand-900 mb-6 flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     ডেলিভারি ঠিকানা ও গ্রাহকের তথ্য
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 bg-gray-50/70 p-6 sm:p-8 rounded-[28px] border border-gray-100">
@@ -223,60 +223,6 @@ $bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"
                 </div>
             </div>
 
-            <!-- Step 2: Payment Gateway Card (SSLCommerz) -->
-            <div>
-                <h2 class="text-lg md:text-xl font-bold text-brand-900 mb-6 flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-brand-900 text-white flex items-center justify-center text-xs font-bold font-mono">২</span>
-                    পেমেন্ট মেথড
-                </h2>
-
-                <div class="bg-gradient-to-br from-amber-50/50 via-white to-orange-50/40 rounded-[28px] border-2 border-brand-gold/40 p-6 sm:p-8 shadow-sm">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-brand-gold/15">
-                        <div class="space-y-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Automated & Instant</span>
-                                <span class="text-xs text-gray-400">• SSL 256-bit Secure</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-brand-900">নিরাপদ অনলাইন পেমেন্ট</h3>
-                            <p class="text-xs text-gray-600 leading-relaxed max-w-lg">
-                                SSLCommerz গেটওয়ের মাধ্যমে আপনার পছন্দমতো <strong>বিকাশ, নগদ, রকেট, ডেবিট/ক্রেডিট কার্ড</strong> অথবা <strong>ইন্টারনেট ব্যাংকিং</strong> দিয়ে তাৎক্ষণিকভাবে পেমেন্ট সম্পন্ন করতে পারবেন।
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-3 self-center md:self-auto bg-white px-4 py-2 rounded-2xl border border-gray-200/80 shadow-xs shrink-0">
-                            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            <div>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">সুরক্ষিত গেটওয়ে</span>
-                                <span class="text-xs font-bold text-brand-900">SSLCommerz Live</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Payment Partners Badges -->
-                    <div class="pt-6">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">সমর্থিত পেমেন্ট মাধ্যমসমূহ:</p>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <div class="px-3.5 py-2 bg-white rounded-xl border border-gray-200/80 flex items-center gap-2 shadow-xs">
-                                <img src="../assets/img/bkash-logo.jpg" alt="bKash" class="h-5 w-auto object-contain rounded" onerror="this.src='https://raw.githubusercontent.com/bikashpoudel/bkash-logo/master/bkash_logo.webp'">
-                                <span class="text-xs font-bold text-[#D12053]">বিকাশ</span>
-                            </div>
-                            <div class="px-3.5 py-2 bg-white rounded-xl border border-gray-200/80 flex items-center gap-2 shadow-xs">
-                                <img src="../assets/img/nagad-logo.jpg" alt="Nagad" class="h-5 w-auto object-contain rounded" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nagad_Logo.svg/1200px-Nagad_Logo.svg.png'">
-                                <span class="text-xs font-bold text-[#EF1F23]">নগদ</span>
-                            </div>
-                            <div class="px-3.5 py-2 bg-white rounded-xl border border-gray-200/80 flex items-center gap-2 shadow-xs">
-                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-                                <span class="text-xs font-bold text-gray-700">ভিসা / মাস্টারকার্ড</span>
-                            </div>
-                            <div class="px-3.5 py-2 bg-white rounded-xl border border-gray-200/80 flex items-center gap-2 shadow-xs">
-                                <span class="text-xs font-bold text-purple-700">রকেট / অন্যান্য ব্যাংক</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Terms and Consent -->
             <div class="pt-2 flex items-start gap-3">
                 <input type="checkbox" id="po-terms-agree" class="mt-1 w-4 h-4 text-brand-gold rounded border-gray-300 focus:ring-brand-gold cursor-pointer" required>
@@ -286,17 +232,17 @@ $bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"
             </div>
 
             <!-- Action Button -->
-            <div class="pt-4">
+            <div class="pt-2">
                 <button type="button" onclick="submitPreOrder()" id="submit-btn"
                     class="w-full bg-brand-900 text-white py-5 px-8 rounded-2xl font-bold text-base md:text-lg hover:bg-brand-gold hover:text-brand-900 transition-all duration-300 shadow-xl shadow-brand-900/15 flex items-center justify-center gap-3 group">
-                    <span id="btn-text">SSLCommerz দিয়ে পেমেন্ট করুন — ৳<span id="btn-total"><?php echo number_format($total_amount); ?></span></span>
+                    <span id="btn-text">চেকআউট সম্পন্ন করুন — ৳<span id="btn-total"><?php echo number_format($total_amount); ?></span></span>
                     <svg id="btn-icon" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
                 </button>
                 <p class="text-center text-[11px] text-gray-400 mt-3 flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    ক্লিক করলে আপনাকে SSLCommerz নিরাপদ পেমেন্ট পেজে নিয়ে যাওয়া হবে
+                    নিরাপদ ও সুরক্ষিত অনলাইন পেমেন্ট
                 </p>
             </div>
         </div>
@@ -592,7 +538,7 @@ $bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"
                 isPreOrderSubmitting = false;
                 btn.disabled = false;
                 btn.classList.remove('opacity-80', 'cursor-not-allowed');
-                btnText.innerHTML = `SSLCommerz দিয়ে পেমেন্ট করুন — ৳<span id="btn-total">${totalAmount.toLocaleString()}</span>`;
+                btnText.innerHTML = `চেকআউট সম্পন্ন করুন — ৳<span id="btn-total">${totalAmount.toLocaleString()}</span>`;
                 if (btnIcon) btnIcon.classList.remove('hidden');
                 showError(data.message || 'অর্ডার শুরু করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
             }
@@ -600,7 +546,7 @@ $bd_upazilas_json  = @file_get_contents(__DIR__ . '/../bd-upazilas.json') ?: '{"
             isPreOrderSubmitting = false;
             btn.disabled = false;
             btn.classList.remove('opacity-80', 'cursor-not-allowed');
-            btnText.innerHTML = `SSLCommerz দিয়ে পেমেন্ট করুন — ৳<span id="btn-total">${totalAmount.toLocaleString()}</span>`;
+            btnText.innerHTML = `চেকআউট সম্পন্ন করুন — ৳<span id="btn-total">${totalAmount.toLocaleString()}</span>`;
             if (btnIcon) btnIcon.classList.remove('hidden');
             showError('নেটওয়ার্ক সমস্যা হয়েছে। অনুগ্রহ করে ইন্টারনেট সংযোগ চেক করুন।');
         }
