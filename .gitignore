@@ -52,7 +52,8 @@ desktop.ini
 # Ignore dependencies if added later
 /vendor/
 
-# --- XAMPP/Live Server ---
+# --- XAMPP/Live Server / Herd ---
 # Specific to local development environments
+LocalValetDriver.php
 .phpunit.result.cache
 .antigravityignore

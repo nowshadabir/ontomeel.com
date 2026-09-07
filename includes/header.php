@@ -4,12 +4,16 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Calculate Project Root for absolute URLs
-$script_name = $_SERVER['SCRIPT_NAME'];
+$script_name = $_SERVER['SCRIPT_NAME'] ?? '';
 $p_prefix = $path_prefix ?? '';
-$depth = substr_count($p_prefix, '../');
-$path_array = explode('/', trim($script_name, '/'));
-$parts_to_keep = count($path_array) - $depth - 1;
-$project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
+if (strpos($script_name, 'Herd.app') !== false || strpos($script_name, 'valet') !== false || strpos($script_name, 'server.php') !== false) {
+    $project_root = '/';
+} else {
+    $depth = substr_count($p_prefix, '../');
+    $path_array = explode('/', trim($script_name, '/'));
+    $parts_to_keep = count($path_array) - $depth - 1;
+    $project_root = ($parts_to_keep > 0) ? '/' . implode('/', array_slice($path_array, 0, $parts_to_keep)) . '/' : '/';
+}
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
 $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/');
 ?>
