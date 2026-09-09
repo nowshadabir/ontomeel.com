@@ -10,19 +10,19 @@ $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
         'price' => 500,
-        'discount' => '১০%',
+        'discount' => '৫%',
         'color' => 'from-brand-900 to-brand-800'
     ],
     'BookLover' => [
         'name' => 'নিয়মিত পাঠক',
-        'price' => 1000,
-        'discount' => '১৫%',
+        'price' => 700,
+        'discount' => '৮%',
         'color' => 'from-brand-900 via-brand-800 to-brand-gold/30'
     ],
     'Collector' => [
         'name' => 'সাহিত্য অনুরাগী',
-        'price' => 1500,
-        'discount' => '২০%',
+        'price' => 1000,
+        'discount' => '১০%',
         'color' => 'from-brand-900 via-brand-gold/40 to-brand-900'
     ]
 ];

@@ -46,8 +46,8 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                     <?php
                     $plan_names = [
                         'General' => 'সাধারণ পাঠক (৳৫০০)',
-                        'BookLover' => 'নিয়মিত পাঠক (৳১০০০)',
-                        'Collector' => 'সাহিত্য অনুরাগী (৳১৫০০)'
+                        'BookLover' => 'নিয়মিত পাঠক (৳৭০০)',
+                        'Collector' => 'সাহিত্য অনুরাগী (৳১০০০)'
                     ];
                     echo $plan_names[$current_user_plan] ?? $current_user_plan;
                     ?>
@@ -126,7 +126,7 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
             <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full">
                 <div>
                     <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাধারণ পাঠক</h3>
-                    <p class="text-gray-500 text-sm mb-8 font-anek">বই ও কফির আড্ডায় যারা মেতে উঠতে ভালোবাসেন।</p>
+                    <p class="text-gray-500 text-sm mb-8 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
                     <div class="flex items-baseline gap-1 mb-8">
                         <span class="text-5xl font-bold text-brand-900 font-anek">৳৫০০</span>
                     </div>
@@ -135,25 +135,25 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>ব্র্যান্ডেড টি-শার্ট</span>
+                            <span>টোট ব্যাগ</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>বই ক্রয়ে ১০% ছাড়</span>
+                            <span>বই ক্রয়ে সর্বোচ্চ ৫% পর্যন্ত ছাড়</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>কミュニটি লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
                         </li>
                     </ul>
                 </div>
@@ -176,32 +176,32 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                     <h3 class="text-2xl font-anek font-bold text-white mb-2">নিয়মিত পাঠক</h3>
                     <p class="text-gray-400 text-sm mb-8 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
                     <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-white font-anek text-gradient-gold">৳১০০০</span>
+                        <span class="text-5xl font-bold text-white font-anek text-gradient-gold">৳৭০০</span>
                     </div>
                     <ul class="space-y-4 mb-10 text-gray-300 font-anek text-base">
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>ব্র্যান্ডেড টি-শার্ট ও টোট ব্যাগ</span>
+                            <span>টোট ব্যাগ ও ব্র্যান্ডেড টি-শার্ট</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>সাধারণ পাঠকের সব সুবিধা + অতিরিক্ত ৫% (মোট ১৫%) ছাড়</span>
+                            <span>বই ক্রয়ে সর্বোচ্চ ৮% পর্যন্ত ছাড়</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>ক্রাফট কাউন্টার থেকে কেনাকাটার সুবিধা</span>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>চমকপ্রদ বুকমার্ক/সাহিত্যিক পোস্টকার্ড</span>
+                            <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
                         </li>
                     </ul>
                 </div>
@@ -221,32 +221,32 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                     <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাহিত্য অনুরাগী</h3>
                     <p class="text-gray-500 text-sm mb-8 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য।</p>
                     <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১৫০০</span>
+                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১০০০</span>
                     </div>
                     <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>ব্র্যান্ডেড টি-শার্ট, টোট ব্যাগ ও মগ</span>
+                            <span>টোট ব্যাগ, ব্র্যান্ডেড টি-শার্ট, বুকমার্ক/পোস্টকার্ড ও কীরিং</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>নিয়মিত পাঠকের সব সুবিধা + অতিরিক্ত ৫% (মোট ২০%) ছাড়</span>
+                            <span>বই ক্রয়ে সর্বোচ্চ ১০% পর্যন্ত ছাড়</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>কাট-ফ্লাওয়ার কাউন্টার থেকে কেনাকাটার সুবিধা</span>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
                         </li>
                         <li class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>প্রিমিয়াম ধার নেওয়ার অধিকার (বর্ধিত সময়, অগ্রাধিকারমূলক শিরোনাম)</span>
+                            <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
                         </li>
                     </ul>
                 </div>

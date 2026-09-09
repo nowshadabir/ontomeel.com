@@ -45,7 +45,7 @@
                     <div id="step-1" class="space-y-8">
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] ml-2">অফিসিয়াল ইমেইল</label>
-                            <input type="email" id="email" required placeholder="admin@ontomeel.com" class="w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-5 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white/10 transition-all font-anek text-white text-base">
+                            <input type="email" id="email" required placeholder="info@ontomeel.com" class="w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-5 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white/10 transition-all font-anek text-white text-base">
                         </div>
                         <button onclick="sendOTP()" id="btn-1" class="w-full py-5 sm:py-6 bg-brand-gold text-brand-900 font-anek font-bold text-lg rounded-2xl hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-2xl shadow-brand-gold/20 flex items-center justify-center gap-4 group">
                             ওটিপি পাঠান

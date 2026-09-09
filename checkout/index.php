@@ -34,11 +34,25 @@ include '../includes/header.php';
 
 $user_balance = 0;
 $user_data = null;
+$user_plan = 'None';
+$is_plan_active = false;
+$discount_percent = 0;
+
 if (isset($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_data = $stmt->fetch();
     $user_balance = $user_data['acc_balance'] ?? 0;
+
+    if ($user_data && !empty($user_data['membership_plan']) && $user_data['membership_plan'] !== 'None') {
+        if (!empty($user_data['plan_expire_date']) && strtotime($user_data['plan_expire_date']) >= time()) {
+            $user_plan = $user_data['membership_plan'];
+            $is_plan_active = true;
+            if ($user_plan === 'General') $discount_percent = 5;
+            elseif ($user_plan === 'BookLover') $discount_percent = 8;
+            elseif ($user_plan === 'Collector') $discount_percent = 10;
+        }
+    }
 }
 
 $checkout_type = $_GET['type'] ?? 'buy'; // 'buy' or 'borrow'
@@ -273,21 +287,36 @@ $upazilas_data = file_exists(__DIR__ . '/../bd-upazilas.json') ? file_get_conten
             <?php
 else: ?>
                 <input type="hidden" id="borrow-mode" value="true">
-                <section class="bg-brand-900 p-8 rounded-[32px] text-white">
-                    <h2 class="text-xl font-anek font-bold mb-4 flex items-center gap-3 text-brand-gold">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                            </path>
-                        </svg>
-                        মেম্বারশিপ সুবিধা: ফ্রী ধার
-                    </h2>
-                    <p class="text-sm text-gray-300 font-anek leading-relaxed">
-                        আপনি একজন <span
-                            class="text-brand-gold font-bold"><?php echo htmlspecialchars($user_data['membership_plan'] ?? 'General'); ?></span>
-                        মেম্বার হিসেবে এই বইগুলো বিনামূল্যে ধার নিতে পারছেন। ৩০ দিন পর বইগুলো ফেরত দিতে হবে।
-                    </p>
-                </section>
+                <?php if ($is_plan_active): ?>
+                    <section class="bg-brand-900 p-8 rounded-[32px] text-white">
+                        <h2 class="text-xl font-anek font-bold mb-4 flex items-center gap-3 text-brand-gold">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                </path>
+                            </svg>
+                            মেম্বারশিপ সুবিধা: ফ্রী ধার
+                        </h2>
+                        <p class="text-sm text-gray-300 font-anek leading-relaxed">
+                            আপনি একজন <span
+                                class="text-brand-gold font-bold"><?php echo htmlspecialchars($user_plan); ?></span>
+                            মেম্বার হিসেবে এই বইগুলো বিনামূল্যে ধার নিতে পারছেন। ৩০ দিন পর বইগুলো ফেরত দিতে হবে।
+                        </p>
+                    </section>
+                <?php else: ?>
+                    <section class="bg-red-50 p-8 rounded-[32px] border border-red-200">
+                        <h2 class="text-xl font-anek font-bold mb-3 text-red-700 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            বই ধার নিতে সক্রিয় মেম্বারশিপ প্রয়োজন
+                        </h2>
+                        <p class="text-sm text-red-600 font-anek leading-relaxed mb-6">
+                            লাইব্রেরি থেকে বিনামূল্যে বই ধার নিতে আপনার অ্যাকাউন্টে একটি সক্রিয় মেম্বারশিপ প্ল্যান থাকা আবশ্যক।
+                        </p>
+                        <a href="../membership/index.php" class="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-900 text-white rounded-xl font-bold font-anek hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg text-sm">
+                            মেম্বারশিপ প্ল্যান বেছে নিন →
+                        </a>
+                    </section>
+                <?php endif; ?>
             <?php
 endif; ?>
         </div>
@@ -306,6 +335,10 @@ endif; ?>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-400 font-anek">উপ-মোট</span>
                         <span id="sub-total" class="font-bold text-brand-900">৳০</span>
+                    </div>
+                    <div id="member-discount-row" class="flex justify-between text-sm text-green-600 font-bold <?php echo ($discount_percent > 0 && $checkout_type == 'buy') ? '' : 'hidden'; ?>">
+                        <span class="font-anek">মেম্বারশিপ ছাড় (<?php echo $discount_percent; ?>%)</span>
+                        <span id="display-discount" class="font-bold font-mono">-৳০</span>
                     </div>
                     <?php if ($checkout_type == 'buy'): ?>
                         <div class="flex justify-between text-sm">
@@ -395,6 +428,8 @@ endif; ?>
     const checkoutType = "<?php echo $checkout_type; ?>";
     const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
+    const memberDiscountPercent = <?php echo (int)$discount_percent; ?>;
+    const isPlanActive = <?php echo $is_plan_active ? 'true' : 'false'; ?>;
 
     const insideCharge = <?php echo $inside_charge; ?>;
     const outsideCharge = <?php echo $outside_charge; ?>;
@@ -450,7 +485,7 @@ endif; ?>
             return;
         }
 
-        const filteredDistricts = geoData.districts.filter(d => String(d.division_id) === String(selectedDivId));
+        const filteredDistricts = geoData.districts.filter(d => d.division_id == selectedDivId);
         filteredDistricts.forEach(dist => {
             const opt = document.createElement('option');
             opt.value = dist.id;
@@ -471,7 +506,7 @@ endif; ?>
         const upzSelect = document.getElementById('cust-upazila');
         const selectedDistId = distSelect.value;
 
-        upzSelect.innerHTML = '<option value="">উপজেলা / থানা নির্বাচন করুন</option>';
+        upzSelect.innerHTML = '<option value="">উপজেলা নির্বাচন করুন</option>';
 
         if (!selectedDistId) {
             upzSelect.disabled = true;
@@ -481,7 +516,7 @@ endif; ?>
             return;
         }
 
-        const filteredUpazilas = geoData.upazilas.filter(u => String(u.district_id) === String(selectedDistId));
+        const filteredUpazilas = geoData.upazilas.filter(u => u.district_id == selectedDistId);
         filteredUpazilas.forEach(upz => {
             const opt = document.createElement('option');
             opt.value = upz.id;
@@ -530,8 +565,18 @@ endif; ?>
     }
 
     function updateDeliveryTotals(charge, isInside = false) {
-        const total = subTotal + (checkoutType === 'borrow' ? 0 : charge);
+        let discount = 0;
+        if (checkoutType === 'buy' && memberDiscountPercent > 0) {
+            discount = Math.round((subTotal * memberDiscountPercent) / 100);
+        }
+        const payableSubtotal = Math.max(0, subTotal - discount);
+        const total = (checkoutType === 'borrow') ? 0 : (payableSubtotal + charge);
         
+        const dispDiscount = document.getElementById('display-discount');
+        if (dispDiscount) {
+            dispDiscount.innerText = `-৳${convertToBengaliNumber(discount)}`;
+        }
+
         const dispDelivery = document.getElementById('display-delivery');
         if (dispDelivery) {
             dispDelivery.innerText = `৳${convertToBengaliNumber(charge)}`;
@@ -645,15 +690,30 @@ endif; ?>
                 `;
         });
 
-        const deliveryCharge = (checkoutType === 'borrow') ? 0 : currentDeliveryCharge;
         subTotal = total;
+        let discount = 0;
+        if (checkoutType === 'buy' && memberDiscountPercent > 0) {
+            discount = Math.round((subTotal * memberDiscountPercent) / 100);
+        }
+        const payableSubtotal = Math.max(0, subTotal - discount);
+        const deliveryCharge = (checkoutType === 'borrow') ? 0 : currentDeliveryCharge;
+
         document.getElementById('sub-total').innerText = `৳${convertToBengaliNumber(total)}`;
-        document.getElementById('grand-total').innerText = `৳${convertToBengaliNumber(total + deliveryCharge)}`;
-        
-        // Disable order button if any item is out of stock
+        const dispDiscount = document.getElementById('display-discount');
+        if (dispDiscount) {
+            dispDiscount.innerText = `-৳${convertToBengaliNumber(discount)}`;
+        }
+        document.getElementById('grand-total').innerText = `৳${convertToBengaliNumber((checkoutType === 'borrow') ? 0 : (payableSubtotal + deliveryCharge))}`;
+
+        // Disable order button if any item is out of stock or borrow without membership
         const orderBtn = document.querySelector('button[onclick="confirmOrder()"]');
         if (orderBtn) {
-            if (anyOutOfStock) {
+            if (checkoutType === 'borrow' && !isPlanActive) {
+                orderBtn.disabled = true;
+                orderBtn.classList.replace('bg-brand-900', 'bg-gray-400');
+                orderBtn.classList.add('cursor-not-allowed');
+                orderBtn.innerHTML = '<span>মেম্বারশিপ প্রয়োজন (ধার করা যাবে না)</span>';
+            } else if (anyOutOfStock) {
                 orderBtn.disabled = true;
                 orderBtn.classList.replace('bg-brand-900', 'bg-gray-400');
                 orderBtn.classList.add('cursor-not-allowed');
@@ -689,6 +749,11 @@ endif; ?>
 
     function confirmOrder() {
         if (isOrderSubmitting) return;
+
+        if (checkoutType === 'borrow' && !isPlanActive) {
+            showToast('বই ধার নিতে একটি সক্রিয় মেম্বারশিপ প্ল্যান প্রয়োজন।');
+            return;
+        }
 
         const name = document.getElementById('cust-name').value.trim();
         const phone = document.getElementById('cust-phone').value.trim();

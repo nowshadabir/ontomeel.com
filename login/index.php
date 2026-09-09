@@ -1,3 +1,17 @@
+<?php
+require_once __DIR__ . '/../includes/db_connect.php';
+
+// If already logged in, redirect to dashboard or redirect destination
+if (isset($_SESSION['user_id'])) {
+    $redirect = trim($_GET['redirect'] ?? '');
+    if (!empty($redirect) && !preg_match('/^https?:\/\/|^\/\//i', $redirect)) {
+        header("Location: " . $redirect);
+    } else {
+        header("Location: ../dashboard/");
+    }
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="bn" class="scroll-smooth">
 
@@ -146,7 +160,11 @@
                     <?php endif; ?>
 
                     <!-- Login Form -->
+                    <?php $redirect_target = trim($_GET['redirect'] ?? ''); ?>
                     <form action="process_login.php" method="POST" class="space-y-3.5 sm:space-y-4" novalidate>
+                        <?php if (!empty($redirect_target)): ?>
+                            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect_target, ENT_QUOTES, 'UTF-8'); ?>">
+                        <?php endif; ?>
                         
                         <!-- Login ID (Email or Phone) -->
                         <div class="space-y-1">
@@ -236,7 +254,7 @@
                         <div class="pt-3 text-center border-t border-gray-100 font-anek">
                             <p class="text-gray-500 text-xs">
                                 অন্ত্যমিলে নতুন পাঠক? 
-                                <a href="../signup/" class="text-brand-gold font-bold hover:text-brand-900 transition-colors hover:underline ml-1">
+                                <a href="../signup/<?php echo !empty($redirect_target) ? '?redirect=' . urlencode($redirect_target) : ''; ?>" class="text-brand-gold font-bold hover:text-brand-900 transition-colors hover:underline ml-1">
                                     রেজিস্ট্রেশন করুন →
                                 </a>
                             </p>

@@ -1,3 +1,12 @@
+<?php
+require_once '../../includes/db_connect.php';
+
+// If already authenticated as admin, redirect to admin dashboard
+if (isset($_SESSION['admin_id'])) {
+    header("Location: ../dashboard/index.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="bn" class="scroll-smooth">
 
@@ -272,16 +281,6 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </button>
-                        </div>
-
-                        <!-- Request Registration -->
-                        <div class="pt-2 text-center">
-                            <p class="text-gray-500 text-xs font-anek">
-                                অ্যাডমিন অনুমোদন প্রয়োজন? 
-                                <a href="../signup/" class="text-brand-gold font-bold hover:underline ml-1">
-                                    নিবন্ধন রিকোয়েস্ট পাঠান →
-                                </a>
-                            </p>
                         </div>
                     </form>
                 </div>

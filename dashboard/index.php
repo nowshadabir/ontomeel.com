@@ -24,6 +24,17 @@ $plan_names_bn = [
     'Collector' => 'সাহিত্য অনুরাগী',
     'None' => 'কোনো মেম্বারশিপ নেই'
 ];
+
+$is_plan_expired = false;
+if ($user['membership_plan'] !== 'None' && !empty($user['plan_expire_date'])) {
+    if (strtotime($user['plan_expire_date']) < time()) {
+        $is_plan_expired = true;
+        $pdo->prepare("UPDATE members SET membership_plan = 'None' WHERE id = ?")->execute([$user_id]);
+        $user['membership_plan'] = 'None';
+        $_SESSION['membership_plan'] = 'None';
+    }
+}
+$is_plan_active = ($user['membership_plan'] !== 'None' && !empty($user['plan_expire_date']) && strtotime($user['plan_expire_date']) >= time());
 $display_plan_name = $plan_names_bn[$user['membership_plan']] ?? $user['membership_plan'];
 
 // 2. Stats
@@ -380,8 +391,9 @@ function getDaysRemaining($due_date)
                         <?php
 endif; ?>
                         <a href="../membership/"
-                            class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2 hover:underline block leading-none">প্ল্যান
-                            পরিবর্তন করুন →</a>
+                            class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2 hover:underline block leading-none">
+                            <?php echo ($user['membership_plan'] === 'None') ? 'মেম্বারশিপ চালু করুন →' : 'প্ল্যান রিনিউ / আপগ্রেড করুন →'; ?>
+                        </a>
                     </div>
                 </div>
 

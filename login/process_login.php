@@ -1,40 +1,54 @@
 <?php
-require_once '../includes/db_connect.php';
+require_once __DIR__ . '/../includes/db_connect.php';
+require_once __DIR__ . '/../includes/security_helper.php';
 
-// Include security helper
-require_once '../includes/security_helper.php';
+function normalize_login_id($input) {
+    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    $en_digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    return str_replace($bn_digits, $en_digits, trim($input));
+}
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Rate limiting check (Re-enabled as per security requirements)
-    if (!check_rate_limit('login', 5, 300)) {
-        // Log the event
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Rate limiting check: 10 attempts per 5 minutes
+    if (!check_rate_limit('login', 10, 300)) {
         log_security_event('rate_limit_exceeded', ['identifier' => 'login']);
-        header("Location: index.php?error=rate_limit");
+        $redirect = trim($_POST['redirect'] ?? ($_GET['redirect'] ?? ''));
+        $error_redirect = "index.php?error=rate_limit" . (!empty($redirect) ? '&redirect=' . urlencode($redirect) : '');
+        header("Location: " . $error_redirect);
         exit();
     }
 
-    $login_id = trim($_POST['login_id']); // This can be email or phone
-    $password = $_POST['password'];
+    $raw_login_id = $_POST['login_id'] ?? '';
+    $login_id = normalize_login_id($raw_login_id);
+    $password = $_POST['password'] ?? '';
+    $redirect = trim($_POST['redirect'] ?? ($_GET['redirect'] ?? ''));
 
     if (empty($login_id) || empty($password)) {
-        header("Location: index.php?error=empty");
+        $error_redirect = "index.php?error=empty" . (!empty($redirect) ? '&redirect=' . urlencode($redirect) : '');
+        header("Location: " . $error_redirect);
         exit();
+    }
+
+    // Prepare normalized phone format (strip spaces, dashes, country code prefix)
+    $phone_cleaned = preg_replace('/[^0-9]/', '', $login_id);
+    if (strlen($phone_cleaned) === 13 && strpos($phone_cleaned, '880') === 0) {
+        $phone_cleaned = substr($phone_cleaned, 2);
     }
 
     try {
-        // Check member in database (by email or phone)
-        $stmt = $pdo->prepare("SELECT * FROM members WHERE email = ? OR phone = ?");
-        $stmt->execute([$login_id, $login_id]);
+        // Find member by Email, Phone (raw or cleaned), or Membership ID
+        $stmt = $pdo->prepare("SELECT * FROM members WHERE email = ? OR phone = ? OR phone = ? OR membership_id = ?");
+        $stmt->execute([$login_id, $login_id, $phone_cleaned, $login_id]);
         $user = $stmt->fetch();
 
         if ($user) {
             $password_valid = false;
 
-            // Verify password using bcrypt (secure hashing)
+            // Verify password using bcrypt
             if (password_verify($password, $user['password'])) {
                 $password_valid = true;
 
-                // Upgrade to new hash if needed (argon2 preferred over bcrypt)
+                // Upgrade hash if needed
                 if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
                     $new_hash = password_hash($password, PASSWORD_DEFAULT);
                     $update_stmt = $pdo->prepare("UPDATE members SET password = ? WHERE id = ?");
@@ -43,13 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if ($password_valid) {
-                // Login success - regenerate session ID to prevent fixation
+                // Clear rate limiting counter on success
+                clear_rate_limit('login');
+
+                // Regenerate session ID to prevent fixation
                 session_regenerate_id(true);
 
-                // Login success
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['membership_id'] = $user['membership_id'];
+                $_SESSION['last_activity'] = time();
+                $_SESSION['created_at'] = time();
 
                 // Synchronize membership expiration state
                 $user_plan = $user['membership_plan'] ?? 'None';
@@ -61,18 +79,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 $_SESSION['membership_plan'] = $user_plan;
 
-                header("Location: ../dashboard/");
+                // Handle safe redirect
+                $target_url = '../dashboard/';
+                if (!empty($redirect)) {
+                    // Safe internal path validation
+                    if (!preg_match('/^https?:\/\/|^\/\//i', $redirect)) {
+                        $target_url = $redirect;
+                    }
+                }
+
+                header("Location: " . $target_url);
                 exit();
             }
         }
 
         // Login failed
-        header("Location: index.php?error=invalid");
+        $error_redirect = "index.php?error=invalid" . (!empty($redirect) ? '&redirect=' . urlencode($redirect) : '');
+        header("Location: " . $error_redirect);
         exit();
 
     } catch (PDOException $e) {
         error_log("Login Error: " . $e->getMessage());
-        header("Location: index.php?error=db");
+        $error_redirect = "index.php?error=db" . (!empty($redirect) ? '&redirect=' . urlencode($redirect) : '');
+        header("Location: " . $error_redirect);
         exit();
     }
 } else {

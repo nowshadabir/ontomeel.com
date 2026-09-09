@@ -71,13 +71,21 @@ $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/'
 
     <?php
 $m_plan = 'None';
+$m_plan_active = false;
 if (isset($_SESSION['user_id'])) {
     require_once __DIR__ . '/db_connect.php';
-    $m_stmt = $pdo->prepare("SELECT membership_plan FROM members WHERE id = ?");
+    $m_stmt = $pdo->prepare("SELECT membership_plan, plan_expire_date FROM members WHERE id = ?");
     $m_stmt->execute([$_SESSION['user_id']]);
     $m_user = $m_stmt->fetch();
     if ($m_user) {
-        $m_plan = $m_user['membership_plan'];
+        $m_plan = $m_user['membership_plan'] ?? 'None';
+        $m_expire = $m_user['plan_expire_date'] ?? null;
+        if ($m_plan !== 'None' && !empty($m_expire) && strtotime($m_expire) < time()) {
+            $pdo->prepare("UPDATE members SET membership_plan = 'None' WHERE id = ?")->execute([$_SESSION['user_id']]);
+            $m_plan = 'None';
+        } else if ($m_plan !== 'None' && !empty($m_expire) && strtotime($m_expire) >= time()) {
+            $m_plan_active = true;
+        }
         $_SESSION['membership_plan'] = $m_plan;
     }
 }
@@ -88,8 +96,9 @@ if (isset($_SESSION['user_id'])) {
             const user_id = <?php echo (int)$_SESSION['user_id']; ?>;
             const membership_plan = '<?php echo htmlspecialchars($m_plan, ENT_QUOTES, 'UTF-8'); ?>';
             localStorage.setItem('membership_plan', membership_plan);
-        <?php
-endif; ?>
+        <?php else: ?>
+            localStorage.removeItem('membership_plan');
+        <?php endif; ?>
     </script>
 
     <?php echo $additional_head ?? ''; ?>

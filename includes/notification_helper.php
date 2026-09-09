@@ -161,6 +161,20 @@ function send_notification_instantly($to, $type, $data)
             ";
             break;
 
+        case 'signup_otp':
+            $subject = "Verification Code: " . $data['otp'] . " - Ontomeel";
+            $title = "Email Verification";
+            $color = "#cda873"; // Brand Gold
+            $content = "
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>Thank you for signing up with Ontomeel. Use the verification code below to verify your account:</p>
+                <div style=\"background: #f7f7f7; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 15px; color: #1e1b4b; border-radius: 10px; margin: 20px 0;\">
+                    " . $data['otp'] . "
+                </div>
+                <p style=\"font-size: 14px; color: #666;\">This code is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+            ";
+            break;
+
         case 'password_recovery':
             $subject = "Recovery Code: " . $data['otp'] . " - Ontomeel";
             $title = "Password Recovery";
@@ -188,6 +202,25 @@ function send_notification_instantly($to, $type, $data)
     $config['from_name'] = $from_name;
     $config['reply_to'] = $config['user'];
 
+    // Contextual CTA button
+    $cta_button_html = '';
+    if ($type === 'password_recovery' || $type === 'signup_otp') {
+        // No order button for recovery or signup OTP
+        $cta_button_html = '';
+    } elseif ($type === 'membership_activated') {
+        $cta_button_html = "
+            <p style=\"margin-top: 30px; text-align: center;\">
+                <a href=\"https://ontomeel.com/dashboard\" style=\"background-color: $color; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Go to Dashboard</a>
+            </p>
+        ";
+    } else {
+        $cta_button_html = "
+            <p style=\"margin-top: 30px; text-align: center;\">
+                <a href=\"https://ontomeel.com/dashboard\" style=\"background-color: $color; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">View Your Order</a>
+            </p>
+        ";
+    }
+
     // Minimalist HTML template - avoids 'high-probability spam' by mimicking simple OTP emails
     $html_message = "
     <!DOCTYPE html>
@@ -200,9 +233,7 @@ function send_notification_instantly($to, $type, $data)
             <div style=\"font-size: 16px;\">
                 $content
             </div>
-            <p style=\"margin-top: 30px; text-align: center;\">
-                <a href=\"https://ontomeel.com/dashboard\" style=\"background-color: $color; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">View Your Order</a>
-            </p>
+            $cta_button_html
             <div style=\"margin-top: 40px; border-top: 1px solid #eeeeee; padding-top: 15px; font-size: 12px; color: #888888; text-align: center;\">
                 <p><strong>Ontomeel Bookshop</strong><br>A Premium Store</p>
                 <p>&copy; " . date('Y') . " All Rights Reserved.</p>

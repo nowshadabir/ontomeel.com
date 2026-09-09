@@ -88,7 +88,7 @@
                 <div class="space-y-5 pt-2 sm:pt-4 border-t border-white/5">
                     <div class="space-y-1.5">
                         <label class="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-widest font-anek ml-2">অফিসিয়াল ইমেইল</label>
-                        <input type="email" name="email" required placeholder="admin@ontomeel.com"
+                        <input type="email" name="email" required placeholder="info@ontomeel.com"
                             class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 sm:px-6 py-3.5 sm:py-4 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white/10 transition-all font-anek text-white text-sm sm:text-base placeholder:text-gray-800">
                     </div>
 

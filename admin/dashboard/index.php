@@ -1,5 +1,5 @@
 <?php
-include '../../includes/db_connect.php';
+require_once __DIR__ . '/../../includes/db_connect.php';
 
 // Check Authentication
 if (!isset($_SESSION['admin_id'])) {
@@ -12,6 +12,7 @@ $total_members = $pdo->query("SELECT COUNT(*) FROM members")->fetchColumn();
 $total_sales = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE payment_status = 'Paid'")->fetchColumn() ?: 0;
 $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Processing'")->fetchColumn();
 $borrowed_books = $pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Active'")->fetchColumn();
+$pending_membership_requests = (int)$pdo->query("SELECT COUNT(*) FROM membership_requests WHERE status = 'Pending'")->fetchColumn();
 
 // Categories for filter
 $cats_stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
@@ -345,7 +346,10 @@ function format_bn_datetime($datetime_str)
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                মেম্বারশিপ রিকোয়েস্ট
+                <span>মেম্বারশিপ ম্যানেজমেন্ট</span>
+                <?php if ($pending_membership_requests > 0): ?>
+                    <span class="ml-auto px-2 py-0.5 bg-brand-gold text-brand-900 rounded-full text-xs font-bold font-mono"><?php echo $pending_membership_requests; ?></span>
+                <?php endif; ?>
             </button>
             <button onclick="switchTab('profile')" id="nav-profile"
                 class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
@@ -1065,8 +1069,6 @@ function format_bn_datetime($datetime_str)
                             else: ?>
                                 <?php foreach ($admin_members as $member):
                                     $first_char = mb_substr($member['full_name'], 0, 2, 'UTF-8');
-                                    $join_date = date('d F, Y', strtotime($member['created_at']));
-                                    // Translate month to Bengali if needed, but standard date is fine for now
                                     ?>
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="px-10 py-6">
@@ -1077,10 +1079,10 @@ function format_bn_datetime($datetime_str)
                                                 </div>
                                                 <div>
                                                     <div class="text-sm font-bold text-brand-900">
-                                                        <?php echo htmlspecialchars($member['full_name']); ?>
+                                                        <?php echo htmlspecialchars($member['full_name'] ?? ''); ?>
                                                     </div>
                                                     <div class="text-[10px] text-gray-400">
-                                                        <?php echo htmlspecialchars($member['email']); ?>
+                                                        <?php echo htmlspecialchars($member['email'] ?? $member['phone'] ?? ''); ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1100,12 +1102,12 @@ function format_bn_datetime($datetime_str)
                                                 else if ($plan == 'Collector')
                                                     echo 'সাহিত্য অনুরাগী';
                                                 else
-                                                    echo 'বেসিক';
+                                                    echo 'মেম্বারশিপ নেই';
                                                 ?>
                                             </span>
                                         </td>
-                                        <td class="px-10 py-6 text-sm text-gray-500">
-                                            <?php echo $join_date; ?>
+                                        <td class="px-10 py-6 text-xs text-gray-500">
+                                            <?php echo date('d M, Y', strtotime($member['created_at'])); ?>
                                         </td>
                                         <td class="px-10 py-6 text-center">
                                             <div class="flex items-center justify-end gap-2">
@@ -1158,7 +1160,6 @@ function format_bn_datetime($datetime_str)
                         </thead>
                         <tbody class="divide-y divide-gray-50 font-anek">
                             <?php
-                            include '../../includes/db_connect.php';
                             $stmt = $pdo->query("SELECT b.*, c.name as cat_name FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.is_suggested = 1");
                             $suggested = $stmt->fetchAll();
                             foreach ($suggested as $book):
@@ -1653,7 +1654,7 @@ function format_bn_datetime($datetime_str)
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($payment_methods as $method):
-                    $config = json_decode($method['config_json'], true) ?: [];
+                    $config = json_decode($method['config_json'] ?? '{}', true) ?: [];
                     ?>
                     <div
                         class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm transition-all hover:shadow-xl relative overflow-hidden group">
@@ -1764,96 +1765,487 @@ function format_bn_datetime($datetime_str)
             </div>
         </div>
 
-        <!-- ====== Tab: Membership Requests ====== -->
-        <div id="tab-membership" class="p-8 lg:p-12 tab-content hidden font-anek">
-            <div class="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- ====== Tab: Membership Management (Redesigned) ====== -->
+        <div id="tab-membership" class="p-6 sm:p-8 lg:p-12 tab-content hidden font-anek">
+            <?php
+            // Fetch Plan Members (only members who have a plan selected)
+            $active_members_stmt = $pdo->query("SELECT id, membership_id, full_name, email, phone, address, membership_plan, plan_expire_date, acc_balance, is_active, created_at FROM members WHERE membership_plan IS NOT NULL AND membership_plan != 'None' AND membership_plan != '' ORDER BY (plan_expire_date >= NOW()) DESC, plan_expire_date DESC");
+            $plan_members = $active_members_stmt->fetchAll();
+
+            // Fetch Membership Requests & Attempts
+            $req_stmt = $pdo->query("SELECT mr.*, m.full_name, m.email, m.phone, m.membership_id FROM membership_requests mr LEFT JOIN members m ON mr.member_id = m.id ORDER BY mr.created_at DESC");
+            $requests = $req_stmt->fetchAll();
+
+            $plan_meta = [
+                'General' => [
+                    'name' => 'সাধারণ পাঠক', 
+                    'badge' => 'bg-blue-50 text-blue-700 border-blue-200', 
+                    'icon' => '📖'
+                ],
+                'BookLover' => [
+                    'name' => 'নিয়মিত পাঠক', 
+                    'badge' => 'bg-amber-50 text-amber-800 border-amber-200', 
+                    'icon' => '⭐'
+                ],
+                'Collector' => [
+                    'name' => 'সাহিত্য অনুরাগী', 
+                    'badge' => 'bg-purple-50 text-purple-700 border-purple-200', 
+                    'icon' => '👑'
+                ]
+            ];
+
+            // Calculate KPIs
+            $total_active_subscribers = 0;
+            $total_expired_subscribers = 0;
+            $now_time = time();
+
+            foreach ($plan_members as $pm) {
+                if (!empty($pm['plan_expire_date']) && strtotime($pm['plan_expire_date']) < $now_time) {
+                    $total_expired_subscribers++;
+                } else {
+                    $total_active_subscribers++;
+                }
+            }
+
+            $total_membership_revenue = (float)$pdo->query("SELECT COALESCE(SUM(amount), 0) FROM membership_requests WHERE status = 'Confirmed'")->fetchColumn();
+            $pending_req_count = (int)$pdo->query("SELECT COUNT(*) FROM membership_requests WHERE status = 'Pending'")->fetchColumn();
+            ?>
+
+            <!-- Top Header -->
+            <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-brand-900 mb-2">মেম্বারশিপ রিকোয়েস্ট</h1>
-                    <p class="text-gray-500 font-light">বিকাশ/নগদ পেমেন্ট ভেরিফাই করে মেম্বারশিপ প্ল্যান অ্যাক্টিভ বা বাতিল করুন।</p>
+                    <div class="flex items-center gap-3 mb-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse"></span>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-brand-900 font-anek">মেম্বারশিপ ম্যানেজমেন্ট</h1>
+                    </div>
+                    <p class="text-gray-500 text-sm font-light">সক্রিয় মেম্বারশিপ প্ল্যানধারী সদস্য এবং পেমেন্ট ট্রানজ্যাকশন হিস্ট্রি পরিচালনা করুন।</p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="window.location.reload()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-2xl text-xs font-bold transition-all shadow-sm cursor-pointer">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>রিফ্রেশ</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50 border-b border-gray-100 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <tr>
-                                <th class="px-8 py-6">তারিখ ও আইডি</th>
-                                <th class="px-8 py-6">সদস্যের নাম ও যোগাযোগ</th>
-                                <th class="px-8 py-6">নির্বাচিত প্ল্যান</th>
-                                <th class="px-8 py-6">পেমেন্ট মেথড ও TrxID</th>
-                                <th class="px-8 py-6">ফি</th>
-                                <th class="px-8 py-6">স্ট্যাটাস</th>
-                                <th class="px-8 py-6 text-right">অ্যাকশন</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50 text-sm">
-                            <?php
-                            $req_stmt = $pdo->query("SELECT mr.*, m.full_name, m.email, m.phone FROM membership_requests mr JOIN members m ON mr.member_id = m.id ORDER BY mr.created_at DESC");
-                            $requests = $req_stmt->fetchAll();
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                <!-- Card 1: Active Subscribers -->
+                <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">সক্রিয় মেম্বার</span>
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">👑</div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-brand-900 font-mono"><?php echo $total_active_subscribers; ?></h3>
+                    <p class="text-[11px] text-emerald-600 font-semibold mt-1">✓ বর্তমানে প্ল্যান সুবিধা উপভোগ করছেন</p>
+                </div>
 
-                            $plan_names = [
-                                'General' => 'সাধারণ পাঠক',
-                                'BookLover' => 'নিয়মিত পাঠক',
-                                'Collector' => 'সাহিত্য অনুরাগী'
-                            ];
+                <!-- Card 2: Expired Subscriptions -->
+                <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">মেয়াদোত্তীর্ণ প্ল্যান</span>
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">⏳</div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-brand-900 font-mono"><?php echo $total_expired_subscribers; ?></h3>
+                    <p class="text-[11px] text-amber-600 font-semibold mt-1">রিনিউয়াল বা নবায়ন প্রয়োজন</p>
+                </div>
 
-                            if (empty($requests)): ?>
+                <!-- Card 3: Membership Revenue -->
+                <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">মেম্বারশিপ আয়</span>
+                        <div class="w-10 h-10 rounded-2xl bg-brand-gold/15 text-brand-900 flex items-center justify-center text-lg font-bold">৳</div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-brand-900 font-mono">৳<?php echo number_format($total_membership_revenue, 2); ?></h3>
+                    <p class="text-[11px] text-gray-500 mt-1">অনুমোদিত সাবস্ক্রিপশন থেকে</p>
+                </div>
+
+                <!-- Card 4: Pending / Attempts -->
+                <div class="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">রিকোয়েস্ট ও প্রচেষ্টা</span>
+                        <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">📜</div>
+                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-brand-900 font-mono"><?php echo count($requests); ?></h3>
+                    <p class="text-[11px] text-blue-600 font-semibold mt-1">
+                        <?php echo $pending_req_count > 0 ? "⚠️ {$pending_req_count}টি পেন্ডিং রিকোয়েস্ট" : "সব রিকোয়েস্ট হালনাগাদ"; ?>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modern Sub-Tabs Navigation Pills -->
+            <div class="flex flex-wrap items-center gap-2 p-1.5 bg-gray-100/80 rounded-2xl w-fit mb-6 border border-gray-200/50">
+                <button onclick="switchMembershipSubTab('active-members')" id="btn-subtab-active-members"
+                    class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 bg-brand-900 text-white shadow-md cursor-pointer">
+                    <span>👑 প্ল্যানধারী সদস্যবৃন্দ (Active Plan Users)</span>
+                    <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs font-mono font-bold"><?php echo count($plan_members); ?></span>
+                </button>
+
+                <button onclick="switchMembershipSubTab('membership-requests')" id="btn-subtab-membership-requests"
+                    class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 text-gray-600 hover:text-brand-900 hover:bg-white/60 cursor-pointer">
+                    <span>📜 পূর্ববর্তী প্রচেষ্টা ও পেমেন্ট হিস্ট্রি (History & Attempts)</span>
+                    <?php if ($pending_req_count > 0): ?>
+                        <span class="px-2 py-0.5 bg-brand-gold text-brand-900 rounded-full text-xs font-mono font-bold animate-pulse"><?php echo $pending_req_count; ?></span>
+                    <?php else: ?>
+                        <span class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full text-xs font-mono font-bold"><?php echo count($requests); ?></span>
+                    <?php endif; ?>
+                </button>
+            </div>
+
+            <!-- ================= SUB-TAB 1: ACTIVE PLAN USERS ================= -->
+            <div id="subtab-active-members" class="space-y-6">
+                <!-- Search and Filters Bar -->
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="relative w-full md:w-96">
+                        <input 
+                            type="text" 
+                            id="active-plan-search" 
+                            onkeyup="filterActivePlanMembers()"
+                            placeholder="সদস্যের নাম, ফোন, ইমেইল বা মেম্বার আইডি খুঁজুন..." 
+                            class="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-anek text-brand-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <!-- Plan Filter -->
+                        <select id="active-plan-type-filter" onchange="filterActivePlanMembers()" class="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 text-xs font-anek font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-gold">
+                            <option value="">সকল প্ল্যান (All Plans)</option>
+                            <option value="General">সাধারণ পাঠক (General)</option>
+                            <option value="BookLover">নিয়মিত পাঠক (BookLover)</option>
+                            <option value="Collector">সাহিত্য অনুরাগী (Collector)</option>
+                        </select>
+
+                        <!-- Status Filter -->
+                        <select id="active-plan-status-filter" onchange="filterActivePlanMembers()" class="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 text-xs font-anek font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-gold">
+                            <option value="">সকল স্ট্যাটাস (All Status)</option>
+                            <option value="active">সক্রিয় (Active)</option>
+                            <option value="expired">মেয়াদ শেষ (Expired)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Plan Members Table Card -->
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left" id="plan-members-table">
+                            <thead class="bg-gray-50/80 border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                 <tr>
-                                    <td colspan="7" class="px-8 py-12 text-center text-gray-400 font-light">কোনো রিকোয়েস্ট পাওয়া যায়নি</td>
+                                    <th class="px-6 py-5">সদস্য ও আইডি</th>
+                                    <th class="px-6 py-5">যোগাযোগ</th>
+                                    <th class="px-6 py-5">প্ল্যান টাইপ</th>
+                                    <th class="px-6 py-5">মেয়াদ ও সময়কাল</th>
+                                    <th class="px-6 py-5">ওয়ালেট ব্যালেন্স</th>
+                                    <th class="px-6 py-5 text-right">মেম্বার প্রোফাইল</th>
                                 </tr>
-                            <?php else:
-                                foreach ($requests as $req): ?>
-                                    <tr class="hover:bg-gray-50/50 transition-colors">
-                                        <td class="px-8 py-6">
-                                            <span class="font-bold text-brand-900 block">REQ-<?php echo $req['id']; ?></span>
-                                            <span class="text-xs text-gray-400"><?php echo date('d M Y, h:i A', strtotime($req['created_at'])); ?></span>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <span class="font-bold text-gray-900 block"><?php echo htmlspecialchars($req['full_name']); ?></span>
-                                            <span class="text-xs text-gray-500"><?php echo htmlspecialchars($req['phone']); ?> | <?php echo htmlspecialchars($req['email']); ?></span>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <span class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-xs font-bold">
-                                                <?php echo $plan_names[$req['plan']] ?? $req['plan']; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-8 py-6 font-mono">
-                                            <span class="font-bold text-brand-900 block"><?php echo strtoupper($req['payment_method']); ?></span>
-                                            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600"><?php echo htmlspecialchars($req['trx_id']); ?></span>
-                                        </td>
-                                        <td class="px-8 py-6 font-bold text-brand-900 font-anek">
-                                            ৳<?php echo $req['amount']; ?>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <?php if ($req['status'] === 'Confirmed'): ?>
-                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Confirmed</span>
-                                            <?php elseif ($req['status'] === 'Cancelled'): ?>
-                                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Cancelled</span>
-                                            <?php else: ?>
-                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">Pending</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-8 py-6 text-right space-x-2">
-                                            <?php if ($req['status'] === 'Pending'): ?>
-                                                <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'confirm')"
-                                                    class="px-4 py-2 bg-brand-900 text-white rounded-xl text-xs font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow">
-                                                    Confirm
-                                                </button>
-                                                <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'cancel')"
-                                                    class="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-all shadow">
-                                                    Cancel
-                                                </button>
-                                            <?php else: ?>
-                                                <span class="text-xs text-gray-400 italic">No action</span>
-                                            <?php endif; ?>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 text-sm">
+                                <?php if (empty($plan_members)): ?>
+                                    <tr>
+                                        <td colspan="6" class="px-8 py-16 text-center text-gray-400 font-light">
+                                            <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">👑</div>
+                                            <h4 class="text-base font-bold text-gray-600 mb-1">কোনো সক্রিয় প্ল্যানধারী সদস্য নেই</h4>
+                                            <p class="text-xs text-gray-400">সদস্যরা প্ল্যান কিনলে এখানে প্রদর্শিত হবে।</p>
                                         </td>
                                     </tr>
-                            <?php endforeach; endif; ?>
-                        </tbody>
-                    </table>
+                                <?php else:
+                                    foreach ($plan_members as $member):
+                                        $plan_key = $member['membership_plan'];
+                                        $meta = $plan_meta[$plan_key] ?? ['name' => $plan_key, 'badge' => 'bg-gray-100 text-gray-800 border-gray-200', 'icon' => '📦'];
+                                        
+                                        $is_expired = false;
+                                        $expire_text = "লাইফটাইম / অনির্দিষ্ট";
+                                        $expire_badge = "bg-gray-100 text-gray-700";
+
+                                        if (!empty($member['plan_expire_date']) && $member['plan_expire_date'] !== '0000-00-00 00:00:00') {
+                                            $exp_timestamp = strtotime($member['plan_expire_date']);
+                                            $diff_days = (int)ceil(($exp_timestamp - time()) / 86400);
+
+                                            if ($diff_days < 0) {
+                                                $is_expired = true;
+                                                $expire_text = date('d M Y', $exp_timestamp) . " (মেয়াদোত্তীর্ণ)";
+                                                $expire_badge = "bg-red-50 text-red-700 border-red-200";
+                                            } else {
+                                                $expire_text = date('d M Y', $exp_timestamp) . " ({$diff_days} দিন বাকি)";
+                                                $expire_badge = ($diff_days <= 5) ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                            }
+                                        }
+
+                                        $search_haystack = strtolower(($member['full_name'] ?? '') . ' ' . ($member['phone'] ?? '') . ' ' . ($member['email'] ?? '') . ' ' . ($member['membership_id'] ?? ''));
+                                        ?>
+                                        <tr class="plan-member-row hover:bg-gray-50/60 transition-colors"
+                                            data-search="<?php echo htmlspecialchars($search_haystack); ?>"
+                                            data-plan="<?php echo htmlspecialchars($plan_key); ?>"
+                                            data-status="<?php echo $is_expired ? 'expired' : 'active'; ?>">
+                                            
+                                            <!-- Member Info & ID -->
+                                            <td class="px-6 py-4.5">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 rounded-2xl bg-brand-gold/15 text-brand-900 flex items-center justify-center font-bold text-sm shrink-0 font-anek">
+                                                        <?php echo strtoupper(mb_substr($member['full_name'] ?: 'M', 0, 1, 'UTF-8')); ?>
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-bold text-brand-900 block font-anek text-sm leading-snug">
+                                                            <?php echo htmlspecialchars($member['full_name'] ?: 'N/A'); ?>
+                                                        </span>
+                                                        <span class="inline-block text-[11px] font-mono font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md mt-0.5">
+                                                            <?php echo htmlspecialchars($member['membership_id'] ?: 'OM-NEW'); ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Contact Details -->
+                                            <td class="px-6 py-4.5 font-anek text-xs text-gray-600">
+                                                <div class="space-y-0.5">
+                                                    <div class="flex items-center gap-1.5 font-bold text-gray-800 font-mono">
+                                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                        <span><?php echo htmlspecialchars($member['phone'] ?: 'N/A'); ?></span>
+                                                    </div>
+                                                    <div class="text-gray-400 text-[11px] truncate max-w-[200px]">
+                                                        <?php echo htmlspecialchars($member['email'] ?: 'No email'); ?>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Plan Badge -->
+                                            <td class="px-6 py-4.5">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border <?php echo $meta['badge']; ?>">
+                                                    <span><?php echo $meta['icon']; ?></span>
+                                                    <span><?php echo $meta['name']; ?></span>
+                                                </span>
+                                            </td>
+
+                                            <!-- Expiry & Remaining Days -->
+                                            <td class="px-6 py-4.5">
+                                                <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold border <?php echo $expire_badge; ?>">
+                                                    <?php echo $expire_text; ?>
+                                                </span>
+                                            </td>
+
+                                            <!-- Account Balance -->
+                                            <td class="px-6 py-4.5 font-mono font-bold text-brand-900 text-sm">
+                                                ৳<?php echo number_format($member['acc_balance'] ?? 0, 2); ?>
+                                            </td>
+
+                                            <!-- Action View Member Profile -->
+                                            <td class="px-6 py-4.5 text-right">
+                                                <button onclick="switchTab('users'); filterUsers('<?php echo htmlspecialchars($member['membership_id']); ?>')"
+                                                    class="px-3.5 py-1.5 bg-gray-100 hover:bg-brand-900 hover:text-white text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">
+                                                    প্রোফাইল দেখুন →
+                                                </button>
+                                            </td>
+                                        </tr>
+                                <?php endforeach; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
+            <!-- ================= SUB-TAB 2: MEMBERSHIP REQUESTS & HISTORY ================= -->
+            <div id="subtab-membership-requests" class="space-y-6 hidden">
+                <!-- Search and Status Filters -->
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="relative w-full md:w-96">
+                        <input 
+                            type="text" 
+                            id="requests-search-input" 
+                            onkeyup="filterMembershipRequests()"
+                            placeholder="সদস্যের নাম, TrxID বা ফোন নম্বর খুঁজুন..." 
+                            class="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-anek text-brand-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:bg-white transition-all">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+
+                    <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
+                        <button onclick="setRequestsFilter('all')" id="rf-all" class="rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand-900 text-white cursor-pointer">সকল (All)</button>
+                        <button onclick="setRequestsFilter('Pending')" id="rf-Pending" class="rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">পেন্ডিং (Pending)</button>
+                        <button onclick="setRequestsFilter('Confirmed')" id="rf-Confirmed" class="rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">অনুমোদিত (Confirmed)</button>
+                        <button onclick="setRequestsFilter('Cancelled')" id="rf-Cancelled" class="rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer">বাতিল (Cancelled)</button>
+                    </div>
+                </div>
+
+                <!-- Requests Table Card -->
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left" id="requests-history-table">
+                            <thead class="bg-gray-50/80 border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-5">তারিখ ও আইডি</th>
+                                    <th class="px-6 py-5">সদস্যের নাম ও যোগাযোগ</th>
+                                    <th class="px-6 py-5">অনুরোধকৃত প্ল্যান</th>
+                                    <th class="px-6 py-5">পেমেন্ট মেথড ও TrxID</th>
+                                    <th class="px-6 py-5">ফি</th>
+                                    <th class="px-6 py-5">স্ট্যাটাস</th>
+                                    <th class="px-6 py-5 text-right">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 text-sm">
+                                <?php if (empty($requests)): ?>
+                                    <tr>
+                                        <td colspan="7" class="px-8 py-16 text-center text-gray-400 font-light">
+                                            <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">📜</div>
+                                            <h4 class="text-base font-bold text-gray-600 mb-1">কোনো রিকোয়েস্ট বা প্রচেষ্টা পাওয়া যায়নি</h4>
+                                        </td>
+                                    </tr>
+                                <?php else:
+                                    foreach ($requests as $req):
+                                        $plan_title = $plan_meta[$req['plan']]['name'] ?? $req['plan'];
+                                        $search_req = strtolower(($req['full_name'] ?? '') . ' ' . ($req['phone'] ?? '') . ' ' . ($req['email'] ?? '') . ' ' . ($req['trx_id'] ?? '') . ' req-' . $req['id']);
+                                        ?>
+                                        <tr class="request-row hover:bg-gray-50/60 transition-colors"
+                                            data-search="<?php echo htmlspecialchars($search_req); ?>"
+                                            data-status="<?php echo htmlspecialchars($req['status']); ?>">
+                                            
+                                            <!-- Date & Request ID -->
+                                            <td class="px-6 py-4.5">
+                                                <span class="font-bold text-brand-900 block font-mono text-xs">REQ-#<?php echo $req['id']; ?></span>
+                                                <span class="text-[11px] text-gray-400"><?php echo date('d M Y, h:i A', strtotime($req['created_at'])); ?></span>
+                                            </td>
+
+                                            <!-- Member Info -->
+                                            <td class="px-6 py-4.5">
+                                                <span class="font-bold text-gray-900 block text-sm"><?php echo htmlspecialchars($req['full_name'] ?: 'N/A'); ?></span>
+                                                <span class="text-xs text-gray-500 font-mono"><?php echo htmlspecialchars($req['phone']); ?> <?php echo !empty($req['email']) ? '• ' . htmlspecialchars($req['email']) : ''; ?></span>
+                                            </td>
+
+                                            <!-- Plan -->
+                                            <td class="px-6 py-4.5">
+                                                <span class="px-3 py-1 bg-brand-gold/20 text-brand-900 rounded-full text-xs font-bold border border-brand-gold/30">
+                                                    <?php echo $plan_title; ?>
+                                                </span>
+                                            </td>
+
+                                            <!-- Payment Method & TrxID -->
+                                            <td class="px-6 py-4.5 font-mono">
+                                                <span class="font-bold text-brand-900 text-xs block"><?php echo strtoupper($req['payment_method']); ?></span>
+                                                <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-semibold"><?php echo htmlspecialchars($req['trx_id'] ?: 'N/A'); ?></span>
+                                            </td>
+
+                                            <!-- Fee -->
+                                            <td class="px-6 py-4.5 font-bold text-brand-900 font-mono text-sm">
+                                                ৳<?php echo number_format($req['amount'], 2); ?>
+                                            </td>
+
+                                            <!-- Status -->
+                                            <td class="px-6 py-4.5">
+                                                <?php if ($req['status'] === 'Confirmed'): ?>
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Confirmed
+                                                    </span>
+                                                <?php elseif ($req['status'] === 'Cancelled'): ?>
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-bold">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Cancelled
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold animate-pulse">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pending
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+
+                                            <!-- Action Buttons -->
+                                            <td class="px-6 py-4.5 text-right space-x-1.5">
+                                                <?php if ($req['status'] === 'Pending'): ?>
+                                                    <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'confirm')"
+                                                        class="px-3.5 py-1.5 bg-brand-900 text-white rounded-xl text-xs font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-sm cursor-pointer">
+                                                        Confirm
+                                                    </button>
+                                                    <button onclick="updateMembershipRequest(<?php echo $req['id']; ?>, 'cancel')"
+                                                        class="px-3.5 py-1.5 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-all shadow-sm cursor-pointer">
+                                                        Cancel
+                                                    </button>
+                                                <?php else: ?>
+                                                    <span class="text-xs text-gray-400 italic">সম্পন্ন</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                <?php endforeach; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab JavaScript Logic -->
+            <script>
+                function switchMembershipSubTab(tab) {
+                    const btnActive = document.getElementById('btn-subtab-active-members');
+                    const btnReqs = document.getElementById('btn-subtab-membership-requests');
+                    const subActive = document.getElementById('subtab-active-members');
+                    const subReqs = document.getElementById('subtab-membership-requests');
+
+                    if (tab === 'active-members') {
+                        subActive.classList.remove('hidden');
+                        subReqs.classList.add('hidden');
+                        btnActive.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 bg-brand-900 text-white shadow-md cursor-pointer";
+                        btnReqs.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 text-gray-600 hover:text-brand-900 hover:bg-white/60 cursor-pointer";
+                    } else {
+                        subActive.classList.add('hidden');
+                        subReqs.classList.remove('hidden');
+                        btnReqs.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 bg-brand-900 text-white shadow-md cursor-pointer";
+                        btnActive.className = "px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold font-anek transition-all duration-200 flex items-center gap-2 text-gray-600 hover:text-brand-900 hover:bg-white/60 cursor-pointer";
+                    }
+                }
+
+                function filterActivePlanMembers() {
+                    const search = (document.getElementById('active-plan-search')?.value || '').toLowerCase().trim();
+                    const planFilter = document.getElementById('active-plan-type-filter')?.value || '';
+                    const statusFilter = document.getElementById('active-plan-status-filter')?.value || '';
+
+                    const rows = document.querySelectorAll('.plan-member-row');
+                    rows.forEach(row => {
+                        const hay = row.getAttribute('data-search') || '';
+                        const plan = row.getAttribute('data-plan') || '';
+                        const status = row.getAttribute('data-status') || '';
+
+                        const matchSearch = !search || hay.includes(search);
+                        const matchPlan = !planFilter || plan === planFilter;
+                        const matchStatus = !statusFilter || status === statusFilter;
+
+                        if (matchSearch && matchPlan && matchStatus) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                }
+
+                let currentRequestsFilter = 'all';
+                function setRequestsFilter(status) {
+                    currentRequestsFilter = status;
+                    document.querySelectorAll('.rf-btn').forEach(b => {
+                        b.className = "rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer";
+                    });
+                    const activeBtn = document.getElementById('rf-' + status);
+                    if (activeBtn) {
+                        activeBtn.className = "rf-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand-900 text-white cursor-pointer";
+                    }
+                    filterMembershipRequests();
+                }
+
+                function filterMembershipRequests() {
+                    const search = (document.getElementById('requests-search-input')?.value || '').toLowerCase().trim();
+                    const rows = document.querySelectorAll('.request-row');
+                    rows.forEach(row => {
+                        const hay = row.getAttribute('data-search') || '';
+                        const status = row.getAttribute('data-status') || '';
+
+                        const matchSearch = !search || hay.includes(search);
+                        const matchStatus = (currentRequestsFilter === 'all') || (status === currentRequestsFilter);
+
+                        if (matchSearch && matchStatus) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                }
+            </script>
         </div>
 
         <!-- ====== Tab: Profile ====== -->

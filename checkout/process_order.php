@@ -173,9 +173,39 @@ try {
 
     // 3. Create Main Order
     $invoice_no = 'OM-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -5));
-    $payment_status = 'Pending';
+    
+    // Calculate raw subtotal from cart
+    $raw_subtotal = 0;
+    if ($checkout_type === 'buy') {
+        foreach ($cart as $cItem) {
+            $raw_subtotal += (float)($cItem['price'] ?? 0);
+        }
+    }
+
+    // Apply active member discount if eligible
+    $discount_percent = 0;
+    if ($checkout_type === 'buy' && $user_id) {
+        $mStmt = $pdo->prepare("SELECT membership_plan, plan_expire_date FROM members WHERE id = ?");
+        $mStmt->execute([$user_id]);
+        $mUser = $mStmt->fetch();
+        if ($mUser && !empty($mUser['membership_plan']) && $mUser['membership_plan'] !== 'None') {
+            if (!empty($mUser['plan_expire_date']) && strtotime($mUser['plan_expire_date']) >= time()) {
+                if ($mUser['membership_plan'] === 'General') $discount_percent = 5;
+                elseif ($mUser['membership_plan'] === 'BookLover') $discount_percent = 8;
+                elseif ($mUser['membership_plan'] === 'Collector') $discount_percent = 10;
+            }
+        }
+    }
+
+    $discount_amount = ($discount_percent > 0) ? round(($raw_subtotal * $discount_percent) / 100, 2) : 0;
+    $subtotal = max(0, $raw_subtotal - $discount_amount);
     $shipping_cost = ($checkout_type === 'borrow' || $total_amount <= 0) ? 0 : $selected_charge;
-    $subtotal = max(0, $total_amount - $shipping_cost);
+    $total_amount = ($checkout_type === 'borrow') ? 0 : ($subtotal + $shipping_cost);
+
+    $payment_status = ($checkout_type === 'borrow') ? 'Paid' : 'Pending';
+    if ($checkout_type === 'borrow') {
+        $db_payment_method = 'Membership';
+    }
 
     // Determine order notes based on contents
     $hasPreorder = false;
@@ -186,7 +216,7 @@ try {
         }
     }
 
-    $notes = $hasPreorder ? 'Pre-order Booking' : (($checkout_type === 'borrow') ? 'Borrow Order' : 'Purchase Order');
+    $notes = $hasPreorder ? 'Pre-order Booking' : (($checkout_type === 'borrow') ? 'Borrow Order' : ($discount_percent > 0 ? "Purchase Order (Member Discount {$discount_percent}%)" : 'Purchase Order'));
     $shipping_addr = implode(', ', array_filter([$address, $upazila, $district, $division]));
 
     $orderStmt = $pdo->prepare("INSERT INTO orders (invoice_no, member_id, guest_name, guest_phone, guest_email, subtotal, shipping_cost, total_amount, payment_status, payment_method, order_status, shipping_address, division, district, upazila, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing', ?, ?, ?, ?, ?)");

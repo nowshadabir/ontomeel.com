@@ -23,12 +23,12 @@ $plans = [
     ],
     'BookLover' => [
         'name' => 'নিয়মিত পাঠক',
-        'price' => 1000,
+        'price' => 700,
         'days' => 30
     ],
     'Collector' => [
         'name' => 'সাহিত্য অনুরাগী',
-        'price' => 1500,
+        'price' => 1000,
         'days' => 30
     ]
 ];

@@ -102,9 +102,14 @@ function sanitize_html($data)
  * Rate limiting - Simple file-based rate limiter
  * Returns true if request is allowed, false if rate limited
  */
-function check_rate_limit($identifier, $max_attempts = 5, $time_window = 300)
+function check_rate_limit($identifier, $max_attempts = 10, $time_window = 300)
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    // Allow more attempts on local development
+    if ($ip === '127.0.0.1' || $ip === '::1' || $ip === 'localhost' || $ip === 'unknown') {
+        $max_attempts = max($max_attempts, 50);
+    }
+
     $key = $identifier . '_' . $ip;
     $cache_file = sys_get_temp_dir() . '/rate_limit_' . md5($key) . '.txt';
 
@@ -113,7 +118,7 @@ function check_rate_limit($identifier, $max_attempts = 5, $time_window = 300)
 
     // Read existing attempts
     if (file_exists($cache_file)) {
-        $data = file_get_contents($cache_file);
+        $data = @file_get_contents($cache_file);
         $attempts = json_decode($data, true) ?: [];
 
         // Clean old attempts
@@ -131,9 +136,26 @@ function check_rate_limit($identifier, $max_attempts = 5, $time_window = 300)
     $attempts[] = $now;
 
     // Save attempts
-    file_put_contents($cache_file, json_encode($attempts));
+    @file_put_contents($cache_file, json_encode($attempts));
 
     return true;
+}
+
+function clear_rate_limit($identifier)
+{
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $key = $identifier . '_' . $ip;
+    $cache_file = sys_get_temp_dir() . '/rate_limit_' . md5($key) . '.txt';
+
+    if (file_exists($cache_file)) {
+        @unlink($cache_file);
+    }
+
+    // Also clear generic key
+    $generic_key = $identifier . '_127.0.0.1';
+    @unlink(sys_get_temp_dir() . '/rate_limit_' . md5($generic_key) . '.txt');
+    $generic_key_v6 = $identifier . '_::1';
+    @unlink(sys_get_temp_dir() . '/rate_limit_' . md5($generic_key_v6) . '.txt');
 }
 
 /**
@@ -200,8 +222,8 @@ function init_secure_session()
             }
         }
 
-        // Set session timeout (30 minutes of inactivity)
-        $timeout = 1800; // 30 minutes
+        // Set session timeout (30 days of inactivity)
+        $timeout = 86400 * 30; // 30 days
         if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
             // Session expired
             session_unset();
