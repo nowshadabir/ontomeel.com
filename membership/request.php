@@ -28,7 +28,7 @@ if (!in_array($plan_key, ['General', 'BookLover', 'Collector'], true)) {
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 10,
+        'price' => 500,
         'discount' => '৫%',
         'summary' => 'টোট ব্যাগ, সর্বোচ্চ ৫% ছাড়, লাইব্রেরি ও নেসক্যাফে বুথ সুবিধা'
     ],
@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="text-right">
                         <span class="text-2xl sm:text-3xl font-extrabold text-brand-900 font-mono">৳<?php echo number_format($current_plan['price']); ?></span>
-                        <span class="text-[11px] text-gray-400 block font-anek">মেয়াদ: ৩০ দিন</span>
+                        <span class="text-[11px] text-gray-400 block font-anek">মেয়াদ: ১ বছর</span>
                     </div>
                 </div>
 
@@ -135,7 +135,7 @@ include __DIR__ . '/../includes/header.php';
                     <div class="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
                         <span class="text-sm">💡</span>
                         <p class="leading-relaxed">
-                            আপনার বর্তমান মেম্বারশিপের সাথে আরও <strong>৩০ দিন</strong> মেয়াদ স্বয়ংক্রিয়ভাবে যুক্ত হয়ে যাবে।
+                            আপনার বর্তমান মেম্বারশিপের সাথে আরও <strong>১ বছর</strong> মেয়াদ স্বয়ংক্রিয়ভাবে যুক্ত হয়ে যাবে।
                         </p>
                     </div>
                 <?php endif; ?>

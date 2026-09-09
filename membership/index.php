@@ -45,7 +45,7 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                 <h3 class="text-3xl font-anek font-extrabold text-white mb-2">
                     <?php
                     $plan_names = [
-                        'General' => 'সাধারণ পাঠক (৳১০)',
+                        'General' => 'সাধারণ পাঠক (৳৫০০)',
                         'BookLover' => 'নিয়মিত পাঠক (৳৭০০)',
                         'Collector' => 'সাহিত্য অনুরাগী (৳১০০০)'
                     ];
@@ -128,7 +128,7 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                     <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাধারণ পাঠক</h3>
                     <p class="text-gray-500 text-sm mb-8 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
                     <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১০</span>
+                        <span class="text-5xl font-bold text-brand-900 font-anek">৳৫০০</span>
                     </div>
                     <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
                         <li class="flex items-start gap-3">

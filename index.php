@@ -271,7 +271,7 @@ function bn_num($num)
                     <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাধারণ পাঠক</h3>
                     <p class="text-gray-500 text-sm mb-8 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
                     <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১০</span>
+                        <span class="text-5xl font-bold text-brand-900 font-anek">৳৫০০</span>
                     </div>
                     <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
                         <li class="flex items-start gap-3">

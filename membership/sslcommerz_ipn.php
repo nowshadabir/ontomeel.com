@@ -8,7 +8,7 @@ require_once __DIR__ . '/../sslcommerz/config.php';
 require_once __DIR__ . '/../includes/notification_helper.php';
 
 $plans = [
-    'General' => ['name' => 'সাধারণ পাঠক', 'price' => 10],
+    'General' => ['name' => 'সাধারণ পাঠক', 'price' => 500],
     'BookLover' => ['name' => 'নিয়মিত পাঠক', 'price' => 700],
     'Collector' => ['name' => 'সাহিত্য অনুরাগী', 'price' => 1000]
 ];
@@ -88,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 $member = $mStmt->fetch(PDO::FETCH_ASSOC);
 
                 if ($member) {
-                    $new_expire_sql = "NOW() + INTERVAL 30 DAY";
+                    $new_expire_sql = "NOW() + INTERVAL 1 YEAR";
                     if (!empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
-                        $new_expire_sql = "plan_expire_date + INTERVAL 30 DAY";
+                        $new_expire_sql = "plan_expire_date + INTERVAL 1 YEAR";
                     }
 
                     $updMember = $pdo->prepare("UPDATE members SET membership_plan = ?, plan_expire_date = {$new_expire_sql} WHERE id = ?");

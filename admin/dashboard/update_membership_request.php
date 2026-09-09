@@ -50,10 +50,10 @@ try {
         $stmt->execute([$req['member_id']]);
         $member = $stmt->fetch();
 
-        $new_expire = "NOW() + INTERVAL 30 DAY";
+        $new_expire = "NOW() + INTERVAL 1 YEAR";
         if ($member && !empty($member['plan_expire_date'])) {
             if (strtotime($member['plan_expire_date']) > time()) {
-                $new_expire = "plan_expire_date + INTERVAL 30 DAY";
+                $new_expire = "plan_expire_date + INTERVAL 1 YEAR";
             }
         }
 

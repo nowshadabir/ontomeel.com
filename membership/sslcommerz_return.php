@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/notification_helper.php';
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 10,
+        'price' => 500,
         'discount' => '৫%',
         'color' => 'from-brand-900 to-brand-800'
     ],
@@ -107,10 +107,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $member = $mStmt->fetch(PDO::FETCH_ASSOC);
 
                         if ($member) {
-                            // 2. Smart Expiry Date Extension
-                            $new_expire_sql = "NOW() + INTERVAL 30 DAY";
+                            // 2. Smart Expiry Date Extension (1 Year / 365 Days)
+                            $new_expire_sql = "NOW() + INTERVAL 1 YEAR";
                             if (!empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
-                                $new_expire_sql = "plan_expire_date + INTERVAL 30 DAY";
+                                $new_expire_sql = "plan_expire_date + INTERVAL 1 YEAR";
                             }
 
                             // 3. Update Member Record
@@ -304,7 +304,7 @@ include __DIR__ . '/../includes/header.php';
                         <div>
                             <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">মেয়াদ উত্তীর্ণের তারিখ</span>
                             <span class="font-bold text-white text-xs">
-                                <?php echo !empty($member['plan_expire_date']) ? date('d M, Y', strtotime($member['plan_expire_date'])) : '৩০ দিন'; ?>
+                                <?php echo !empty($member['plan_expire_date']) ? date('d M, Y', strtotime($member['plan_expire_date'])) : '১ বছর'; ?>
                             </span>
                         </div>
                     </div>

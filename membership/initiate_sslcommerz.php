@@ -18,18 +18,18 @@ $user_id = (int)$_SESSION['user_id'];
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 10,
-        'days' => 30
+        'price' => 500,
+        'days' => 365
     ],
     'BookLover' => [
         'name' => 'নিয়মিত পাঠক',
         'price' => 700,
-        'days' => 30
+        'days' => 365
     ],
     'Collector' => [
         'name' => 'সাহিত্য অনুরাগী',
         'price' => 1000,
-        'days' => 30
+        'days' => 365
     ]
 ];
 
