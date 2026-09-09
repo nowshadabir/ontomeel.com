@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/notification_helper.php';
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 500,
+        'price' => 10,
         'discount' => '৫%',
         'color' => 'from-brand-900 to-brand-800'
     ],

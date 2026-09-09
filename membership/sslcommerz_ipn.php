@@ -8,7 +8,7 @@ require_once __DIR__ . '/../sslcommerz/config.php';
 require_once __DIR__ . '/../includes/notification_helper.php';
 
 $plans = [
-    'General' => ['name' => 'সাধারণ পাঠক', 'price' => 500],
+    'General' => ['name' => 'সাধারণ পাঠক', 'price' => 10],
     'BookLover' => ['name' => 'নিয়মিত পাঠক', 'price' => 700],
     'Collector' => ['name' => 'সাহিত্য অনুরাগী', 'price' => 1000]
 ];

@@ -18,7 +18,7 @@ $user_id = (int)$_SESSION['user_id'];
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 500,
+        'price' => 10,
         'days' => 30
     ],
     'BookLover' => [

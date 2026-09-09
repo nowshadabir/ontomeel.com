@@ -28,7 +28,7 @@ if (!in_array($plan_key, ['General', 'BookLover', 'Collector'], true)) {
 $plans = [
     'General' => [
         'name' => 'সাধারণ পাঠক',
-        'price' => 500,
+        'price' => 10,
         'discount' => '৫%',
         'summary' => 'টোট ব্যাগ, সর্বোচ্চ ৫% ছাড়, লাইব্রেরি ও নেসক্যাফে বুথ সুবিধা'
     ],
