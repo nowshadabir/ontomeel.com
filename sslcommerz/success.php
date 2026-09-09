@@ -333,11 +333,25 @@ if (empty($customer_name) && !empty($orderData['member_id'])) {
 $is_paid = ($orderData && $orderData['payment_status'] === 'Paid');
 $is_risk = ($orderData && strpos($orderData['notes'] ?? '', 'Risk Level 1') !== false);
 
-// IDOR / Access Authorization Check
+// IDOR / Access Authorization Check & Seamless Session Restoration
 $is_authorized = true;
 if ($orderData) {
     if (!empty($orderData['member_id'])) {
         $logged_user = $_SESSION['user_id'] ?? null;
+        if ($is_paid && empty($logged_user)) {
+            $mStmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
+            $mStmt->execute([(int)$orderData['member_id']]);
+            $mRow = $mStmt->fetch(PDO::FETCH_ASSOC);
+            if ($mRow) {
+                $_SESSION['user_id'] = $mRow['id'];
+                $_SESSION['user_name'] = $mRow['full_name'];
+                $_SESSION['membership_id'] = $mRow['membership_id'];
+                $_SESSION['membership_plan'] = $mRow['membership_plan'] ?? 'None';
+                $_SESSION['last_activity'] = time();
+                $_SESSION['created_at'] = time();
+                $logged_user = $mRow['id'];
+            }
+        }
         if ($logged_user != $orderData['member_id']) {
             if (empty($tran_id) || $orderData['trx_id'] !== $tran_id) {
                 $is_authorized = false;

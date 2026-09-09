@@ -139,10 +139,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $pdo->commit();
                             $is_success = true;
 
-                            // Update active session plan
-                            if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $user_id_raw) {
-                                $_SESSION['membership_plan'] = $plan_key;
-                            }
+                            // Update active session plan & ensure session is populated
+                            $_SESSION['user_id'] = $member['id'];
+                            $_SESSION['user_name'] = $member['full_name'];
+                            $_SESSION['membership_id'] = $member['membership_id'];
+                            $_SESSION['membership_plan'] = $plan_key;
+                            $_SESSION['last_activity'] = time();
+                            $_SESSION['created_at'] = time();
 
                             // Retrieve updated expiration date for notification
                             $dateStmt = $pdo->prepare("SELECT plan_expire_date FROM members WHERE id = ?");
@@ -205,10 +208,33 @@ if (!isset($plans[$plan_key])) {
 $plan = $plans[$plan_key];
 
 $member = null;
-if (isset($_SESSION['user_id'])) {
+if (!empty($_SESSION['user_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $member = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Fallback: If session was lost across cross-site POST gateway redirect, resolve member from verified transaction or request ID
+if (!$member && (!empty($tran_id) || $req_id > 0)) {
+    $stmt = $pdo->prepare("
+        SELECT m.* 
+        FROM membership_requests mr 
+        JOIN members m ON mr.member_id = m.id 
+        WHERE (mr.trx_id = ? OR mr.id = ?) AND mr.status = 'Confirmed'
+        LIMIT 1
+    ");
+    $stmt->execute([$tran_id, $req_id]);
+    $member = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Ensure the authenticated user session is active and restored
+if ($member && empty($_SESSION['user_id'])) {
+    $_SESSION['user_id'] = $member['id'];
+    $_SESSION['user_name'] = $member['full_name'];
+    $_SESSION['membership_id'] = $member['membership_id'];
+    $_SESSION['membership_plan'] = $member['membership_plan'] ?? $plan_key;
+    $_SESSION['last_activity'] = time();
+    $_SESSION['created_at'] = time();
 }
 
 $is_success = ($status_req === 'success');
