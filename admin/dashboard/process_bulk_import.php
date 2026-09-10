@@ -233,8 +233,16 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     $original_price_raw = convertBnToEnNum($getVal('original_price', '0'));
     $original_price = is_numeric($original_price_raw) ? (float)$original_price_raw : 0;
     $discount_price = 0;
+
     if ($original_price > $sell_price) {
+        // Option A: Original MRP (800) and Sell Price (750) -> Discount = 50
         $discount_price = $original_price - $sell_price;
+    } else {
+        // Option B: Direct discount amount passed (e.g. 50)
+        $direct_discount_raw = convertBnToEnNum($getVal('discount_price', '0'));
+        if (is_numeric($direct_discount_raw) && (float)$direct_discount_raw > 0) {
+            $discount_price = (float)$direct_discount_raw;
+        }
     }
 
     // Purchase Price

@@ -135,8 +135,8 @@ function bn_num($num)
                     <p class="text-gray-500 text-xs md:text-sm italic font-light"><?php echo htmlspecialchars($book['author']); ?></p>
                     <div class="mt-4 flex items-center justify-center gap-3">
                         <?php if ($book['discount_price'] > 0): ?>
-                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['discount_price']); ?></span>
-                            <span class="text-gray-400 text-xs line-through font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
+                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
+                            <span class="text-gray-400 text-xs line-through font-anek">৳<?php echo bn_num($book['sell_price'] + $book['discount_price']); ?></span>
                         <?php else: ?>
                             <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
                         <?php endif; ?>
