@@ -26,6 +26,9 @@ if (!$book) {
 function getBookImage($image)
 {
     if (!empty($image)) {
+        if (strpos($image, 'http://') === 0 || strpos($image, 'https://') === 0) {
+            return $image;
+        }
         return 'admin/assets/book-images/' . $image;
     }
     return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=800';
@@ -116,7 +119,11 @@ include 'includes/header.php';
                         <div class="flex items-center gap-6 mt-6 pb-6 border-b border-gray-200">
                             <div class="flex items-center gap-3">
                                 <span
-                                    class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">লে</span>
+                                    class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand-900 font-bold">
+                                    <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                </span>
                                 <div>
                                     <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">লেখক</p>
                                     <p class="text-brand-900 font-bold"><?php echo $book['author']; ?></p>

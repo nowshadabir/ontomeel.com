@@ -16,6 +16,9 @@ function bn_num($num)
 function getBookImage($image, $path_prefix = '')
 {
     if (!empty($image)) {
+        if (strpos($image, 'http://') === 0 || strpos($image, 'https://') === 0) {
+            return $image;
+        }
         return $path_prefix . 'admin/assets/book-images/' . $image;
     }
     return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';

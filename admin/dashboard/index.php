@@ -864,13 +864,22 @@ function format_bn_datetime($datetime_str)
                     <h1 class="text-3xl font-anek font-bold text-brand-900 mb-2">বই ইনভেন্টরি</h1>
                     <p class="text-gray-500 font-light">আপনার সংগ্রহের সকল বই এখান থেকে ম্যানেজ করুন।</p>
                 </div>
-                <button onclick="openAddBookModal()"
-                    class="bg-brand-900 text-white px-8 py-4 rounded-2xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/10 flex items-center gap-3 shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    নতুন বই যোগ করুন
-                </button>
+                <div class="flex items-center gap-3">
+                    <button onclick="openBulkImportModal()"
+                        class="bg-emerald-700 text-white px-6 py-4 rounded-2xl font-anek font-bold hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-900/10 flex items-center gap-2.5 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>CSV বাল্ক ইম্পোর্ট</span>
+                    </button>
+                    <button onclick="openAddBookModal()"
+                        class="bg-brand-900 text-white px-8 py-4 rounded-2xl font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/10 flex items-center gap-3 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>নতুন বই যোগ করুন</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Inventory Controls -->
@@ -2686,425 +2695,669 @@ function format_bn_datetime($datetime_str)
             </div>
 
             <!-- Scrollable Form Body -->
-            <form id="add-book-form" class="p-10 overflow-y-auto space-y-12" onsubmit="handleAddBook(event)"
+            <form id="add-book-form" class="p-6 sm:p-10 overflow-y-auto space-y-10" onsubmit="handleAddBook(event)"
                 enctype="multipart/form-data">
                 <input type="hidden" name="book_id" id="book_id">
 
-                <!-- Section 1: সাধারণ তথ্য -->
-                <div>
-                    <h4
-                        class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-brand-gold/30"></span> সাধারণ তথ্য
-                    </h4>
+                <!-- UX Notice / Guideline Banner -->
+                <div class="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-brand-900 text-xs sm:text-sm font-anek flex items-start gap-3.5">
+                    <span class="text-2xl flex-shrink-0">💡</span>
+                    <div class="space-y-1.5 leading-relaxed">
+                        <p class="font-bold text-amber-950 text-sm">ইনভেন্টরি ফর্ম পূরণ নির্দেশিকা:</p>
+                        <p class="text-gray-600 text-xs">
+                            • <span class="font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-300">বাংলা</span> চিহ্নিত ফিল্ডগুলোতে বাংলা লিপিতে এবং <span class="font-bold text-blue-800 bg-blue-100/80 px-2 py-0.5 rounded border border-blue-300">English</span> চিহ্নিত ফিল্ডগুলোতে ইংরেজি লিপিতে লিখুন (অনুসন্ধান ও ইনভয়েস নির্ভুল রাখতে উভয় নাম আবশ্যক)।<br>
+                            • লাল তারকা (<span class="text-red-500 font-bold">*</span>) চিহ্নিত ফিল্ডগুলো পূরণ করা আবশ্যক। সংখ্যা বা দামের ঘরে ইংরেজি (123) বা বাংলা (১২৩) সংখ্যা ব্যবহার করা যাবে।
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Section 1: সাধারণ তথ্য ও আইটেম পরিচিতি -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+                        <h4 class="text-brand-gold text-xs font-bold uppercase tracking-[0.2em] font-anek flex items-center gap-2">
+                            <span class="w-6 h-[2px] bg-brand-gold"></span> ১. সাধারণ তথ্য ও পরিচিতি (Basic Info)
+                        </h4>
+                        <span class="text-[11px] text-gray-400 font-anek">বই/আইটেমের মূল শিরোনাম</span>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Book Title (Bengali) -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">বইয়ের
-                                নাম (Title) *</label>
-                            <input type="text" name="title" required placeholder="বইয়ের শিরোনাম"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                    <span>বইয়ের নাম (Title)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 font-anek">বাংলা </span>
+                            </div>
+                            <input type="text" name="title" required placeholder="যেমন: শেষের কবিতা"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 font-bold text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বাংলা বর্ণমালায় বইয়ের পূর্ণ নাম লিখুন।</p>
                         </div>
+
+                        <!-- Book Title (English) -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Book
-                                Title (English) *</label>
-                            <input type="text" name="title_en" required placeholder="Book title in English"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                    <span>Book Title (English)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 font-sans">English</span>
+                            </div>
+                            <input type="text" name="title_en" required placeholder="e.g. Shesher Kabita"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">ইংরেজি বানানে নাম লিখুন (সার্চ ও ওয়েবলিংকের জন্য)।</p>
                         </div>
+
+                        <!-- Subtitle -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">উপ-শিরোনাম
-                                (Subtitle)</label>
-                            <input type="text" name="subtitle" placeholder="যদি থাকে"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">
+                                    উপ-শিরোনাম (Subtitle)
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">ঐচ্ছিক</span>
+                            </div>
+                            <input type="text" name="subtitle" placeholder="যদি কোনো উপ-শিরোনাম থাকে"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইয়ের বিশেষ ট্যাগলাইন বা দ্বিতীয় শিরোনাম।</p>
                         </div>
+
+                        <!-- Category -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                    <span>ক্যাটাগরি (Category)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 font-anek">ড্রপডাউন</span>
+                            </div>
+                            <select name="category_id" id="category_select" onchange="toggleNewCategoryInput()" required
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 font-bold text-sm shadow-sm appearance-none cursor-pointer">
+                                <option value="">ক্যাটাগরি সিলেক্ট করুন</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?php echo $cat['id']; ?>">
+                                        <?php echo htmlspecialchars($cat['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <option value="new">➕ নতুন ক্যাটাগরি তৈরি করুন...</option>
+                            </select>
+                            <p class="text-[11px] text-gray-400 font-anek">আইটেমটি কোন বিভাগের আওতাভুক্ত তা নির্বাচন করুন।</p>
+                        </div>
+
+                        <!-- New Category Div (if selected) -->
+                        <div id="new_category_div" class="space-y-2 md:col-span-2 hidden p-4 bg-amber-50 rounded-2xl border border-amber-200">
+                            <label class="text-xs font-bold text-amber-900 uppercase tracking-wide font-anek">
+                                নতুন ক্যাটাগরির নাম (New Category Name) *
+                            </label>
+                            <input type="text" name="new_category_name" placeholder="যেমন: উপন্যাস, সায়েন্স ফিকশন, ইসলামিক বই"
+                                class="w-full bg-white border border-amber-300 focus:border-brand-gold rounded-xl px-4 py-3 focus:outline-none font-anek text-brand-900 text-sm">
+                            <p class="text-[11px] text-amber-700 font-anek">নতুন ক্যাটাগরি তৈরি হয়ে স্বয়ংক্রিয়ভাবে তালিকায় যুক্ত হবে।</p>
+                        </div>
+
+                        <!-- Description / Overview -->
                         <div class="md:col-span-2 space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">বইয়ের
-                                বিবরণ (Description / Notes)</label>
-                            <textarea name="description" rows="3" placeholder="বই সম্পর্কে বিস্তারিত তথ্য..."
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900"></textarea>
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">
+                                    বইয়ের বিবরণ ও পরিচিতি (Description / Summary)
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 font-anek">বাংলায় সুবিধাজনক</span>
+                            </div>
+                            <textarea name="description" rows="3" placeholder="বইয়ের বিষয়বস্তু, লেখক পরিচিতি বা গুরুত্বপূর্ণ তথ্য লিখুন..."
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm leading-relaxed"></textarea>
+                            <p class="text-[11px] text-gray-400 font-anek">ওয়েবসাইটে বইয়ের বিস্তারিত পেজে এই বিবরণ দেখানো হবে।</p>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:col-span-2">
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ক্যাটাগরি</label>
-                                <select name="category_id" id="category_select" onchange="toggleNewCategoryInput()"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold appearance-none">
-                                    <option value="">সিলেক্ট করুন</option>
-                                    <?php foreach ($categories as $cat): ?>
-                                        <option value="<?php echo $cat['id']; ?>">
-                                            <?php echo htmlspecialchars($cat['name']); ?>
-                                        </option>
-                                        <?php
-                                    endforeach; ?>
-                                    <option value="new">-- নতুন ক্যাটাগরি যোগ করুন --</option>
-                                </select>
+
+                        <!-- Genre & Language -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">জেনার / বিষয় (Genre)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">ঐচ্ছিক</span>
                             </div>
-                            <div id="new_category_div" class="space-y-2 hidden">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">নতুন
-                                    ক্যাটাগরির নাম</label>
-                                <input type="text" name="new_category_name" placeholder="ক্যাটাগরির নাম লিখুন"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <input type="text" name="genre" placeholder="যেমন: থ্রিলার, ক্লাসিক, আত্মউন্নয়ন"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইয়ের সাহিত্যিক শাখা বা বিষয়বস্তু।</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ভাষা (Language)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-sans">Bengali / English</span>
                             </div>
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">জেনার
-                                    (Genre)</label>
-                                <input type="text" name="genre" placeholder="উদা: থ্রিলার, রোমান্টিক"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
-                            </div>
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ভাষা
-                                    (Language)</label>
-                                <input type="text" name="language" placeholder="উদা: বাংলা, ইংরেজি"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
-                            </div>
+                            <input type="text" name="language" placeholder="যেমন: Bengali, English, Arabic" value="Bengali"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইটির মূল রচনা বা অনুবাদের ভাষা।</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 2: লেখক ও প্রকাশনা -->
-                <div>
-                    <h4
-                        class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-brand-gold/30"></span> লেখক ও প্রকাশনা
-                    </h4>
+                <!-- Section 2: লেখক ও প্রকাশনা সংক্রান্ত তথ্য -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+                        <h4 class="text-brand-gold text-xs font-bold uppercase tracking-[0.2em] font-anek flex items-center gap-2">
+                            <span class="w-6 h-[2px] bg-brand-gold"></span> ২. লেখক ও প্রকাশনা (Author & Publisher)
+                        </h4>
+                        <span class="text-[11px] text-gray-400 font-anek">লেখক ও প্রকাশনীর বিস্তারিত</span>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Author (Bengali) -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">প্রধান
-                                লেখক (Author) *</label>
-                            <input type="text" name="author" required placeholder="লেখকের নাম"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">Author
-                                (English) *</label>
-                            <input type="text" name="author_en" required placeholder="Author name in English"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সহ-
-                                লেখক (Co-author)</label>
-                            <input type="text" name="co_author" placeholder="সহ-লেখকের নাম লিখুন"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">প্রকাশক
-                                (Publisher)</label>
-                            <input type="text" name="publisher" placeholder="প্রকাশনীর নাম"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
-                        </div>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="col-span-1 space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">প্রকাশ
-                                    সাল</label>
-                                <input type="text" name="publish_year" placeholder="২০২৬"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-4 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                    <span>প্রধান লেখক (Author)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 font-anek">বাংলা </span>
                             </div>
-                            <div class="col-span-1 space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সংস্করণ</label>
-                                <input type="text" name="edition" placeholder="১ম"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-4 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <input type="text" name="author" required placeholder="যেমন: রবীন্দ্রনাথ ঠাকুর"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 font-bold text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বাংলায় লেখকের মূল নাম লিখুন।</p>
+                        </div>
+
+                        <!-- Author (English) -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                    <span>Author (English)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 font-sans">English</span>
                             </div>
-                            <div class="col-span-1 space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ISBN</label>
-                                <input type="text" name="isbn" placeholder="ISBN নং"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-4 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <input type="text" name="author_en" required placeholder="e.g. Rabindranath Tagore"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">ইংরেজি বানানে লেখকের নাম লিখুন।</p>
+                        </div>
+
+                        <!-- Co-author / Translator -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সহ-লেখক / অনুবাদক (Co-author)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">ঐচ্ছিক</span>
+                            </div>
+                            <input type="text" name="co_author" placeholder="যেমন: অনীশ দাস অপু (অনুবাদক)"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">যৌথ লেখক, অনুবাদক বা সম্পাদকের নাম।</p>
+                        </div>
+
+                        <!-- Publisher -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">প্রকাশনী (Publisher)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">বাংলা/English</span>
+                            </div>
+                            <input type="text" name="publisher" placeholder="যেমন: অন্যপ্রকাশ, সময় প্রকাশন"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইটির প্রকাশনা প্রতিষ্ঠানের নাম।</p>
+                        </div>
+
+                        <!-- Publish Year, Edition & ISBN -->
+                        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center justify-between">
+                                    <span>প্রকাশ সাল (Year)</span>
+                                    <span class="text-[10px] text-gray-400 font-sans">YYYY</span>
+                                </label>
+                                <input type="text" name="publish_year" placeholder="যেমন: 2024"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">৪ অঙ্কের সাল (যেমন: 2024 বা ২০২৪)</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সংস্করণ (Edition)</label>
+                                <input type="text" name="edition" placeholder="যেমন: ১ম সংস্করণ"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">মুদ্রণ বা সংস্করণ তথ্য</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center justify-between">
+                                    <span>ISBN নম্বর</span>
+                                    <span class="text-[10px] text-blue-700 font-sans font-bold">English</span>
+                                </label>
+                                <input type="text" name="isbn" placeholder="e.g. 9789849123456"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">১০ বা ১৩ ডিজিটের বারকোড/ISBN</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 3: ইনভেন্টরি ও অবস্থান -->
-                <div>
-                    <h4
-                        class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-brand-gold/30"></span> ইনভেন্টরি ও অবস্থান
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Section 3: ইনভেন্টরি, ফরম্যাট ও লাইব্রেরি লোকেশন -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+                        <h4 class="text-brand-gold text-xs font-bold uppercase tracking-[0.2em] font-anek flex items-center gap-2">
+                            <span class="w-6 h-[2px] bg-brand-gold"></span> ৩. ইনভেন্টরি, ফরম্যাট ও অবস্থান (Inventory & Location)
+                        </h4>
+                        <span class="text-[11px] text-gray-400 font-anek">স্টক ও ফিজিক্যাল তথ্য</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        <!-- Format -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ফরম্যাট
-                                (Format)</label>
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">বাঁধাই ফরম্যাট (Format)</label>
                             <select name="format"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 appearance-none">
-                                <option value="Paperback">Paperback</option>
-                                <option value="Hardcover">Hardcover</option>
-                                <option value="E-book">E-book</option>
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm cursor-pointer">
+                                <option value="Paperback">Paperback (পেপারব্যাক)</option>
+                                <option value="Hardcover">Hardcover (হার্ডকভার)</option>
+                                <option value="E-book">E-book (ডিজিটাল বই)</option>
                             </select>
+                            <p class="text-[11px] text-gray-400 font-anek">বইয়ের বাঁধাই বা মিডিয়া টাইপ।</p>
                         </div>
+
+                        <!-- Page Count -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">পৃষ্ঠা
-                                সংখ্যা</label>
-                            <input type="number" name="page_count" placeholder="০"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">পৃষ্ঠা সংখ্যা (Pages)</label>
+                            <input type="number" name="page_count" placeholder="যেমন: ২৫০" min="0"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইটির মোট পৃষ্ঠার সংখ্যা।</p>
                         </div>
+
+                        <!-- Condition -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">অবস্থা
-                                (Condition)</label>
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">বইয়ের অবস্থা (Condition)</label>
                             <select name="book_condition"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 appearance-none">
-                                <option value="New">New</option>
-                                <option value="Used">Used</option>
-                                <option value="Damaged">Damaged</option>
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm cursor-pointer">
+                                <option value="New">New (একদম নতুন কপি)</option>
+                                <option value="Used">Used (ব্যবহৃত / সেকেন্ড হ্যান্ড)</option>
+                                <option value="Damaged">Damaged (সামান্য ক্ষতিগ্রস্ত)</option>
                             </select>
+                            <p class="text-[11px] text-gray-400 font-anek">কপির ফিজিক্যাল কন্ডিশন।</p>
                         </div>
+
+                        <!-- Shelf Location -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">শেল্ফ
-                                লোকেশন</label>
-                            <input type="text" name="shelf_location" placeholder="A1, B2"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">শেল্ফ লোকেশন (Shelf)</label>
+                            <input type="text" name="shelf_location" placeholder="যেমন: Shelf-A1"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">লাইব্রেরির তাক বা আলমারির কোড।</p>
                         </div>
+
+                        <!-- Rack Number -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">র‍্যাক
-                                নাম্বার</label>
-                            <input type="text" name="rack_number" placeholder="Rack-05"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">র‍্যাক নাম্বার (Rack)</label>
+                            <input type="text" name="rack_number" placeholder="যেমন: Rack-03"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">লাইব্রেরির র‍্যাক চিহ্নিতকরণ নম্বর।</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+
+                        <!-- Stock & Min Stock -->
+                        <div class="grid grid-cols-2 gap-3">
                             <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">স্টক
-                                    পরিমাণ (Qty)</label>
-                                <input type="number" name="stock_qty" required placeholder="১০"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-4 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1">
+                                    <span>স্টক (Qty)</span>
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" name="stock_qty" required placeholder="১০" min="0" value="1"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-3 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">বর্তমান কপির সংখ্যা</p>
                             </div>
                             <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">মিনিমাম
-                                    স্টক লেভেল</label>
-                                <input type="number" name="min_stock_level" placeholder="২"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-4 py-4 focus:outline-none transition-all font-anek text-brand-900 text-red-500">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">লো-স্টক অ্যালার্ট</label>
+                                <input type="number" name="min_stock_level" placeholder="২" min="0" value="2"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-3 py-3.5 focus:outline-none transition-all font-sans text-red-600 font-bold text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">সতর্কতার সীমা</p>
                             </div>
                         </div>
+
+                        <!-- Toggle 1: Borrowable -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ধার
-                                দেওয়া যাবে? (Borrowable)</label>
-                            <div
-                                class="flex items-center gap-4 px-6 py-3.5 bg-brand-light rounded-2xl border border-transparent">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">মেম্বারশিপে ধার দেওয়া যাবে?</label>
+                            <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="is_borrowable" value="1" class="sr-only peer" checked>
-                                    <div
-                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold">
-                                    </div>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                 </label>
-                                <span class="text-xs font-bold text-brand-900 font-anek">হ্যাঁ, ধার দেওয়া যাবে</span>
+                                <span class="text-xs font-bold text-emerald-800 font-anek">হ্যাঁ, ধারযোগ্য (Borrowable)</span>
                             </div>
                         </div>
 
+                        <!-- Toggle 2: Suggested -->
                         <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সাজেস্টেড
-                                বই? (Suggested)</label>
-                            <div
-                                class="flex items-center gap-4 px-6 py-3.5 bg-brand-light rounded-2xl border border-transparent">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">হোমপেজে সাজেস্টেড বই?</label>
+                            <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="is_suggested" value="1" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold">
-                                    </div>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold"></div>
                                 </label>
-                                <span class="text-xs font-bold text-brand-900 font-anek">হ্যাঁ, সাজেস্টেড বই</span>
+                                <span class="text-xs font-bold text-brand-900 font-anek">হ্যাঁ, সাজেস্টেড তালিকায় দেখান</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 4: মূল্য ও সাপ্লায়ার -->
-                <div>
-                    <h4
-                        class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-brand-gold/30"></span> মূল্য ও সাপ্লায়ার
-                    </h4>
+                <!-- Section 4: মূল্য ও সাপ্লায়ার সংক্রান্ত তথ্য -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+                        <h4 class="text-brand-gold text-xs font-bold uppercase tracking-[0.2em] font-anek flex items-center gap-2">
+                            <span class="w-6 h-[2px] bg-brand-gold"></span> ৪. মূল্য ও সরবরাহকারী (Pricing & Supplier)
+                        </h4>
+                        <span class="text-[11px] text-gray-400 font-anek">আর্থিক ও সোর্সিং তথ্য</span>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Prices Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Purchase Price -->
                             <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ক্রয়
-                                    মূল্য (৳)</label>
-                                <input type="number" name="purchase_price" placeholder="৳০০০"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ক্রয় মূল্য (৳)</label>
+                                    <span class="text-[10px] text-gray-400 font-anek">গোপনীয়</span>
+                                </div>
+                                <input type="number" name="purchase_price" placeholder="৳ ২৫০" min="0" step="0.5"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">সাপ্লায়ারের থেকে কেনার দাম</p>
                             </div>
+
+                            <!-- Sell Price -->
                             <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">বিক্রয়
-                                    মূল্য (৳) *</label>
-                                <input type="number" name="sell_price" required placeholder="৳০০০"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900 font-bold">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1">
+                                        <span>বিক্রয় মূল্য (৳)</span>
+                                        <span class="text-red-500 font-bold">*</span>
+                                    </label>
+                                    <span class="text-[10px] text-emerald-600 font-bold font-sans">MRP</span>
+                                </div>
+                                <input type="number" name="sell_price" required placeholder="৳ ৩৫০" min="0" step="0.5"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">গ্রাহকের জন্য বিক্রয় মূল্য</p>
                             </div>
+
+                            <!-- Discount Price -->
                             <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">ছাড়ের
-                                    মূল্য (৳)</label>
-                                <input type="number" name="discount_price" placeholder="৳০০০"
-                                    class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের মূল্য (৳)</label>
+                                    <span class="text-[10px] text-amber-600 font-anek">অফার</span>
+                                </div>
+                                <input type="number" name="discount_price" placeholder="৳ ৩০০" min="0" step="0.5"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                                <p class="text-[10px] text-gray-400 font-anek">ছাড় না থাকলে ফাঁকা রাখুন বা ০ দিন</p>
                             </div>
                         </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সাপ্লায়ারের
-                                নাম</label>
-                            <input type="text" name="supplier_name" placeholder="সরবরাহকারী প্রতিষ্ঠান / ব্যক্তির নাম"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
-                        </div>
-                        <div class="md:col-span-2 space-y-2">
-                            <label
-                                class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সাপ্লায়ার
-                                কন্টাক্ট (Phone/Email)</label>
-                            <input type="text" name="supplier_contact" placeholder="যোগাযোগের তথ্য"
-                                class="w-full bg-brand-light border border-transparent focus:border-brand-gold rounded-2xl px-6 py-4 focus:outline-none transition-all font-anek text-brand-900">
+
+                        <!-- Supplier Name & Contact -->
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ারের নাম (Supplier Name)</label>
+                                <input type="text" name="supplier_name" placeholder="যেমন: বাতিঘর, রকমারি, বেঙ্গল বুকস"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                                <p class="text-[11px] text-gray-400 font-anek">সরবরাহকারী ব্যক্তি বা প্রতিষ্ঠানের নাম।</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ার যোগাযোগ (Phone / Email)</label>
+                                <input type="text" name="supplier_contact" placeholder="যেমন: 01700000000, supplier@example.com"
+                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                                <p class="text-[11px] text-gray-400 font-anek">জরুরি রি-অর্ডারের জন্য যোগাযোগের মাধ্যম।</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 5: মিডিয়া ও মেটাডেটা -->
-                <div>
-                    <h4
-                        class="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <span class="w-8 h-[1px] bg-brand-gold/30"></span> মিডিয়া ও মেটাডেটা
-                    </h4>
-                    <div class="space-y-8">
+                <!-- Section 5: মিডিয়া ও বইয়ের ছবি -->
+                <div class="bg-gray-50/50 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+                        <h4 class="text-brand-gold text-xs font-bold uppercase tracking-[0.2em] font-anek flex items-center gap-2">
+                            <span class="w-6 h-[2px] bg-brand-gold"></span> ৫. ছবি ও মিডিয়া (Images & Media)
+                        </h4>
+                        <span class="text-[11px] text-gray-400 font-anek">JPG, PNG, WebP (অটো-কম্প্রেস হবে)</span>
+                    </div>
+
+                    <div class="space-y-6">
                         <!-- Image Upload Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <!-- Cover Photo -->
-                            <div class="space-y-4">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">বইয়ের
-                                    কভার (Cover)</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1.5">
+                                        <span>১. কভার ফটো (Cover Photo)</span>
+                                    </label>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200 font-anek">প্রধান ছবি</span>
+                                </div>
                                 <div class="relative group">
                                     <input type="file" name="cover_image" id="cover_image" accept="image/*"
                                         class="hidden" onchange="previewImage(this, 'cover-preview')">
                                     <label for="cover_image"
-                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-brand-light border-2 border-dashed border-brand-gold/20 rounded-3xl cursor-pointer hover:border-brand-gold/50 hover:bg-brand-gold/5 transition-all group overflow-hidden">
+                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-white border-2 border-dashed border-brand-gold/30 rounded-3xl cursor-pointer hover:border-brand-gold hover:bg-brand-gold/5 transition-all group overflow-hidden shadow-sm">
                                         <div id="cover-preview" class="absolute inset-0 hidden">
                                             <img src="" class="w-full h-full object-cover">
                                             <div
                                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span class="text-white text-xs font-bold font-anek">পরিবর্তন
-                                                    করুন</span>
+                                                <span class="text-white text-xs font-bold font-anek bg-black/60 px-3 py-1.5 rounded-xl backdrop-blur-sm">ছবি পরিবর্তন করুন</span>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col items-center p-6 text-center">
-                                            <svg class="w-10 h-10 text-brand-gold/40 mb-3 group-hover:scale-110 transition-transform"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                </path>
-                                            </svg>
-                                            <span class="text-xs font-bold text-brand-900 font-anek">কভার আপলোড</span>
-                                            <span class="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">JPG,
-                                                PNG (Max 5MB)</span>
+                                        <div class="flex flex-col items-center p-5 text-center">
+                                            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-brand-gold flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-brand-900 font-anek">কভার ছবি নির্বাচন করুন</span>
+                                            <span class="text-[10px] text-gray-400 mt-1">সামনের কভার (Max 5MB)</span>
                                         </div>
                                     </label>
                                 </div>
+                                <p class="text-[11px] text-gray-400 font-anek">বইয়ের সামনের চমৎকার পরিষ্কার ছবি দিন।</p>
                             </div>
 
                             <!-- Second Photo -->
-                            <div class="space-y-4">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">দ্বিতীয়
-                                    ছবি (Photo 2)</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">
+                                        <span>২. দ্বিতীয় ছবি (Photo 2)</span>
+                                    </label>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">ঐচ্ছিক</span>
+                                </div>
                                 <div class="relative group">
                                     <input type="file" name="photo_2" id="photo_2" accept="image/*" class="hidden"
                                         onchange="previewImage(this, 'photo2-preview')">
                                     <label for="photo_2"
-                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-brand-light border-2 border-dashed border-gray-100 rounded-3xl cursor-pointer hover:border-brand-gold/50 hover:bg-brand-gold/5 transition-all group overflow-hidden">
+                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-white border-2 border-dashed border-gray-200 rounded-3xl cursor-pointer hover:border-brand-gold hover:bg-brand-gold/5 transition-all group overflow-hidden shadow-sm">
                                         <div id="photo2-preview" class="absolute inset-0 hidden">
                                             <img src="" class="w-full h-full object-cover">
                                             <div
                                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span class="text-white text-xs font-bold font-anek">পরিবর্তন
-                                                    করুন</span>
+                                                <span class="text-white text-xs font-bold font-anek bg-black/60 px-3 py-1.5 rounded-xl backdrop-blur-sm">ছবি পরিবর্তন করুন</span>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col items-center p-6 text-center">
-                                            <svg class="w-10 h-10 text-gray-300 mb-3 group-hover:scale-110 transition-transform"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                            <span class="text-xs font-bold text-gray-500 font-anek">যোগ করুন</span>
+                                        <div class="flex flex-col items-center p-5 text-center">
+                                            <div class="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                                </svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-gray-600 font-anek">পেছনের ছবি যুক্ত করুন</span>
+                                            <span class="text-[10px] text-gray-400 mt-1">ব্যাক কভার (ঐচ্ছিক)</span>
                                         </div>
                                     </label>
                                 </div>
+                                <p class="text-[11px] text-gray-400 font-anek">বইয়ের পেছনের কভারের ছবি।</p>
                             </div>
 
                             <!-- Third Photo -->
-                            <div class="space-y-4">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">তৃতীয়
-                                    ছবি (Photo 3)</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">
+                                        <span>৩. তৃতীয় ছবি (Photo 3)</span>
+                                    </label>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 font-anek">ঐচ্ছিক</span>
+                                </div>
                                 <div class="relative group">
                                     <input type="file" name="photo_3" id="photo_3" accept="image/*" class="hidden"
                                         onchange="previewImage(this, 'photo3-preview')">
                                     <label for="photo_3"
-                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-brand-light border-2 border-dashed border-gray-100 rounded-3xl cursor-pointer hover:border-brand-gold/50 hover:bg-brand-gold/5 transition-all group overflow-hidden">
+                                        class="flex flex-col items-center justify-center w-full aspect-[3/4] bg-white border-2 border-dashed border-gray-200 rounded-3xl cursor-pointer hover:border-brand-gold hover:bg-brand-gold/5 transition-all group overflow-hidden shadow-sm">
                                         <div id="photo3-preview" class="absolute inset-0 hidden">
                                             <img src="" class="w-full h-full object-cover">
                                             <div
                                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span class="text-white text-xs font-bold font-anek">পরিবর্তন
-                                                    করুন</span>
+                                                <span class="text-white text-xs font-bold font-anek bg-black/60 px-3 py-1.5 rounded-xl backdrop-blur-sm">ছবি পরিবর্তন করুন</span>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col items-center p-6 text-center">
-                                            <svg class="w-10 h-10 text-gray-300 mb-3 group-hover:scale-110 transition-transform"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                            <span class="text-xs font-bold text-gray-500 font-anek">যোগ করুন</span>
+                                        <div class="flex flex-col items-center p-5 text-center">
+                                            <div class="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                                </svg>
+                                            </div>
+                                            <span class="text-xs font-bold text-gray-600 font-anek">সূচিপত্র / ভেতরের ছবি</span>
+                                            <span class="text-[10px] text-gray-400 mt-1">পৃষ্ঠার ছবি (ঐচ্ছিক)</span>
                                         </div>
                                     </label>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">যোগ
-                                    করার তারিখ</label>
-                                <input type="text" readonly value="০৭ মার্চ, ২০২৬"
-                                    class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:outline-none font-anek text-gray-400 cursor-not-allowed">
-                            </div>
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-anek ml-2">সর্বশেষ
-                                    আপডেট</label>
-                                <input type="text" readonly value="এখনই"
-                                    class="w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 focus:outline-none font-anek text-gray-400 cursor-not-allowed">
+                                <p class="text-[11px] text-gray-400 font-anek">ভেতরের পৃষ্ঠা বা সূচিপত্রের ছবি।</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sticky Footer Actions -->
-                <div
-                    class="sticky bottom-0 bg-white pt-6 pb-2 mt-10 border-t border-gray-100 flex flex-col sm:flex-row gap-4 shrink-0">
+                <div class="sticky bottom-0 bg-white/95 backdrop-blur-md pt-5 pb-3 border-t border-gray-200 flex flex-col sm:flex-row items-center gap-4 shrink-0 z-20">
                     <button type="button" onclick="closeAddBookModal()"
-                        class="flex-1 py-4 sm:py-5 bg-gray-100 text-gray-500 font-anek font-bold text-lg rounded-2xl hover:bg-gray-200 transition-all">বাতিল
-                        করুন</button>
+                        class="w-full sm:w-1/3 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-anek font-bold text-base rounded-2xl transition-all">
+                        বাতিল করুন
+                    </button>
                     <button id="modal-submit-btn" type="submit"
-                        class="flex-[2] py-4 sm:py-5 bg-brand-900 text-white font-anek font-bold text-lg rounded-2xl hover:bg-brand-gold hover:text-brand-900 transition-all shadow-xl shadow-brand-900/20">ইনভেন্টরিতে
-                        সেভ করুন</button>
+                        class="w-full sm:w-2/3 py-4 bg-brand-900 hover:bg-brand-gold text-white hover:text-brand-900 font-anek font-bold text-base rounded-2xl transition-all shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>ইনভেন্টরিতে সেভ করুন</span>
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- CSV Bulk Import Modal -->
+    <div id="bulk-import-modal" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-brand-900/60 backdrop-blur-xs" onclick="closeBulkImportModal()"></div>
+        <div class="bg-white w-full max-w-3xl max-h-[90vh] rounded-[40px] shadow-2xl relative z-10 overflow-hidden animate-slide-up border border-white/20 flex flex-col font-anek">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-brand-900 p-8 flex justify-between items-center shrink-0">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold uppercase tracking-wider border border-emerald-400/30">
+                            Bulk Importer
+                        </span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white">CSV দিয়ে একসাথে একাধিক বই যুক্ত করুন</h3>
+                    <p class="text-white/60 text-xs font-light mt-1">সব তথ্য একসাথে ইম্পোর্ট করুন, ইমেজ URL থেকে কভার অটোমেটিক ডাউনলোড হবে।</p>
+                </div>
+                <button onclick="closeBulkImportModal()" class="text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+                <!-- Step 1: Download Template Box -->
+                <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-700/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-emerald-950 text-sm">১. স্যাম্পল CSV টেমপ্লেট ডাউনলোড করুন</h4>
+                            <p class="text-emerald-800/80 text-xs mt-0.5">সবগুলো ফিল্ড ও উদাহরন সহ সাজানো ফাইলটি ডাউনলোড করে এতে আপনার বইয়ের তথ্য বসান।</p>
+                        </div>
+                    </div>
+                    <a href="download_sample_csv.php"
+                        class="px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-900/10 flex items-center gap-2 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>টেমপ্লেট ডাউনলোড</span>
+                    </a>
+                </div>
+
+                <!-- Step 2: Upload CSV Form -->
+                <form id="bulk-import-form" onsubmit="handleBulkImport(event)" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-brand-900 uppercase tracking-wide flex items-center justify-between">
+                            <span>২. আপনার পূরণকৃত CSV ফাইল নির্বাচন করুন</span>
+                            <span class="text-xs text-gray-400 font-normal">শুধুমাত্র .csv ফরম্যাট</span>
+                        </label>
+                        
+                        <div id="drop-zone"
+                            class="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-3xl p-8 text-center transition-all bg-gray-50/50 hover:bg-emerald-50/30 cursor-pointer relative group">
+                            <input type="file" id="csv_file_input" name="csv_file" accept=".csv, text/csv" required
+                                onchange="handleCsvFileSelect(event)"
+                                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                            
+                            <div id="drop-zone-idle" class="space-y-3">
+                                <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-brand-900 text-sm">ফাইল ড্র্যাগ করে এখানে ছাড়ুন অথবা ক্লিক করে ফাইল বাছুন</p>
+                                    <p class="text-xs text-gray-400 mt-1">Excel বা Google Sheets থেকে "CSV (Comma delimited)" হিসেবে সেভ করা ফাইল আপলোড করুন</p>
+                                </div>
+                            </div>
+
+                            <div id="drop-zone-selected" class="hidden space-y-2">
+                                <div class="w-12 h-12 mx-auto rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <p id="selected-file-name" class="font-bold text-emerald-950 text-sm font-mono"></p>
+                                <p id="selected-file-size" class="text-xs text-emerald-700"></p>
+                                <p class="text-[11px] text-gray-400 underline cursor-pointer">অন্য ফাইল বাছাই করতে এখানে ক্লিক করুন</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guidelines Accordion -->
+                    <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                        <button type="button" onclick="toggleImportRules()"
+                            class="w-full bg-gray-50/80 px-5 py-3.5 flex items-center justify-between text-left text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors">
+                            <span class="flex items-center gap-2">
+                                <span>📌</span> CSV কলাম নির্দেশিকা ও গুরুত্বপূর্ণ নিয়মাবলী (Rules)
+                            </span>
+                            <svg id="import-rules-chevron" class="w-4 h-4 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="import-rules-content" class="hidden p-5 bg-white text-xs space-y-3 text-gray-600 border-t border-gray-100">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <p class="font-bold text-brand-900">বাধ্যতামূলক কলাম:</p>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-500">
+                                        <li><strong class="text-brand-900">title</strong>: বইয়ের মূল নাম (বাংলা)</li>
+                                        <li><strong class="text-brand-900">author</strong>: লেখকের মূল নাম (বাংলা)</li>
+                                        <li><strong class="text-brand-900">sell_price</strong>: বিক্রয় মূল্য (যেমন: 450)</li>
+                                    </ul>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <p class="font-bold text-brand-900">কভার ইমেজ সুবিধা:</p>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-500">
+                                        <li><strong class="text-brand-900">cover_image_url</strong>: যেকোনো অনলাইন ছবির লিংক দিন (সার্ভার নিজে থেকে ইমেজ ডাউনলোড ও অপটিমাইজ করে নিবে)।</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+                                💡 <strong>টিপ:</strong> দাম বা সংখ্যার ঘরে বাংলা সংখ্যা (১২৩) বা ইংরেজি (123) উভয়ই লিখতে পারবেন, সিস্টেম স্বয়ংক্রিয়ভাবে প্রসেস করে নিবে।
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result / Error Container -->
+                    <div id="bulk-import-results" class="hidden"></div>
+
+                    <!-- Actions -->
+                    <div class="pt-2 flex items-center justify-end gap-3">
+                        <button type="button" onclick="closeBulkImportModal()"
+                            class="px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-all">
+                            বন্ধ করুন
+                        </button>
+                        <button type="submit" id="bulk-submit-btn"
+                            class="px-8 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-xl transition-all shadow-xl shadow-emerald-900/10 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>ইম্পোর্ট শুরু করুন</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -3438,11 +3691,14 @@ function format_bn_datetime($datetime_str)
             const tbody = document.getElementById('inventory-table-body');
             const pagination = document.getElementById('inventory-pagination');
             
-            // Show Skeleton Loader (Simplified for brevity, but "pro" look)
-            tbody.classList.add('opacity-40', 'pointer-events-none');
+            if (tbody) {
+                tbody.classList.add('opacity-40', 'pointer-events-none');
+            }
             
-            inventoryState.search = document.getElementById('inventory-search-input').value;
-            inventoryState.category = document.getElementById('inventory-category-select').value;
+            const searchInput = document.getElementById('inventory-search-input');
+            const catSelect = document.getElementById('inventory-category-select');
+            inventoryState.search = searchInput ? searchInput.value.trim() : '';
+            inventoryState.category = catSelect ? catSelect.value : 'all';
 
             const params = new URLSearchParams({
                 page: inventoryState.page,
@@ -3453,19 +3709,28 @@ function format_bn_datetime($datetime_str)
 
             try {
                 const response = await fetch(`fetch_inventory.php?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
                 const data = await response.json();
                 
                 if (data.success) {
-                    tbody.innerHTML = data.html;
-                    pagination.innerHTML = data.pagination;
+                    if (tbody) tbody.innerHTML = data.html;
+                    if (pagination) pagination.innerHTML = data.pagination;
+                } else {
+                    showToast(data.message || "ইনভেন্টরি লোড করতে সমস্যা হয়েছে।");
                 }
             } catch (error) {
-                console.error("Scale error loading inventory:", error);
+                console.error("Error loading inventory:", error);
                 showToast("ইনভেন্টরি লোড করতে সমস্যা হয়েছে।");
             } finally {
-                tbody.classList.remove('opacity-40', 'pointer-events-none');
-                // Scroll to table top smoothly
-                tbody.closest('.bg-white').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (tbody) {
+                    tbody.classList.remove('opacity-40', 'pointer-events-none');
+                    const container = tbody.closest('.bg-white') || tbody;
+                    if (container && typeof container.scrollIntoView === 'function') {
+                        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
             }
         }
 
@@ -3640,6 +3905,142 @@ function format_bn_datetime($datetime_str)
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.body.style.overflow = '';
+            }
+        }
+
+        // CSV Bulk Import Handlers
+        function openBulkImportModal() {
+            const modal = document.getElementById('bulk-import-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+                // Reset states
+                const form = document.getElementById('bulk-import-form');
+                if (form) form.reset();
+                document.getElementById('drop-zone-idle').classList.remove('hidden');
+                document.getElementById('drop-zone-selected').classList.add('hidden');
+                document.getElementById('bulk-import-results').classList.add('hidden');
+                document.getElementById('bulk-import-results').innerHTML = '';
+            }
+        }
+
+        function closeBulkImportModal() {
+            const modal = document.getElementById('bulk-import-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function handleCsvFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('drop-zone-idle').classList.add('hidden');
+                const selectedBox = document.getElementById('drop-zone-selected');
+                selectedBox.classList.remove('hidden');
+                document.getElementById('selected-file-name').innerText = file.name;
+                const sizeKb = (file.size / 1024).toFixed(1);
+                document.getElementById('selected-file-size').innerText = sizeKb + ' KB';
+            }
+        }
+
+        function toggleImportRules() {
+            const content = document.getElementById('import-rules-content');
+            const chevron = document.getElementById('import-rules-chevron');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        async function handleBulkImport(event) {
+            event.preventDefault();
+            const form = event.target;
+            const fileInput = document.getElementById('csv_file_input');
+            const submitBtn = document.getElementById('bulk-submit-btn');
+            const resultsBox = document.getElementById('bulk-import-results');
+
+            if (!fileInput.files.length) {
+                alert('অনুগ্রহ করে একটি CSV ফাইল নির্বাচন করুন।');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>প্রসেস করা হচ্ছে... (ইমেজ ডাউনলোড ও অপটিমাইজেশন চলছে)</span>
+            `;
+
+            resultsBox.classList.remove('hidden');
+            resultsBox.innerHTML = `
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-anek flex items-center gap-3">
+                    <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                    <span>CSV ডাটা পার্স করা হচ্ছে এবং অনলাইন কভার ইমেজ ডাউনলোড করে .webp ফরম্যাটে কনভার্ট করা হচ্ছে। অনুগ্রহ করে অপেক্ষা করুন...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('process_bulk_import.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    let errHtml = '';
+                    if (data.errors && data.errors.length > 0) {
+                        errHtml = `
+                            <div class="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 space-y-1 max-h-36 overflow-y-auto">
+                                <p class="font-bold">সতর্কতা / বাদ পড়া রো:</p>
+                                ${data.errors.map(err => `<div>• ${err}</div>`).join('')}
+                            </div>
+                        `;
+                    }
+
+                    resultsBox.innerHTML = `
+                        <div class="p-5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs space-y-2">
+                            <div class="flex items-center gap-2 text-sm font-bold text-emerald-800">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>${data.message}</span>
+                            </div>
+                            <p class="text-gray-600">মোট সারি: <strong>${data.total_processed}</strong> | সফলভাবে যুক্ত: <strong class="text-emerald-700">${data.imported_count}</strong> | বাদ পড়েছে: <strong>${data.skipped_count}</strong></p>
+                            ${errHtml}
+                        </div>
+                    `;
+
+                    showToast('🎉 ' + data.imported_count + ' টি বই সফলভাবে যুক্ত হয়েছে!');
+                    // Reload inventory table
+                    loadInventory(1);
+                } else {
+                    resultsBox.innerHTML = `
+                        <div class="p-4 rounded-2xl bg-red-50 border border-red-300 text-red-900 text-xs font-anek">
+                            <p class="font-bold text-sm mb-1">ইম্পোর্ট ব্যর্থ হয়েছে</p>
+                            <p>${data.message || 'অপ্রত্যাশিত কোনো সমস্যা ঘটেছে।'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Bulk import error:', error);
+                resultsBox.innerHTML = `
+                    <div class="p-4 rounded-2xl bg-red-50 border border-red-300 text-red-900 text-xs font-anek">
+                        <p class="font-bold text-sm mb-1">সার্ভার ত্রুটি</p>
+                        <p>সার্ভারের সাথে সংযোগ স্থাপন করা সম্ভব হয়নি। ফাইল সাইজ এবং ইন্টারনেট সংযোগ পরীক্ষা করুন।</p>
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
             }
         }
 

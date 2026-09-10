@@ -6,10 +6,6 @@ $path_prefix = '';
 include 'includes/db_connect.php';
 include 'includes/header.php';
 
-// Fetch Categories
-$stmt = $pdo->query("SELECT * FROM categories LIMIT 6");
-$categories = $stmt->fetchAll();
-
 // Fetch Suggested Books (Filtered by is_suggested column)
 $stmt = $pdo->query("SELECT b.*, c.name as category_name
 FROM books b
@@ -79,47 +75,6 @@ function bn_num($num)
         </div>
     </div>
 </header>
-
-<!-- Categories (Simplified & Minimal) -->
-<section id="collections" class="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
-        <div>
-            <span class="text-brand-gold text-xs font-bold uppercase tracking-widest block font-anek mb-1">ক্যাটাগরি ব্রাউজ করুন</span>
-            <h2 class="text-2xl sm:text-3xl font-serif font-bold text-brand-900">বইয়ের ক্যাটাগরি</h2>
-        </div>
-        <a href="library/" class="text-xs sm:text-sm font-anek font-semibold text-brand-gold hover:text-brand-900 transition-colors inline-flex items-center gap-1 group">
-            <span>সবগুলো বই দেখুন</span>
-            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </a>
-    </div>
-
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-        <?php 
-        $cat_icons = [
-            'Books' => '📚',
-            'General' => '📖',
-            'Life-style' => '🌿',
-            'Stationery' => '✏️',
-            'Furniture' => '🪑',
-            'Nescafe' => '☕',
-            'Abir' => '🏷️'
-        ];
-        foreach ($categories as $cat): 
-            $icon = $cat_icons[$cat['name']] ?? '📚';
-        ?>
-            <a href="library/index.php?category=<?php echo urlencode($cat['name']); ?>"
-                class="group p-4 sm:p-5 rounded-2xl bg-white border border-gray-100 shadow-sm hover:border-brand-gold/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col items-center text-center">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand-light group-hover:bg-brand-gold/15 text-brand-900 group-hover:text-brand-gold flex items-center justify-center text-xl mb-2.5 transition-colors">
-                    <?php echo $icon; ?>
-                </div>
-                <h3 class="text-xs sm:text-sm font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors line-clamp-1">
-                    <?php echo htmlspecialchars($cat['name']); ?>
-                </h3>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-
 
 <!-- Curated Collection Section (Suggested Books & Search Results) -->
 <section id="discover"
