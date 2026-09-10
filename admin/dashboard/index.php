@@ -3042,61 +3042,59 @@ function format_bn_datetime($datetime_str)
                         <span class="text-[11px] text-gray-400 font-anek">আর্থিক ও সোর্সিং তথ্য</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Prices Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- Purchase Price -->
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ক্রয় মূল্য (৳)</label>
-                                    <span class="text-[10px] text-gray-400 font-anek">গোপনীয়</span>
-                                </div>
-                                <input type="number" name="purchase_price" placeholder="৳ ২৫০" min="0" step="0.5"
-                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">সাপ্লায়ারের থেকে কেনার দাম</p>
+                    <!-- 1. Pricing Row (3 Columns with plenty of space) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <!-- Purchase Price -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek whitespace-nowrap">ক্রয় মূল্য (৳)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 font-anek">গোপনীয়</span>
                             </div>
-
-                            <!-- Sell Price (MRP) -->
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1">
-                                        <span>বিক্রয় মূল্য (MRP / গায়ের দাম)</span>
-                                        <span class="text-red-500 font-bold">*</span>
-                                    </label>
-                                    <span class="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold font-anek">মূল্য (৳)</span>
-                                </div>
-                                <input type="number" name="sell_price" required placeholder="যেমন: 550" min="0" step="0.5"
-                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">বইয়ের মূল মুদ্রিত মূল্য (যেমন: 550)</p>
-                            </div>
-
-                            <!-- Discount Price (Offer Price) -->
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের পর মূল্য (অফার মূল্য)</label>
-                                    <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold font-anek">অফার (৳)</span>
-                                </div>
-                                <input type="number" name="discount_price" placeholder="যেমন: 440" min="0" step="0.5"
-                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">ডিসকাউন্টের পর গ্রাহক যত টাকায় কিনবেন (ছাড় না থাকলে ফাঁকা রাখুন)</p>
-                            </div>
+                            <input type="number" name="purchase_price" placeholder="যেমন: 350" min="0" step="0.5"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">সাপ্লায়ারের থেকে কেনার দাম</p>
                         </div>
 
-                        <!-- Supplier Name & Contact -->
-                        <div class="space-y-4">
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ারের নাম (Supplier Name)</label>
-                                <input type="text" name="supplier_name" placeholder="যেমন: বাতিঘর, রকমারি, বেঙ্গল বুকস"
-                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
-                                <p class="text-[11px] text-gray-400 font-anek">সরবরাহকারী ব্যক্তি বা প্রতিষ্ঠানের নাম।</p>
+                        <!-- Sell Price (MRP) -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1 whitespace-nowrap">
+                                    <span>বিক্রয় মূল্য (MRP)</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 font-anek whitespace-nowrap">গায়ের দাম</span>
                             </div>
+                            <input type="number" name="sell_price" required placeholder="যেমন: 550" min="0" step="0.5"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">বইয়ের মূল মুদ্রিত মূল্য (MRP)</p>
+                        </div>
 
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ার যোগাযোগ (Phone / Email)</label>
-                                <input type="text" name="supplier_contact" placeholder="যেমন: 01700000000, supplier@example.com"
-                                    class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
-                                <p class="text-[11px] text-gray-400 font-anek">জরুরি রি-অর্ডারের জন্য যোগাযোগের মাধ্যম।</p>
+                        <!-- Discount Price (Offer Price) -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek whitespace-nowrap">ছাড়ের পর মূল্য (৳)</label>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 font-anek whitespace-nowrap">অফার মূল্য</span>
                             </div>
+                            <input type="number" name="discount_price" placeholder="যেমন: 440" min="0" step="0.5"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">ছাড় না থাকলে ফাঁকা রাখুন বা ০ দিন</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. Supplier Row (2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-gray-100">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ারের নাম (Supplier Name)</label>
+                            <input type="text" name="supplier_name" placeholder="যেমন: বাতিঘর, রকমারি, বেঙ্গল বুকস"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-anek text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">সরবরাহকারী ব্যক্তি বা প্রতিষ্ঠানের নাম।</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">সাপ্লায়ার যোগাযোগ (Phone / Email)</label>
+                            <input type="text" name="supplier_contact" placeholder="যেমন: 01700000000, supplier@example.com"
+                                class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
+                            <p class="text-[11px] text-gray-400 font-anek">জরুরি রি-অর্ডারের জন্য যোগাযোগের মাধ্যম।</p>
                         </div>
                     </div>
                 </div>

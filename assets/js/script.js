@@ -373,15 +373,35 @@ const borrowCartItemsContainer = document.getElementById('borrow-cart-items-cont
 const borrowCartEmptyState = document.getElementById('borrow-cart-empty');
 
 const getCorrectImagePath = (img) => {
-    if (!img || img.startsWith('http')) return img;
-    const stripped = img.replace(/^(\.\.\/)+/, '');
-    let prefix = '/';
-    if (typeof PROJECT_ROOT !== 'undefined') {
-        prefix = PROJECT_ROOT;
-    } else if (window.location.pathname.includes('/bookshop/')) {
-        prefix = window.location.pathname.substring(0, window.location.pathname.indexOf('/bookshop/') + 10);
+    if (!img) return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    
+    const cleanPath = img.replace(/^(\.\.\/)+/, '').replace(/^\/+/, '');
+    
+    if (typeof PROJECT_ROOT !== 'undefined' && PROJECT_ROOT) {
+        return PROJECT_ROOT + cleanPath;
     }
-    return prefix + stripped;
+    
+    // On production root domain
+    const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (!isLocal) {
+        return '/' + cleanPath;
+    }
+    
+    // Localhost XAMPP subfolder detection
+    const pathParts = window.location.pathname.split('/').filter(p => p.length > 0);
+    const projectRootIndex = pathParts.findIndex(p => p.toLowerCase() === 'ontomeel.com' || p.toLowerCase() === 'bookshop');
+    if (projectRootIndex !== -1) {
+        return '/' + pathParts.slice(0, projectRootIndex + 1).join('/') + '/' + cleanPath;
+    }
+    
+    const inSubfolder = window.location.pathname.includes('/checkout/') || 
+                        window.location.pathname.includes('/library/') || 
+                        window.location.pathname.includes('/dashboard/') || 
+                        window.location.pathname.includes('/membership/') ||
+                        window.location.pathname.includes('/pre-booking/') ||
+                        window.location.pathname.includes('/pre-order-checkout/');
+    return (inSubfolder ? '../' : '') + cleanPath;
 };
 
 function toggleCartDrawer() {
@@ -439,7 +459,7 @@ function updateCartUI() {
         const itemEl = document.createElement('div');
         itemEl.className = 'flex gap-4 items-center bg-gray-50 p-3 rounded-lg border border-gray-100';
         itemEl.innerHTML = `
-                    <img src="${getCorrectImagePath(item.img)}" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded shadow-sm">
+                    <img src="${getCorrectImagePath(item.img)}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded shadow-sm">
                     <div class="flex-1">
                         <h4 class="font-serif font-bold text-brand-900 text-[15px]">${item.title}</h4>
                         <p class="text-xs text-gray-500 mb-2">${item.author}</p>
@@ -526,7 +546,7 @@ function updateBorrowCartUI() {
         const itemEl = document.createElement('div');
         itemEl.className = 'flex gap-4 items-center bg-gray-50 p-3 rounded-lg border border-gray-100';
         itemEl.innerHTML = `
-            <img src="${getCorrectImagePath(item.img)}" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded shadow-sm">
+            <img src="${getCorrectImagePath(item.img)}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded shadow-sm">
             <div class="flex-1">
                 <h4 class="font-serif font-bold text-brand-900 text-[15px]">${item.title}</h4>
                 <p class="text-xs text-gray-500 mb-2">${item.author}</p>

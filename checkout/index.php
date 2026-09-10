@@ -678,7 +678,9 @@ endif; ?>
             container.innerHTML += `
                     <div class="flex gap-4 items-center ${isItemOutOfStock ? 'opacity-60 grayscale' : ''}">
                         <div class="w-12 h-16 bg-gray-50 rounded shadow-sm overflow-hidden flex-shrink-0 relative">
-                            <img src="${typeof getCorrectImagePath === 'function' ? getCorrectImagePath(item.img) : item.img}" class="w-full h-full object-cover">
+                            <img src="${typeof getCorrectImagePath === 'function' ? getCorrectImagePath(item.img) : (item.img || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400')}" 
+                                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" 
+                                 class="w-full h-full object-cover">
                             ${isItemOutOfStock ? '<div class="absolute inset-0 bg-red-600/40 flex items-center justify-center"><p class="text-[8px] text-white font-bold">X</p></div>' : ''}
                         </div>
                         <div class="flex-1">
