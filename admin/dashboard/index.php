@@ -3052,25 +3052,25 @@ function format_bn_datetime($datetime_str)
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1">
-                                        <span>বিক্রয় মূল্য (৳)</span>
+                                        <span>প্রকৃত বিক্রয় মূল্য (৳)</span>
                                         <span class="text-red-500 font-bold">*</span>
                                     </label>
-                                    <span class="text-[10px] text-emerald-600 font-bold font-sans">MRP</span>
+                                    <span class="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold font-anek">কাস্টমার পে করবে</span>
                                 </div>
-                                <input type="number" name="sell_price" required placeholder="৳ ৩৫০" min="0" step="0.5"
+                                <input type="number" name="sell_price" required placeholder="যেমন: 440" min="0" step="0.5"
                                     class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">গ্রাহকের জন্য বিক্রয় মূল্য</p>
+                                <p class="text-[10px] text-gray-400 font-anek">ছাড় বাদে গ্রাহকের জন্য চূড়ান্ত বিক্রয় মূল্য</p>
                             </div>
 
                             <!-- Discount Price -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের মূল্য (৳)</label>
-                                    <span class="text-[10px] text-amber-600 font-anek">অফার</span>
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের পরিমাণ (৳)</label>
+                                    <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold font-anek">অফার ডিসকাউন্ট</span>
                                 </div>
-                                <input type="number" name="discount_price" placeholder="৳ ৩০০" min="0" step="0.5"
+                                <input type="number" name="discount_price" placeholder="যেমন: 110" min="0" step="0.5"
                                     class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">ছাড় না থাকলে ফাঁকা রাখুন বা ০ দিন</p>
+                                <p class="text-[10px] text-gray-400 font-anek">যত টাকা ছাড় (যেমন: গায়ের দাম ৫৫০ হলে ৪৪০ বিক্রয় মূল্য + ১১০ ছাড়)</p>
                             </div>
                         </div>
 
