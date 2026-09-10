@@ -133,12 +133,14 @@ function bn_num($num)
                         <a href="book-details.php?id=<?php echo $book['id']; ?>"><?php echo htmlspecialchars($book['title']); ?></a>
                     </h3>
                     <p class="text-gray-500 text-xs md:text-sm italic font-light"><?php echo htmlspecialchars($book['author']); ?></p>
+                    <?php 
+                        $has_discount = ($book['discount_price'] > 0 && $book['discount_price'] < $book['sell_price']);
+                        $effective_price = $has_discount ? $book['discount_price'] : $book['sell_price'];
+                    ?>
                     <div class="mt-4 flex items-center justify-center gap-3">
-                        <?php if ($book['discount_price'] > 0): ?>
-                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
-                            <span class="text-gray-400 text-xs line-through font-anek">৳<?php echo bn_num($book['sell_price'] + $book['discount_price']); ?></span>
-                        <?php else: ?>
-                            <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
+                        <span class="text-brand-900 font-bold text-lg font-anek">৳<?php echo bn_num($effective_price); ?></span>
+                        <?php if ($has_discount): ?>
+                            <span class="text-gray-400 text-xs line-through font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
                         <?php endif; ?>
                     </div>
                 </div>

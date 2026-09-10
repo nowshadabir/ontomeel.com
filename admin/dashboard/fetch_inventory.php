@@ -95,8 +95,12 @@ if (empty($inventory_books)) {
         
         $category_name = !empty($book['category_name']) ? htmlspecialchars($book['category_name'], ENT_QUOTES, 'UTF-8') : 'N/A';
         $title = htmlspecialchars((string)($book['title'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $author = htmlspecialchars((string)($book['author'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $price = bn_num($book['sell_price'] ?? 0);
+        $has_disc = ($book['discount_price'] > 0 && $book['discount_price'] < $book['sell_price']);
+        $eff_price = $has_disc ? $book['discount_price'] : $book['sell_price'];
+        $price_html = '৳' . bn_num($eff_price);
+        if ($has_disc) {
+            $price_html .= ' <span class="text-xs text-gray-400 line-through font-normal ml-1">৳' . bn_num($book['sell_price']) . '</span>';
+        }
         $book_id = (int)$book['id'];
 
         $html .= '
@@ -116,7 +120,7 @@ if (empty($inventory_books)) {
                 '.$category_name.'
             </td>
             <td class="px-8 py-5 text-sm font-bold text-brand-900">
-                ৳'.$price.'</td>
+                '.$price_html.'</td>
             <td class="px-8 py-5">
                 <div class="flex items-center gap-3">
                     <div class="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">

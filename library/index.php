@@ -503,10 +503,13 @@ function bn_num($num)
                         <?php if ($isOutOfStock): ?>
                             <button disabled class="flex-1 md:flex-none md:w-full bg-gray-700 text-gray-400 py-2 rounded-lg font-bold text-xs cursor-not-allowed border border-white/10 font-anek">স্টকে নেই</button>
                         <?php else: ?>
-                            <?php $cartData = htmlspecialchars(json_encode(['id' => (int)$book['id'], 'title' => (string)($book['title']??''), 'price' => (float)($book['sell_price']??0), 'img' => $img, 'author' => (string)($book['author']??'')]), ENT_QUOTES, 'UTF-8'); ?>
+                            <?php 
+                                $effective_price = ($book['discount_price'] > 0 && $book['discount_price'] < $book['sell_price']) ? (float)$book['discount_price'] : (float)$book['sell_price'];
+                                $cartData = htmlspecialchars(json_encode(['id' => (int)$book['id'], 'title' => (string)($book['title']??''), 'price' => (float)$effective_price, 'img' => $img, 'author' => (string)($book['author']??'')]), ENT_QUOTES, 'UTF-8'); 
+                            ?>
                             <button onclick='addToCart(<?php echo $cartData; ?>)' 
                                      class="flex-1 md:flex-none md:w-full bg-brand-gold hover:bg-white text-brand-900 py-2 rounded-lg font-bold transition-all text-xs sm:text-sm shadow-lg font-anek">
-                                <span>কিনুন ৳<?php echo bn_num($book['sell_price']); ?></span>
+                                <span>কিনুন ৳<?php echo bn_num($effective_price); ?></span>
                             </button>
                         <?php endif; ?>
                         

@@ -140,16 +140,17 @@ include 'includes/header.php';
                     </div>
 
                     <!-- Price & Stock -->
+                    <?php 
+                        $has_discount = ($book['discount_price'] > 0 && $book['discount_price'] < $book['sell_price']);
+                        $effective_price = $has_discount ? $book['discount_price'] : $book['sell_price'];
+                    ?>
                     <div class="flex items-end gap-10">
                         <div>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">বিক্রয় মূল্য
-                            </p>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">বিক্রয় মূল্য</p>
                             <div class="flex items-baseline gap-2">
-                                <span
-                                    class="text-4xl font-bold text-brand-900">৳<?php echo bn_num($book['sell_price']); ?></span>
-                                <?php if ($book['discount_price'] > 0): ?>
-                                    <span
-                                        class="text-lg text-gray-400 line-through">৳<?php echo bn_num($book['sell_price'] + $book['discount_price']); ?></span>
+                                <span class="text-4xl font-bold text-brand-900">৳<?php echo bn_num($effective_price); ?></span>
+                                <?php if ($has_discount): ?>
+                                    <span class="text-lg text-gray-400 line-through font-anek">৳<?php echo bn_num($book['sell_price']); ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -216,7 +217,7 @@ include 'includes/header.php';
                             onclick="addToCart(<?php echo htmlspecialchars(json_encode([
                                 'id' => $book['id'], 
                                 'title' => $book['title'],
-                                'price' => (float)($book['sell_price'] ?? 0),
+                                'price' => (float)$effective_price,
                                 'img' => getBookImage($book['cover_image']),
                                 'author' => $book['author']
                             ]), ENT_QUOTES, 'UTF-8'); ?>)"

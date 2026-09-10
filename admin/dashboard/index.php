@@ -961,7 +961,15 @@ function format_bn_datetime($datetime_str)
                                             <?php echo $book['category_name'] ?: 'N/A'; ?>
                                         </td>
                                         <td class="px-8 py-5 text-sm font-bold text-brand-900">
-                                            ৳<?php echo bn_num($book['sell_price']); ?></td>
+                                            <?php 
+                                                $has_disc = ($book['discount_price'] > 0 && $book['discount_price'] < $book['sell_price']);
+                                                $eff_price = $has_disc ? $book['discount_price'] : $book['sell_price'];
+                                            ?>
+                                            <span>৳<?php echo bn_num($eff_price); ?></span>
+                                            <?php if ($has_disc): ?>
+                                                <span class="text-xs text-gray-400 line-through font-normal ml-1">৳<?php echo bn_num($book['sell_price']); ?></span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="px-8 py-5">
                                             <div class="flex items-center gap-3">
                                                 <?php
@@ -3048,29 +3056,29 @@ function format_bn_datetime($datetime_str)
                                 <p class="text-[10px] text-gray-400 font-anek">সাপ্লায়ারের থেকে কেনার দাম</p>
                             </div>
 
-                            <!-- Sell Price -->
+                            <!-- Sell Price (MRP) -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek flex items-center gap-1">
-                                        <span>প্রকৃত বিক্রয় মূল্য (৳)</span>
+                                        <span>বিক্রয় মূল্য (MRP / গায়ের দাম)</span>
                                         <span class="text-red-500 font-bold">*</span>
                                     </label>
-                                    <span class="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold font-anek">কাস্টমার পে করবে</span>
+                                    <span class="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-bold font-anek">মূল্য (৳)</span>
                                 </div>
-                                <input type="number" name="sell_price" required placeholder="যেমন: 440" min="0" step="0.5"
+                                <input type="number" name="sell_price" required placeholder="যেমন: 550" min="0" step="0.5"
                                     class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">ছাড় বাদে গ্রাহকের জন্য চূড়ান্ত বিক্রয় মূল্য</p>
+                                <p class="text-[10px] text-gray-400 font-anek">বইয়ের মূল মুদ্রিত মূল্য (যেমন: 550)</p>
                             </div>
 
-                            <!-- Discount Price -->
+                            <!-- Discount Price (Offer Price) -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের পরিমাণ (৳)</label>
-                                    <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold font-anek">অফার ডিসকাউন্ট</span>
+                                    <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">ছাড়ের পর মূল্য (অফার মূল্য)</label>
+                                    <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-bold font-anek">অফার (৳)</span>
                                 </div>
-                                <input type="number" name="discount_price" placeholder="যেমন: 110" min="0" step="0.5"
+                                <input type="number" name="discount_price" placeholder="যেমন: 440" min="0" step="0.5"
                                     class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-4 py-3.5 focus:outline-none transition-all font-sans text-brand-900 text-sm shadow-sm">
-                                <p class="text-[10px] text-gray-400 font-anek">যত টাকা ছাড় (যেমন: গায়ের দাম ৫৫০ হলে ৪৪০ বিক্রয় মূল্য + ১১০ ছাড়)</p>
+                                <p class="text-[10px] text-gray-400 font-anek">ডিসকাউন্টের পর গ্রাহক যত টাকায় কিনবেন (ছাড় না থাকলে ফাঁকা রাখুন)</p>
                             </div>
                         </div>
 

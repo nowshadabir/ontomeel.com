@@ -220,29 +220,32 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
         continue;
     }
 
-    // Sell Price Parsing
-    $sell_price_raw = convertBnToEnNum($getVal('sell_price', $getVal('price', '')));
-    if ($sell_price_raw === '' || !is_numeric($sell_price_raw)) {
+    $price_a_raw = convertBnToEnNum($getVal('sell_price', $getVal('price', '')));
+    if ($price_a_raw === '' || !is_numeric($price_a_raw)) {
         $errors[] = "সারি #{$row_number} ('{$title}'): বিক্রয় মূল্য (Sell Price) সঠিক সংখ্যা না থাকায় বাদ দেওয়া হয়েছে।";
         $skipped_count++;
         continue;
     }
-    $sell_price = (float)$sell_price_raw;
+    $price_a = (float)$price_a_raw;
 
-    // Original Price & Discount Calculation
-    $original_price_raw = convertBnToEnNum($getVal('original_price', '0'));
-    $original_price = is_numeric($original_price_raw) ? (float)$original_price_raw : 0;
-    $discount_price = 0;
+    $price_b_raw = convertBnToEnNum($getVal('original_price', '0'));
+    $price_b = is_numeric($price_b_raw) ? (float)$price_b_raw : 0;
 
-    if ($original_price > $sell_price) {
-        // Option A: Original MRP (800) and Sell Price (750) -> Discount = 50
-        $discount_price = $original_price - $sell_price;
+    $price_c_raw = convertBnToEnNum($getVal('discount_price', $getVal('offer_price', '0')));
+    $price_c = is_numeric($price_c_raw) ? (float)$price_c_raw : 0;
+
+    if ($price_b > $price_a) {
+        // Option A: original_price (550) and sell_price (440)
+        $sell_price = $price_b;
+        $discount_price = $price_a;
+    } elseif ($price_c > 0 && $price_c < $price_a) {
+        // Option B: sell_price (550) and discount_price (440)
+        $sell_price = $price_a;
+        $discount_price = $price_c;
     } else {
-        // Option B: Direct discount amount passed (e.g. 50)
-        $direct_discount_raw = convertBnToEnNum($getVal('discount_price', '0'));
-        if (is_numeric($direct_discount_raw) && (float)$direct_discount_raw > 0) {
-            $discount_price = (float)$direct_discount_raw;
-        }
+        // Option C: Regular price only (e.g. 550, no discount)
+        $sell_price = $price_a;
+        $discount_price = 0;
     }
 
     // Purchase Price

@@ -232,6 +232,11 @@ $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $formatted_books = [];
 foreach ($books as $book) {
+    $sell_price = (float)($book['sell_price'] ?? 0);
+    $discount_price = (float)($book['discount_price'] ?? 0);
+    $has_discount = ($discount_price > 0 && $discount_price < $sell_price);
+    $effective_price = $has_discount ? $discount_price : $sell_price;
+
     $formatted_books[] = [
         'id' => (int)$book['id'],
         'title' => (string)($book['title'] ?? ''),
@@ -239,8 +244,10 @@ foreach ($books as $book) {
         'author' => (string)($book['author'] ?? ''),
         'publisher' => (string)($book['publisher'] ?? ''),
         'isbn' => (string)($book['isbn'] ?? ''),
-        'price' => (float)($book['sell_price'] ?? 0),
-        'discount_price' => (float)($book['discount_price'] ?? 0),
+        'price' => $effective_price,
+        'original_price' => $sell_price,
+        'discount_price' => $discount_price,
+        'has_discount' => $has_discount,
         'img' => getBookImagePath($book['cover_image'] ?? ''),
         'category' => (string)($book['category_name'] ?? 'অন্যান্য'),
         'is_borrowable' => (int)($book['is_borrowable'] ?? 0),
