@@ -102,16 +102,21 @@ if (empty($inventory_books)) {
             $price_html .= ' <span class="text-xs text-gray-400 line-through font-normal ml-1">৳' . bn_num($book['sell_price']) . '</span>';
         }
         $book_id = (int)$book['id'];
+        $book_slug = (string)($book['slug'] ?? '');
+        $book_url = !empty($book_slug) ? '../../books/' . urlencode($book_slug) : '../../book-details.php?id=' . $book_id;
 
         $html .= '
         <tr class="hover:bg-gray-50/30 transition-colors">
             <td class="px-8 py-5">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 shadow-sm flex-shrink-0">
-                        <img src="'.$img_src.'" class="w-full h-full object-cover" onerror="this.style.display=\'none\'; this.parentElement.style.background=\'#f3f4f6\';">
-                    </div>
+                    <a href="'.$book_url.'" target="_blank" class="w-12 h-16 rounded-lg overflow-hidden bg-gray-100 shadow-sm flex-shrink-0 group block" title="বইটি নতুন ট্যাবে দেখুন">
+                        <img src="'.$img_src.'" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.style.display=\'none\'; this.parentElement.style.background=\'#f3f4f6\';">
+                    </a>
                     <div>
-                        <p class="font-bold text-brand-900">'.$title.'</p>
+                        <a href="'.$book_url.'" target="_blank" class="font-bold text-brand-900 hover:text-brand-gold transition-colors flex items-center gap-1.5" title="বইটি নতুন ট্যাবে দেখুন">
+                            <span>'.$title.'</span>
+                            <svg class="w-3.5 h-3.5 opacity-40 hover:opacity-100 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
                         <p class="text-xs text-gray-400">'.$author.'</p>
                     </div>
                 </div>
@@ -134,6 +139,12 @@ if (empty($inventory_books)) {
             </td>
             <td class="px-8 py-5 text-right">
                 <div class="flex justify-end gap-2">
+                    <a href="'.$book_url.'" target="_blank" class="p-2 text-gray-400 hover:text-brand-gold transition-colors" title="ওয়েবসাইটে দেখুন">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </a>
                     <button type="button" onclick=\'editBook('.$book_json.')\' class="p-2 text-gray-400 hover:text-brand-gold transition-colors" title="এডিট করুন">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />

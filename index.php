@@ -4,6 +4,7 @@ $page_description = 'অন্ত্যমিল - একটি প্রিম�
 $page_keywords = 'বুকস্টোর, লাইব্রেরি, বই ধার, সাহিত্য, অন্ত্যমিল, Ontomeel, Bookshop, Library, VIVAGO TECHNOLOGIES, অনলাইন লাইব্রেরি, গল্পের বই';
 $path_prefix = '';
 include 'includes/db_connect.php';
+require_once 'includes/helpers.php';
 include 'includes/header.php';
 
 // Fetch Suggested Books (Filtered by is_suggested column)
@@ -17,22 +18,6 @@ $suggested_books = $stmt->fetchAll();
 // We no longer fetch all books here for optimization. 
 // Search will be redirected to the library page.
 $all_books_db = []; 
-
-function getBookImage($image)
-{
-    if (!empty($image)) {
-        return 'admin/assets/book-images/' . $image;
-    }
-    return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';
-}
-
-function bn_num($num)
-{
-    if ($num === null)
-        return '০';
-    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, $num);
-}
 ?>
 
 <!-- Hero Section (Compact & Refined) -->
@@ -106,9 +91,11 @@ function bn_num($num)
 
     <!-- Books Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10" id="book-grid">
-        <?php foreach ($suggested_books as $index => $book): ?>
+        <?php foreach ($suggested_books as $index => $book): 
+            $book_url = !empty($book['slug']) ? 'books/' . urlencode($book['slug']) : 'book-details.php?id=' . $book['id'];
+        ?>
             <div class="book-card reveal active <?php echo ($book['stock_qty'] <= 0) ? 'opacity-80' : ''; ?>" style="transition-delay: <?php echo $index * 50; ?>ms">
-                <a href="book-details.php?id=<?php echo $book['id']; ?>" class="block group relative aspect-[2/3] rounded-2xl overflow-hidden mb-6 shadow-sm hover:shadow-2xl transition-all duration-500">
+                <a href="<?php echo $book_url; ?>" class="block group relative aspect-[2/3] rounded-2xl overflow-hidden mb-6 shadow-sm hover:shadow-2xl transition-all duration-500">
                     <img src="<?php echo getBookImage($book['cover_image']); ?>" 
                          alt="<?php echo htmlspecialchars($book['title']); ?>"
                          class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 <?php echo ($book['stock_qty'] <= 0) ? 'grayscale' : ''; ?>" 
@@ -130,7 +117,7 @@ function bn_num($num)
                         <?php endif; ?>
                     </div>
                     <h3 class="text-brand-900 font-serif font-bold text-lg md:text-xl mb-1 line-clamp-1 hover:text-brand-gold transition-colors">
-                        <a href="book-details.php?id=<?php echo $book['id']; ?>"><?php echo htmlspecialchars($book['title']); ?></a>
+                        <a href="<?php echo $book_url; ?>"><?php echo htmlspecialchars($book['title']); ?></a>
                     </h3>
                     <p class="text-gray-500 text-xs md:text-sm italic font-light"><?php echo htmlspecialchars($book['author']); ?></p>
                     <?php 

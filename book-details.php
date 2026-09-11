@@ -1,52 +1,58 @@
 <?php
-include 'includes/db_connect.php';
+require_once __DIR__ . '/includes/db_connect.php';
+require_once __DIR__ . '/includes/helpers.php';
 
-// Get book ID from URL
+// Detect whether accessed via /books/slug rewrite or directly
+$is_slug_route = (strpos($_SERVER['REQUEST_URI'] ?? '', '/books/') !== false);
+$path_prefix = $is_slug_route ? '../' : '';
+
+// Get book slug or ID from URL
+$slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 $book_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-if ($book_id <= 0) {
-    header("Location: index.php");
-    exit;
-}
+$book = null;
 
-// Fetch Book Details
-$stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
-                      FROM books b 
-                      LEFT JOIN categories c ON b.category_id = c.id 
-                      WHERE b.id = ? AND b.is_active = 1");
-$stmt->execute([$book_id]);
-$book = $stmt->fetch();
+if (!empty($slug)) {
+    // 1. Fetch by slug
+    $stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
+                          FROM books b 
+                          LEFT JOIN categories c ON b.category_id = c.id 
+                          WHERE b.slug = ? AND b.is_active = 1 LIMIT 1");
+    $stmt->execute([$slug]);
+    $book = $stmt->fetch();
+
+    // Fallback: match by title_en formatted as slug
+    if (!$book) {
+        $stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
+                              FROM books b 
+                              LEFT JOIN categories c ON b.category_id = c.id 
+                              WHERE (LOWER(REPLACE(b.title_en, ' ', '-')) = ? OR b.title_en = ?) AND b.is_active = 1 LIMIT 1");
+        $stmt->execute([strtolower($slug), $slug]);
+        $book = $stmt->fetch();
+    }
+} elseif ($book_id > 0) {
+    // 2. Fetch by ID
+    $stmt = $pdo->prepare("SELECT b.*, c.name as category_name 
+                          FROM books b 
+                          LEFT JOIN categories c ON b.category_id = c.id 
+                          WHERE b.id = ? AND b.is_active = 1 LIMIT 1");
+    $stmt->execute([$book_id]);
+    $book = $stmt->fetch();
+}
 
 if (!$book) {
-    header("Location: index.php");
+    header("Location: " . ($is_slug_route ? '../library/index.php' : 'library/index.php'));
     exit;
-}
-
-// Helper for image paths
-function getBookImage($image)
-{
-    if (!empty($image)) {
-        if (strpos($image, 'http://') === 0 || strpos($image, 'https://') === 0) {
-            return $image;
-        }
-        return 'admin/assets/book-images/' . $image;
-    }
-    return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=800';
-}
-
-function bn_num($num)
-{
-    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, $num);
 }
 
 // SEO Meta Tags
-$page_title = $book['title'] . ' | ' . $book['author'] . ' - অন্ত্যমিল';
-$page_description = $book['title'] . ' বাই ' . $book['author'] . ' - ' . mb_substr(strip_tags($book['description'] ?? ''), 0, 160) . '...';
-$page_keywords = $book['title'] . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, VIVAGO TECHNOLOGIES, অনলাইন বুকস্টোর';
-$og_image = getBookImage($book['cover_image'] ?? '');
+$canonical_slug = !empty($book['slug']) ? $book['slug'] : $book['id'];
+$page_title = $book['title'] . (!empty($book['author']) ? ' | ' . $book['author'] : '') . ' - অন্ত্যমিল';
+$page_description = $book['title'] . (!empty($book['author']) ? ' বাই ' . $book['author'] : '') . ' - ' . mb_substr(strip_tags($book['description'] ?? ''), 0, 160) . '...';
+$page_keywords = $book['title'] . ', ' . ($book['title_en'] ?? '') . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, VIVAGO TECHNOLOGIES, অনলাইন বুকস্টোর';
+$og_image = getBookImage($book['cover_image'] ?? '', $path_prefix);
 
-include 'includes/header.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="pt-32 pb-20 bg-brand-light min-h-screen font-anek">
@@ -54,11 +60,11 @@ include 'includes/header.php';
 
         <!-- Breadcrumb -->
         <nav class="flex mb-12 text-sm text-gray-400 font-medium">
-            <a href="index.php" class="hover:text-brand-gold transition-colors">হোম</a>
+            <a href="<?php echo $path_prefix; ?>index.php" class="hover:text-brand-gold transition-colors">হোম</a>
             <span class="mx-3">/</span>
-            <a href="library/index.php" class="hover:text-brand-gold transition-colors">লাইব্রেরি</a>
+            <a href="<?php echo $path_prefix; ?>library/index.php" class="hover:text-brand-gold transition-colors">লাইব্রেরি</a>
             <span class="mx-3">/</span>
-            <span class="text-brand-900"><?php echo $book['title']; ?></span>
+            <span class="text-brand-900"><?php echo htmlspecialchars($book['title']); ?></span>
         </nav>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
@@ -68,11 +74,11 @@ include 'includes/header.php';
                 <div class="relative group">
                     <div
                         class="rounded-3xl overflow-hidden shadow-2xl bg-white border border-gray-100 aspect-[3/4] transition-transform duration-700 hover:scale-[1.02]">
-                        <img id="main-image" src="<?php echo getBookImage($book['cover_image']); ?>"
-                            alt="<?php echo $book['title']; ?>" class="w-full h-full object-cover">
+                        <img id="main-image" src="<?php echo getBookImage($book['cover_image'] ?? '', $path_prefix); ?>"
+                            alt="<?php echo htmlspecialchars($book['title']); ?>" class="w-full h-full object-cover">
 
                         <!-- Premium Badge -->
-                        <?php if ($book['is_suggested']): ?>
+                        <?php if (!empty($book['is_suggested'])): ?>
                             <div
                                 class="absolute top-6 left-6 bg-brand-gold text-brand-900 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">
                                 সাজেস্টেড
@@ -83,21 +89,21 @@ include 'includes/header.php';
 
                 <!-- Thumbnail Gallery (if multiple photos exist) -->
                 <div class="grid grid-cols-3 gap-4">
-                    <button onclick="changeImage('<?php echo getBookImage($book['cover_image']); ?>')"
+                    <button onclick="changeImage('<?php echo getBookImage($book['cover_image'] ?? '', $path_prefix); ?>')"
                         class="aspect-square rounded-xl overflow-hidden border-2 border-brand-gold shadow-sm">
-                        <img src="<?php echo getBookImage($book['cover_image']); ?>" class="w-full h-full object-cover">
+                        <img src="<?php echo getBookImage($book['cover_image'] ?? '', $path_prefix); ?>" class="w-full h-full object-cover">
                     </button>
-                    <?php if ($book['photo_2']): ?>
-                        <button onclick="changeImage('<?php echo 'admin/assets/book-images/' . $book['photo_2']; ?>')"
+                    <?php if (!empty($book['photo_2'])): ?>
+                        <button onclick="changeImage('<?php echo $path_prefix . 'admin/assets/book-images/' . htmlspecialchars($book['photo_2']); ?>')"
                             class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-brand-gold transition-all opacity-70 hover:opacity-100">
-                            <img src="admin/assets/book-images/<?php echo $book['photo_2']; ?>"
+                            <img src="<?php echo $path_prefix . 'admin/assets/book-images/' . htmlspecialchars($book['photo_2']); ?>"
                                 class="w-full h-full object-cover">
                         </button>
                     <?php endif; ?>
-                    <?php if ($book['photo_3']): ?>
-                        <button onclick="changeImage('<?php echo 'admin/assets/book-images/' . $book['photo_3']; ?>')"
+                    <?php if (!empty($book['photo_3'])): ?>
+                        <button onclick="changeImage('<?php echo $path_prefix . 'admin/assets/book-images/' . htmlspecialchars($book['photo_3']); ?>')"
                             class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-brand-gold transition-all opacity-70 hover:opacity-100">
-                            <img src="admin/assets/book-images/<?php echo $book['photo_3']; ?>"
+                            <img src="<?php echo $path_prefix . 'admin/assets/book-images/' . htmlspecialchars($book['photo_3']); ?>"
                                 class="w-full h-full object-cover">
                         </button>
                     <?php endif; ?>
@@ -218,7 +224,7 @@ include 'includes/header.php';
                                 'id' => $book['id'], 
                                 'title' => $book['title'],
                                 'price' => (float)$effective_price,
-                                'img' => getBookImage($book['cover_image']),
+                                'img' => getBookImage($book['cover_image'] ?? '', $path_prefix),
                                 'author' => $book['author']
                             ]), ENT_QUOTES, 'UTF-8'); ?>)"
                             class="flex-1 px-10 py-5 bg-brand-gold text-brand-900 font-bold text-lg rounded-xl shadow-xl shadow-brand-gold/20 hover:bg-brand-900 hover:text-white transition-all duration-500 transform hover:-translate-y-1">
@@ -231,7 +237,7 @@ include 'includes/header.php';
                                     'id' => $book['id'], 
                                     'title' => $book['title'],
                                     'price' => 0,
-                                    'img' => getBookImage($book['cover_image']),
+                                    'img' => getBookImage($book['cover_image'] ?? '', $path_prefix),
                                     'author' => $book['author']
                                 ]), ENT_QUOTES, 'UTF-8'); ?>)"
                                 class="flex-1 px-10 py-5 bg-white border-2 border-brand-900 text-brand-900 font-bold text-lg rounded-xl hover:bg-brand-900 hover:text-white transition-all duration-500 transform hover:-translate-y-1 flex items-center justify-center gap-3">

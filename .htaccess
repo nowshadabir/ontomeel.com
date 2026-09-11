@@ -17,6 +17,9 @@ Options -Indexes
 
     # 4. Pre-booking slug rewrite rule
     RewriteRule ^pre-booking/book/([^/]+)/?$ pre-booking/book-details.php?slug=$1 [L,QSA]
+
+    # 5. Book details slug rewrite rule: /books/{slug}
+    RewriteRule ^books/([^/]+)/?$ book-details.php?slug=$1 [L,QSA]
 </IfModule>
 
 # Fallback protection via FilesMatch (for Apache 2.2 & 2.4)

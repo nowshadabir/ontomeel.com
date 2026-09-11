@@ -153,13 +153,16 @@ try {
         throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, ইংরেজি নাম, লেখক, ইংরেজি লেখক, দাম) পূরণ করুন');
     }
 
+    require_once '../../includes/helpers.php';
+
     // 4. INSERT or UPDATE
     if (!empty($_POST['book_id'])) {
-        $book_id = $_POST['book_id'];
+        $book_id = (int)$_POST['book_id'];
+        $slug = get_unique_book_slug($pdo, $title_en, $title, $book_id);
 
         // Build Dynamic SQL for Update
         $sql = "UPDATE books SET 
-            title=?, title_en=?, subtitle=?, description=?, category_id=?, genre=?, language=?, 
+            title=?, title_en=?, slug=?, subtitle=?, description=?, category_id=?, genre=?, language=?, 
             author=?, author_en=?, co_author=?, publisher=?, publish_year=?, edition=?, isbn=?, 
             format=?, page_count=?, book_condition=?, shelf_location=?, rack_number=?, 
             stock_qty=?, min_stock_level=?, is_borrowable=?, is_suggested=?, 
@@ -168,6 +171,7 @@ try {
         $params = [
             $title,
             $title_en,
+            $slug,
             $subtitle,
             $description,
             $category_id,
@@ -216,15 +220,17 @@ try {
         $stmt->execute($params);
         $message = "বইটির তথ্য সফলভাবে আপডেট করা হয়েছে।";
     } else {
+        $slug = get_unique_book_slug($pdo, $title_en, $title);
+
         $sql = "INSERT INTO books (
-            title, title_en, subtitle, description, category_id, genre, language, 
+            title, title_en, slug, subtitle, description, category_id, genre, language, 
             author, author_en, co_author, publisher, publish_year, edition, isbn, 
             format, page_count, book_condition, shelf_location, rack_number, 
             stock_qty, min_stock_level, is_borrowable, is_suggested, 
             purchase_price, sell_price, discount_price, supplier_name, supplier_contact, 
             cover_image, photo_2, photo_3, is_active, created_at
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, 
@@ -236,6 +242,7 @@ try {
         $stmt->execute([
             $title,
             $title_en,
+            $slug,
             $subtitle,
             $description,
             $category_id,

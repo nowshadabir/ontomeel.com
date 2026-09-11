@@ -164,12 +164,14 @@ function getOrderItems($order_id, $order_items_by_order)
     return $order_items_by_order[$order_id] ?? [];
 }
 
-function bn_num($num)
-{
-    if ($num === null || $num === '')
-        return '০';
-    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, (string)$num);
+if (!function_exists('bn_num')) {
+    function bn_num($num)
+    {
+        if ($num === null || $num === '')
+            return '০';
+        $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return str_replace(range(0, 9), $bn_digits, (string)$num);
+    }
 }
 
 function format_bn_datetime($datetime_str)
@@ -2752,9 +2754,15 @@ function format_bn_datetime($datetime_str)
                                 </label>
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200 font-sans">English</span>
                             </div>
-                            <input type="text" name="title_en" required placeholder="e.g. Shesher Kabita"
+                            <input type="text" name="title_en" id="admin_book_title_en" required placeholder="e.g. Shesher Kabita"
                                 class="w-full bg-white border border-gray-200 focus:border-brand-gold rounded-2xl px-5 py-3.5 focus:outline-none transition-all font-sans text-brand-900 font-bold text-sm shadow-sm">
-                            <p class="text-[11px] text-gray-400 font-anek">ইংরেজি বানানে নাম লিখুন (সার্চ ও ওয়েবলিংকের জন্য)।</p>
+                            <div class="space-y-1">
+                                <p class="text-[11px] text-gray-400 font-anek">ইংরেজি বানানে নাম লিখুন (সার্চ ও ওয়েবলিংকের জন্য)।</p>
+                                <div id="book_url_preview_wrapper" class="hidden px-3 py-1.5 bg-blue-50/80 border border-blue-100 rounded-xl text-[11px] font-mono text-blue-700 flex items-center gap-1.5">
+                                    <span class="font-bold">🔗 URL:</span>
+                                    <span class="text-brand-900 font-semibold truncate" id="book_url_preview">ontomeel.com/books/...</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Subtitle -->
@@ -3828,6 +3836,41 @@ function format_bn_datetime($datetime_str)
             window.location.hash = 'preorder-' + subId;
         }
 
+        function updateBookSlugPreview() {
+            const titleEnInput = document.querySelector('#add-book-form [name="title_en"]');
+            const titleInput = document.querySelector('#add-book-form [name="title"]');
+            const previewWrapper = document.getElementById('book_url_preview_wrapper');
+            const previewEl = document.getElementById('book_url_preview');
+            if (!previewWrapper || !previewEl) return;
+
+            const val = ((titleEnInput ? titleEnInput.value : '') || (titleInput ? titleInput.value : '') || '').trim();
+            if (!val) {
+                previewWrapper.classList.add('hidden');
+                return;
+            }
+            // Generate clean slug preview
+            const slug = val
+                .toLowerCase()
+                .replace(/[^\p{L}\p{N}]+/gu, '-')
+                .replace(/^-+|-+$/g, '');
+            previewEl.textContent = 'domain/books/' + (slug || '...');
+            previewWrapper.classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('add-book-form');
+            if (form) {
+                const titleEn = form.querySelector('[name="title_en"]');
+                const title = form.querySelector('[name="title"]');
+                if (titleEn) titleEn.addEventListener('input', updateBookSlugPreview);
+                if (title) title.addEventListener('input', function() {
+                    if (titleEn && !titleEn.value.trim()) {
+                        updateBookSlugPreview();
+                    }
+                });
+            }
+        });
+
         function openAddBookModal() {
             const modal = getAddBookModal();
             if (modal) {
@@ -3837,6 +3880,7 @@ function format_bn_datetime($datetime_str)
                 document.getElementById('book_id').value = "";
                 document.querySelectorAll('[id$="-preview"]').forEach(p => p.classList.add('hidden'));
                 document.getElementById('new_category_div').classList.add('hidden');
+                updateBookSlugPreview();
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
@@ -3881,6 +3925,18 @@ function format_bn_datetime($datetime_str)
                 document.querySelector('[name="discount_price"]').value = book.discount_price || 0;
                 document.querySelector('[name="supplier_name"]').value = book.supplier_name || "";
                 document.querySelector('[name="supplier_contact"]').value = book.supplier_contact || "";
+
+                // Live URL preview
+                if (book.slug) {
+                    const previewWrapper = document.getElementById('book_url_preview_wrapper');
+                    const previewEl = document.getElementById('book_url_preview');
+                    if (previewWrapper && previewEl) {
+                        previewEl.textContent = 'domain/books/' + book.slug;
+                        previewWrapper.classList.remove('hidden');
+                    }
+                } else {
+                    updateBookSlugPreview();
+                }
 
                 // Image Previews
                 if (book.cover_image) {

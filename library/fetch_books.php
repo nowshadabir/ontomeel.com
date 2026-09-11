@@ -219,7 +219,7 @@ if ($sort === 'price_asc') {
 }
 
 // 5. Fetch Matching Books
-$query = "SELECT b.id, b.title, b.title_en, b.author, b.author_en, b.publisher, b.isbn, b.sell_price, b.discount_price, b.cover_image, b.stock_qty, b.is_borrowable, b.is_suggested, b.format, c.name as category_name 
+$query = "SELECT b.id, b.slug, b.title, b.title_en, b.author, b.author_en, b.publisher, b.isbn, b.sell_price, b.discount_price, b.cover_image, b.stock_qty, b.is_borrowable, b.is_suggested, b.format, c.name as category_name 
           FROM books b 
           LEFT JOIN categories c ON b.category_id = c.id 
           $where_sql 
@@ -236,9 +236,14 @@ foreach ($books as $book) {
     $discount_price = (float)($book['discount_price'] ?? 0);
     $has_discount = ($discount_price > 0 && $discount_price < $sell_price);
     $effective_price = $has_discount ? $discount_price : $sell_price;
+    $slug = (string)($book['slug'] ?? '');
+    $book_id = (int)$book['id'];
+    $book_url = !empty($slug) ? '../books/' . urlencode($slug) : '../book-details.php?id=' . $book_id;
 
     $formatted_books[] = [
-        'id' => (int)$book['id'],
+        'id' => $book_id,
+        'slug' => $slug,
+        'url' => $book_url,
         'title' => (string)($book['title'] ?? ''),
         'title_en' => (string)($book['title_en'] ?? ''),
         'author' => (string)($book['author'] ?? ''),

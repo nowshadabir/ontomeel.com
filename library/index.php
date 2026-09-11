@@ -185,7 +185,7 @@ if ($sort === 'price_asc') {
 
 // Initial limit: 40 items per page
 $limit = 40;
-$query = "SELECT b.id, b.title, b.title_en, b.author, b.author_en, b.publisher, b.isbn, b.sell_price, b.discount_price, b.cover_image, b.stock_qty, b.is_borrowable, b.is_suggested, b.format, c.name as category_name 
+$query = "SELECT b.id, b.slug, b.title, b.title_en, b.author, b.author_en, b.publisher, b.isbn, b.sell_price, b.discount_price, b.cover_image, b.stock_qty, b.is_borrowable, b.is_suggested, b.format, c.name as category_name 
           FROM books b 
           LEFT JOIN categories c ON b.category_id = c.id 
           $where_sql 
@@ -196,20 +196,24 @@ $stmt = $pdo->prepare($query);
 $stmt->execute(array_merge($params, $order_params));
 $initial_books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-function getBookImage($image)
-{
-    if (!empty($image)) {
-        return '../admin/assets/book-images/' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
+if (!function_exists('getBookImage')) {
+    function getBookImage($image)
+    {
+        if (!empty($image)) {
+            return '../admin/assets/book-images/' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8');
+        }
+        return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';
     }
-    return 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';
 }
 
-function bn_num($num)
-{
-    if ($num === null || $num === '')
-        return '০';
-    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, (string)$num);
+if (!function_exists('bn_num')) {
+    function bn_num($num)
+    {
+        if ($num === null || $num === '')
+            return '০';
+        $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return str_replace(range(0, 9), $bn_digits, (string)$num);
+    }
 }
 ?>
 
@@ -530,7 +534,8 @@ function bn_num($num)
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে ধারযোগ্য"></span>
                         <?php endif; ?>
                     </div>
-                    <a href="../book-details.php?id=<?php echo (int)$book['id']; ?>" class="block hover:text-brand-gold transition-colors">
+                    <?php $book_url = !empty($book['slug']) ? '../books/' . urlencode($book['slug']) : '../book-details.php?id=' . (int)$book['id']; ?>
+                    <a href="<?php echo $book_url; ?>" class="block hover:text-brand-gold transition-colors">
                         <h3 class="font-serif text-sm sm:text-base text-brand-900 line-clamp-1 font-bold"><?php echo htmlspecialchars($book['title']); ?></h3>
                     </a>
                     <p class="text-gray-500 text-xs font-light mt-0.5 line-clamp-1 font-anek"><?php echo htmlspecialchars($book['author'] ?? ''); ?></p>
@@ -834,8 +839,9 @@ function bn_num($num)
                 let html = '';
                 data.books.forEach(book => {
                     const isOut = parseInt(book.stock_qty) <= 0;
+                    const bookUrl = book.url || (book.slug ? `../books/${encodeURIComponent(book.slug)}` : `../book-details.php?id=${book.id}`);
                     html += `
-                        <a href="../book-details.php?id=${book.id}" class="flex items-center gap-3.5 p-3 sm:p-3.5 hover:bg-amber-50/70 transition-colors group">
+                        <a href="${bookUrl}" class="flex items-center gap-3.5 p-3 sm:p-3.5 hover:bg-amber-50/70 transition-colors group">
                             <img src="${escapeHtml(book.img)}" class="w-11 h-14 object-cover rounded-lg shadow-sm border border-gray-100 flex-shrink-0" alt="">
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-sm font-anek font-bold text-brand-900 group-hover:text-brand-gold transition-colors truncate">${escapeHtml(book.title)}</h4>
@@ -980,7 +986,7 @@ function bn_num($num)
                                     <span class="text-[10px] text-brand-gold font-bold uppercase tracking-wider font-anek">${escapeHtml(book.category)}</span>
                                     ${borrowDot}
                                 </div>
-                                <a href="../book-details.php?id=${book.id}" class="block hover:text-brand-gold transition-colors">
+                                <a href="${book.url || (book.slug ? `../books/${encodeURIComponent(book.slug)}` : `../book-details.php?id=${book.id}`)}" class="block hover:text-brand-gold transition-colors">
                                     <h3 class="font-serif text-sm sm:text-base text-brand-900 line-clamp-1 font-bold">${escapeHtml(book.title)}</h3>
                                 </a>
                                 <p class="text-gray-500 text-xs font-light mt-0.5 line-clamp-1 font-anek">${escapeHtml(book.author || '')}</p>

@@ -395,12 +395,14 @@ function bn_date($date)
     return $date_str;
 }
 
-function bn_num($num)
-{
-    if ($num === null || $num === '')
-        return '০';
-    $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return str_replace(range(0, 9), $bn_digits, $num);
+if (!function_exists('bn_num')) {
+    function bn_num($num)
+    {
+        if ($num === null || $num === '')
+            return '০';
+        $bn_digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return str_replace(range(0, 9), $bn_digits, $num);
+    }
 }
 ?>
 

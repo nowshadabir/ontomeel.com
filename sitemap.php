@@ -42,12 +42,13 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 
     <!-- Dynamic Book Details Pages -->
     <?php
-    $stmt = $pdo->query("SELECT id, updated_at FROM books WHERE is_active = 1");
+    $stmt = $pdo->query("SELECT id, slug, updated_at FROM books WHERE is_active = 1");
     while ($row = $stmt->fetch()) {
         $lastmod = !empty($row['updated_at']) ? date('Y-m-d', strtotime($row['updated_at'])) : date('Y-m-d');
+        $url = !empty($row['slug']) ? $base_url . 'books/' . $row['slug'] : $base_url . 'book-details.php?id=' . $row['id'];
         ?>
         <url>
-            <loc><?php echo $base_url; ?>book-details.php?id=<?php echo $row['id']; ?></loc>
+            <loc><?php echo $url; ?></loc>
             <lastmod><?php echo $lastmod; ?></lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.6</priority>

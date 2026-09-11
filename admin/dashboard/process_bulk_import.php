@@ -6,6 +6,7 @@
  */
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../../includes/db_connect.php';
+require_once __DIR__ . '/../../includes/helpers.php';
 
 // Set execution limits for batch processing
 set_time_limit(300);
@@ -174,7 +175,7 @@ $errors = [];
 $imported_titles = [];
 
 $insert_sql = "INSERT INTO books (
-    title, title_en, subtitle, description, category_id, genre, language,
+    title, title_en, slug, subtitle, description, category_id, genre, language,
     author, author_en, co_author, publisher, publish_year, edition,
     isbn, format, page_count, book_condition, shelf_location, rack_number,
     stock_qty, min_stock_level, is_borrowable, is_suggested,
@@ -182,7 +183,7 @@ $insert_sql = "INSERT INTO books (
     supplier_name, supplier_contact, cover_image, photo_2, photo_3,
     is_active, created_at, item_type
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?,
@@ -301,6 +302,9 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     $supplier_contact = $getVal('supplier_contact', '');
     $description = $getVal('description', '');
 
+    // Generate unique slug for the imported book
+    $slug = get_unique_book_slug($pdo, $title_en, $title);
+
     // Image URL Resolution & Download
     $cover_url = $getVal('cover_image_url', $getVal('cover_image', ''));
     $photo_2_url = $getVal('photo_2_url', $getVal('photo_2', ''));
@@ -314,6 +318,7 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
         $insert_stmt->execute([
             $title,
             $title_en ?: null,
+            $slug,
             $subtitle ?: null,
             $description ?: null,
             $category_id,

@@ -242,7 +242,7 @@ function renderBooks(booksToRender) {
                                 <span class="text-[10px] md:text-xs text-brand-gold font-bold uppercase tracking-wider">${safeCategory}</span>
                                 ${parseInt(book.is_borrowable) === 1 ? `<span class="w-1.5 h-1.5 rounded-full bg-green-500" title="লাইব্রেরিতে রয়েছে"></span>` : ''}
                             </div>
-                            <a href="${prefix}book-details.php?id=${book.id}" class="block hover:text-brand-gold">
+                            <a href="${book.url || (book.slug ? `${prefix}books/${encodeURIComponent(book.slug)}` : `${prefix}book-details.php?id=${book.id}`)}" class="block hover:text-brand-gold">
                                 <h3 class="font-serif text-base md:text-lg text-brand-900 mt-1 truncate font-bold transition-colors">${displayTitle}</h3>
                             </a>
                             <p class="text-gray-500 text-xs md:text-sm font-light mt-1">${String(book.author || '')}</p>
