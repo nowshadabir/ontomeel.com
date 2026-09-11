@@ -50,7 +50,7 @@ $canonical_slug = !empty($book['slug']) ? $book['slug'] : $book['id'];
 $page_title = $book['title'] . (!empty($book['author']) ? ' | ' . $book['author'] : '') . ' - অন্ত্যমিল';
 $page_description = $book['title'] . (!empty($book['author']) ? ' বাই ' . $book['author'] : '') . ' - ' . mb_substr(strip_tags($book['description'] ?? ''), 0, 160) . '...';
 $page_keywords = $book['title'] . ', ' . ($book['title_en'] ?? '') . ', ' . $book['author'] . ', ' . ($book['category_name'] ?? 'বই') . ', অন্ত্যমিল, VIVAGO TECHNOLOGIES, অনলাইন বুকস্টোর';
-$og_image = getBookImage($book['cover_image'] ?? '', $path_prefix);
+// $og_image = getBookImage($book['cover_image'] ?? '', $path_prefix); // Dynamic preview image disabled for now
 
 include __DIR__ . '/includes/header.php';
 ?>
