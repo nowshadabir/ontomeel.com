@@ -16,6 +16,7 @@ if (strpos($script_name, 'Herd.app') !== false || strpos($script_name, 'valet') 
 }
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
 $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/');
+$resolved_og_image = !empty($og_image) ? (preg_match('/^https?:\/\//i', $og_image) ? $og_image : $base_url . '/' . ltrim($og_image, '/')) : ($base_url . '/assets/img/image-og.jpeg');
 ?>
 <!DOCTYPE html>
 <html lang="bn" class="scroll-smooth">
@@ -37,14 +38,14 @@ $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . rtrim($project_root, '/'
     <meta property="og:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="og:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="og:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
-    <meta property="og:image" content="<?php echo $og_image ?? $base_url . '/assets/img/image-og.jpeg'; ?>">
+    <meta property="og:image" content="<?php echo $resolved_og_image; ?>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?php echo(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
     <meta property="twitter:title" content="<?php echo $page_title ?? 'অন্ত্যমিল | বই ও লাইব্রেরি'; ?>">
     <meta property="twitter:description" content="<?php echo $page_description ?? 'অন্ত্যমিল - একটি প্রিমিয়াম অনলাইন বুকস্টোর এবং আধুনিক লাইব্রেরি। এখানে আপনি বই কিনতে এবং ধার নিতে পারেন।'; ?>">
-    <meta property="twitter:image" content="<?php echo $og_image ?? $base_url . '/assets/img/image-og.jpeg'; ?>">
+    <meta property="twitter:image" content="<?php echo $resolved_og_image; ?>">
 
     <!-- Google Fonts for Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
