@@ -74,61 +74,61 @@ $additional_head = '
     <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700;800&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
     <style>
     .main-container {
-        padding-top: 120px;
+        padding-top: 100px;
     }
     .book-showcase {
         position: sticky;
-        top: 120px;
+        top: 100px;
     }
     .image-container {
         position: relative;
     }
     .prime-cover {
         width: 100%;
-        max-width: 400px;
+        max-width: 300px;
         aspect-ratio: 2/3;
         object-fit: cover;
-        border-radius: 20px;
-        box-shadow: 20px 40px 60px rgba(0,0,0,0.15);
+        border-radius: 16px;
+        box-shadow: 15px 30px 45px rgba(0,0,0,0.12);
         transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         z-index: 20;
     }
     .second-cover {
         position: absolute;
-        bottom: -120px;
-        right: -60px;
-        width: 150px;
+        bottom: -70px;
+        right: -30px;
+        width: 120px;
         aspect-ratio: 2/3;
         object-fit: cover;
-        border-radius: 12px;
-        box-shadow: 10px 20px 30px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        box-shadow: 10px 20px 30px rgba(0,0,0,0.18);
         z-index: 10;
-        border: 4px solid white;
+        border: 3px solid white;
         transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .coming-soon-tag {
         position: absolute;
-        top: 20px;
-        left: -15px;
+        top: 15px;
+        left: -10px;
         background: #ef4444;
         color: white;
-        padding: 5px 15px;
-        font-size: 10px;
+        padding: 4px 12px;
+        font-size: 9px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1.5px;
         border-radius: 4px;
-        box-shadow: 5px 5px 15px rgba(239, 68, 68, 0.3);
+        box-shadow: 4px 4px 12px rgba(239, 68, 68, 0.25);
         z-index: 30;
         transform: rotate(-2deg);
     }
     .award-seal {
         position: absolute;
-        top: -20px;
-        right: -25px;
-        width: 110px;
-        height: 110px;
+        top: -15px;
+        right: -15px;
+        width: 90px;
+        height: 90px;
         background: radial-gradient(circle at center, #059669, #065f46);
         color: white;
         border-radius: 50%;
@@ -136,13 +136,13 @@ $additional_head = '
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 10px;
-        font-size: 10px;
+        padding: 8px;
+        font-size: 9px;
         font-weight: 500;
         line-height: 1.2;
-        box-shadow: 0 15px 30px rgba(5, 150, 105, 0.3), inset 0 0 0 4px rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 20px rgba(5, 150, 105, 0.25), inset 0 0 0 3px rgba(255, 255, 255, 0.1);
         z-index: 40;
-        transform: rotate(15deg);
+        transform: rotate(12deg);
         border: 2px dashed rgba(255, 255, 255, 0.2);
         font-family: "Tiro Bangla", serif;
     }
@@ -154,42 +154,42 @@ $additional_head = '
         transform: scale(1.02);
     }
     .image-container:hover .second-cover {
-        transform: translateX(30px) translateY(20px);
+        transform: translateX(20px) translateY(15px);
     }
 
     .badge-label {
-        padding: 6px 14px;
+        padding: 4px 12px;
         border-radius: 100px;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
+        letter-spacing: 1px;
     }
     .badge-primary { background: #fee2e2; color: #991b1b; }
     .badge-gold { background: #fef3c7; color: #92400e; }
     
     .price-card {
         background: white;
-        border-radius: 32px;
-        padding: 32px;
+        border-radius: 20px;
+        padding: 20px 24px;
         border: 1px solid #f1f5f9;
-        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.02);
+        box-shadow: 0 8px 20px -5px rgba(0,0,0,0.03);
     }
 
     .author-pill {
         display: inline-flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 20px;
+        gap: 10px;
+        padding: 8px 16px;
         background: #f1f5f9;
-        border-radius: 16px;
+        border-radius: 12px;
         transition: background 0.3s;
     }
     .author-pill:hover { background: #e2e8f0; }
 
     @media (min-width: 1025px) {
         .status-grid {
-            margin-top: 180px !important;
+            margin-top: 100px !important;
         }
         .award-seal {
             right: -5px !important;
@@ -199,8 +199,8 @@ $additional_head = '
     @media (max-width: 1024px) {
         .book-showcase { 
             position: static; 
-            margin-bottom: 40px; 
-            padding: 0 15px;
+            margin-bottom: 30px; 
+            padding: 0 10px;
         }
         .image-container {
             display: flex !important;
@@ -208,16 +208,16 @@ $additional_head = '
             justify-content: center !important;
             gap: 15px;
             perspective: 2000px;
-            padding: 40px 0;
+            padding: 25px 0;
         }
         .prime-cover { 
-            max-width: 200px; 
+            max-width: 180px; 
             margin: 0; 
             transform: rotateY(-10deg);
             z-index: 20;
         }
         .second-cover { 
-            width: 110px; 
+            width: 100px; 
             position: relative !important;
             right: auto !important;
             bottom: auto !important;
@@ -233,26 +233,26 @@ $additional_head = '
             transform: rotateY(-10deg) scale(1.05);
         }
         .coming-soon-tag {
-            left: -10px;
-            top: 15px;
+            left: -8px;
+            top: 10px;
             font-size: 8px;
-            padding: 4px 10px;
+            padding: 3px 8px;
         }
         .award-seal { 
-            width: 75px; 
-            height: 75px; 
+            width: 70px; 
+            height: 70px; 
             font-size: 7px; 
-            right: -10px; 
-            top: -15px; 
+            right: -8px; 
+            top: -12px; 
         }
-        .main-container { padding-top: 100px; }
+        .main-container { padding-top: 80px; }
     }
     .combo-suffix {
         display: block;
-        margin-top: 10px;
-        font-size: 14px;
+        margin-top: 6px;
+        font-size: 12px;
         color: var(--brand-gold);
-        letter-spacing: 2px;
+        letter-spacing: 1.5px;
         text-transform: uppercase;
         font-weight: 700;
     }
@@ -262,9 +262,9 @@ $additional_head = '
 include '../includes/header.php';
 ?>
 
-<main class="main-container pb-20">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+<main class="main-container pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
             
             <!-- Left: Visual Sticky -->
             <div class="lg:col-span-5">
@@ -280,125 +280,118 @@ include '../includes/header.php';
                         <?php if (!empty($book['second_cover_image'])): ?>
                             <img src="<?php echo strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['second_cover_image']; ?>" 
                                  class="second-cover" alt="Combo Book">
-                        <?php
-endif; ?>
+                        <?php endif; ?>
                     </div>
 
-                    <div class="mt-12 grid grid-cols-2 gap-4 status-grid">
-                        <div class="p-6 bg-white rounded-3xl text-center border border-slate-100">
-                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">প্রকাশের মাস</span>
-                            <span class="text-sm font-bold text-slate-700"><?php echo bn_date($book['release_date']); ?></span>
+                    <div class="mt-8 grid grid-cols-2 gap-3 status-grid">
+                        <div class="p-4 bg-white rounded-2xl text-center border border-slate-100 shadow-xs">
+                            <span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">প্রকাশের মাস</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-700"><?php echo bn_date($book['release_date']); ?></span>
                         </div>
-                        <div class="p-6 bg-white rounded-3xl text-center border border-slate-100">
-                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">বুকিং স্ট্যাটাস</span>
-                            <span class="text-sm font-bold text-emerald-600"><?php echo $book['status'] == 'Open' ? 'চলছে' : 'আসন্ন'; ?></span>
+                        <div class="p-4 bg-white rounded-2xl text-center border border-slate-100 shadow-xs">
+                            <span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">বুকিং স্ট্যাটাস</span>
+                            <span class="text-xs sm:text-sm font-bold text-emerald-600"><?php echo $book['status'] == 'Open' ? 'চলছে' : 'আসন্ন'; ?></span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Right: Content -->
-            <div class="lg:col-span-7 space-y-10">
+            <div class="lg:col-span-7 space-y-6">
                 <!-- Badges & Status -->
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap gap-2">
                     <span class="badge-label badge-primary">নতুন প্রকাশনী অফার</span>
                     <?php if (!empty($book2_title)): ?>
                         <span class="badge-label badge-gold">কম্বো বই সেট</span>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Titles and Authors -->
-                <div class="space-y-8">
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 text-red-500 mb-2">
-                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="text-[11px] font-black uppercase tracking-widest">খুব শীঘ্রই আসছে</span>
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-red-500 mb-1">
+                            <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="text-[10px] font-black uppercase tracking-widest">খুব শীঘ্রই আসছে</span>
                         </div>
-                        <h1 class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
+                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 leading-snug">
                             <?php echo $book1_title; ?>
                         </h1>
                     </div>
 
                     <?php if (!empty($book2_title)): ?>
-                        <div class="relative py-4">
+                        <div class="relative py-2">
                             <div class="absolute inset-y-0 left-0 w-1 bg-slate-200 rounded-full"></div>
-                            <div class="pl-8 space-y-3">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">সাথে থাকছে</span>
-                                <h3 class="text-2xl md:text-3xl font-bold text-slate-500">
+                            <div class="pl-5 space-y-1.5">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest">সাথে থাকছে</span>
+                                <h3 class="text-lg sm:text-xl font-bold text-slate-500">
                                     <?php echo $book2_title; ?>
                                 </h3>
-                                <p class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
+                                <p class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-block">ইতিমধ্যে প্রকাশিত</p>
                             </div>
                         </div>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Price Section -->
-                <div class="price-card flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div class="price-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">অফার মূল্য</span>
-                        <div class="flex items-baseline gap-4">
-                            <span class="text-5xl font-black text-slate-900">৳<?php echo bn_num((int)$book['discount_price']); ?></span>
-                            <span class="text-xl text-slate-300 line-through">৳<?php echo bn_num((int)$book['price']); ?></span>
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">অফার মূল্য</span>
+                        <div class="flex items-baseline gap-3">
+                            <span class="text-3xl sm:text-4xl font-black text-slate-900">৳<?php echo bn_num((int)$book['discount_price']); ?></span>
+                            <span class="text-base text-slate-300 line-through">৳<?php echo bn_num((int)$book['price']); ?></span>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
                         <?php if ($book['status'] == 'Open'): ?>
                             <a href="<?php echo $path_prefix; ?>pre-order-checkout/index.php?id=<?php echo $book['id']; ?>" 
-                               class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-brand-gold transition-all shadow-2xl flex items-center justify-center gap-4">
+                               class="bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-brand-gold hover:text-slate-900 transition-all shadow-md flex items-center justify-center gap-2">
                                 <span>বুকিং করুন</span>
-                                <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
-                        <?php
-else: ?>
-                            <button disabled class="bg-slate-200 text-slate-400 px-10 py-5 rounded-2xl font-black uppercase tracking-widest cursor-not-allowed">বুকিং আসছে</button>
-                        <?php
-endif; ?>
-                        <p class="text-center text-[10px] text-slate-400 font-bold tracking-widest italic">সীমিত সময়ের অফার!</p>
+                        <?php else: ?>
+                            <button disabled class="bg-slate-200 text-slate-400 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-not-allowed">বুকিং আসছে</button>
+                        <?php endif; ?>
+                        <p class="text-center text-[9px] text-slate-400 font-bold tracking-widest italic">সীমিত সময়ের অফার!</p>
                     </div>
                 </div>
 
                 <!-- Description Tabs -->
-                <div class="space-y-6 pt-10">
-                    <div class="flex items-center justify-between border-b border-slate-100 mb-8">
-                        <h4 class="text-xl font-black text-slate-900 border-l-4 border-brand-gold pl-4 pb-2">বিস্তারিত তথ্য</h4>
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 mb-4">
+                        <h4 class="text-base font-black text-slate-900 border-l-4 border-brand-gold pl-3 pb-1">বিস্তারিত তথ্য</h4>
                     </div>
 
                     <?php if (!empty($book2_title)): ?>
                         <!-- Tabs Navigation -->
-                        <div class="flex gap-8 border-b border-slate-100 mb-8 overflow-x-auto no-scrollbar">
-                            <button onclick="switchDescriptionTab(1)" id="desc-tab-1" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-900 border-b-2 border-brand-900 whitespace-nowrap transition-all">
+                        <div class="flex gap-6 border-b border-slate-100 mb-4 overflow-x-auto no-scrollbar">
+                            <button onclick="switchDescriptionTab(1)" id="desc-tab-1" class="pb-2.5 text-xs font-bold uppercase tracking-wider text-slate-900 border-b-2 border-brand-900 whitespace-nowrap transition-all">
                                 <?php echo $book1_title; ?>
                             </button>
-                            <button onclick="switchDescriptionTab(2)" id="desc-tab-2" class="pb-4 text-xs font-black uppercase tracking-widest text-slate-400 border-b-2 border-transparent whitespace-nowrap transition-all">
+                            <button onclick="switchDescriptionTab(2)" id="desc-tab-2" class="pb-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent whitespace-nowrap transition-all">
                                 <?php echo $book2_title; ?>
                             </button>
                         </div>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
 
                     <!-- Tabs Content -->
-                    <div id="desc-content-1" class="desc-tab-content animate-in fade-in duration-500">
-                        <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
+                    <div id="desc-content-1" class="desc-tab-content animate-in fade-in duration-300">
+                        <div class="text-slate-600 leading-relaxed font-anek text-sm sm:text-base whitespace-pre-line">
                             <?php echo $book['description']; ?>
                         </div>
                     </div>
 
                     <?php if (!empty($book2_title)): ?>
-                        <div id="desc-content-2" class="desc-tab-content hidden animate-in fade-in duration-500">
-                            <div class="text-slate-600 leading-relaxed font-anek text-lg whitespace-pre-line">
+                        <div id="desc-content-2" class="desc-tab-content hidden animate-in fade-in duration-300">
+                            <div class="text-slate-600 leading-relaxed font-anek text-sm sm:text-base whitespace-pre-line">
                                 <?php echo !empty($book['description_2']) ? $book['description_2'] : '২য় বইয়ের বিস্তারিত তথ্য খুব শীঘ্রই আসছে...'; ?>
                             </div>
                         </div>
-                    <?php
-endif; ?>
+                    <?php endif; ?>
                 </div>
-                <div class="pt-20 text-center lg:text-left">
-                    <a href="<?php echo(strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-2 font-bold uppercase text-[10px] tracking-widest transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                <div class="pt-8 text-center lg:text-left">
+                    <a href="<?php echo(strpos($_SERVER['REQUEST_URI'], '/book/') !== false) ? '../' : './'; ?>" class="text-slate-400 hover:text-brand-gold flex items-center justify-center lg:justify-start gap-1.5 font-bold uppercase text-[9px] tracking-widest transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         ফিরে যান
                     </a>
                 </div>
