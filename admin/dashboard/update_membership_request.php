@@ -45,13 +45,13 @@ try {
         $pdo->prepare("UPDATE membership_requests SET status = 'Confirmed' WHERE id = ?")
             ->execute([$request_id]);
 
-        // Smart Expiration Logic: Preserve remaining time if subscription is still active
+        // Expiration Logic: Extend time if same plan; cancel current and activate new plan from now if switching plan
         $stmt = $pdo->prepare("SELECT full_name, email, membership_id, membership_plan, plan_expire_date FROM members WHERE id = ?");
         $stmt->execute([$req['member_id']]);
         $member = $stmt->fetch();
 
         $new_expire = "NOW() + INTERVAL 1 YEAR";
-        if ($member && !empty($member['plan_expire_date'])) {
+        if ($member && $member['membership_plan'] === $req['plan'] && !empty($member['plan_expire_date'])) {
             if (strtotime($member['plan_expire_date']) > time()) {
                 $new_expire = "plan_expire_date + INTERVAL 1 YEAR";
             }

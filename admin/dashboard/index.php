@@ -13,6 +13,7 @@ $total_sales = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WH
 $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Processing'")->fetchColumn();
 $borrowed_books = $pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Active'")->fetchColumn();
 $pending_membership_requests = (int)$pdo->query("SELECT COUNT(*) FROM membership_requests WHERE status = 'Pending'")->fetchColumn();
+$pending_student_requests = (int)$pdo->query("SELECT COUNT(*) FROM student_membership_requests WHERE status = 'Pending'")->fetchColumn();
 
 // Categories for filter
 $cats_stmt = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
@@ -343,6 +344,18 @@ function format_bn_datetime($datetime_str)
                 </svg>
                 পেমেন্ট সেটিংস
             </button>
+            <a href="student_memberships.php" id="nav-student-membership"
+                class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
+                </svg>
+                <span>স্টুডেন্ট মেম্বারশিপ</span>
+                <?php if ($pending_student_requests > 0): ?>
+                    <span class="ml-auto px-2 py-0.5 bg-brand-gold text-brand-900 rounded-full text-xs font-bold font-mono"><?php echo $pending_student_requests; ?></span>
+                <?php endif; ?>
+            </a>
             <button onclick="switchTab('membership')" id="nav-membership"
                 class="sidebar-link text-gray-400 hover:text-white w-full flex items-center gap-4 px-5 py-4 rounded-xl font-anek font-bold transition-all duration-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

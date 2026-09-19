@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
 
                 if ($member) {
                     $new_expire_sql = "NOW() + INTERVAL 1 YEAR";
-                    if (!empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
+                    if ($member['membership_plan'] === $plan_key && !empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
                         $new_expire_sql = "plan_expire_date + INTERVAL 1 YEAR";
                     }
 

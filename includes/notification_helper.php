@@ -161,6 +161,44 @@ function send_notification_instantly($to, $type, $data)
             ";
             break;
 
+        case 'student_membership_approved':
+            $subject = "Student Membership Approved! - বইয়ের আনন্দ-পাঠ | Ontomeel";
+            $title = "Welcome to 'বইয়ের আনন্দ-পাঠ'!";
+            $color = "#16a34a"; // Green
+            $content = "
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                <p>Congratulations! Your student membership application for <strong>বইয়ের আনন্দ-পাঠ (Boi-er Ananda Path)</strong> has been verified and approved.</p>
+                <div style=\"background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 15px 0;\">
+                    <p style=\"margin: 4px 0;\"><strong>Membership ID:</strong> " . htmlspecialchars($data['membership_id'] ?? 'N/A') . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Plan:</strong> বইয়ের আনন্দ-পাঠ (Student Free Plan)</p>
+                    <p style=\"margin: 4px 0;\"><strong>Institution:</strong> " . htmlspecialchars($data['institution_name'] ?? 'N/A') . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Valid Until:</strong> " . htmlspecialchars($data['expire_date']) . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Plan Fee:</strong> FREE (৳০)</p>
+                </div>
+                <p><strong>Your Student Reader Privileges:</strong></p>
+                <ul>
+                    <li>Free book borrowing from 'বইয়ের আনন্দ' Community Library.</li>
+                    <li>Access to curated reading lists and book discussion circles.</li>
+                    <li>Special reading activities and creative challenges.</li>
+                </ul>
+                <p>Log in to your dashboard to start exploring books!</p>
+            ";
+            break;
+
+        case 'student_membership_rejected':
+            $subject = "Student Membership Update - Ontomeel";
+            $title = "Application Review Update";
+            $color = "#dc2626";
+            $reason_text = !empty($data['reason']) ? "<p><strong>Reason / Feedback:</strong> " . htmlspecialchars($data['reason']) . "</p>" : "";
+            $content = "
+                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
+                <p>Thank you for your interest in <strong>বইয়ের আনন্দ-পাঠ</strong> student membership.</p>
+                <p>After reviewing your submitted details and ID card, we could not approve your application at this time.</p>
+                " . $reason_text . "
+                <p>If you believe there was a mistake or you have updated information, you are welcome to re-apply from the membership section.</p>
+            ";
+            break;
+
         case 'signup_otp':
             $subject = "Verification Code: " . $data['otp'] . " - Ontomeel";
             $title = "Email Verification";

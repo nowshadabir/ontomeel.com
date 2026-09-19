@@ -132,12 +132,21 @@ include __DIR__ . '/../includes/header.php';
 
                 <!-- Renewal / Extension Note if Active -->
                 <?php if ($is_active_plan): ?>
-                    <div class="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
-                        <span class="text-sm">💡</span>
-                        <p class="leading-relaxed">
-                            আপনার বর্তমান মেম্বারশিপের সাথে আরও <strong>১ বছর</strong> মেয়াদ স্বয়ংক্রিয়ভাবে যুক্ত হয়ে যাবে।
-                        </p>
-                    </div>
+                    <?php if ($current_user_plan === $plan_key): ?>
+                        <div class="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
+                            <span class="text-sm">💡</span>
+                            <p class="leading-relaxed">
+                                আপনার বর্তমান <strong><?php echo $current_plan['name']; ?></strong> মেম্বারশিপের সাথে আরও <strong>১ বছর</strong> মেয়াদ স্বয়ংক্রিয়ভাবে যুক্ত (Extend) হয়ে যাবে।
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <div class="mb-5 p-3.5 rounded-xl bg-blue-50 border border-blue-200/80 text-[11px] text-blue-900 flex items-start gap-2">
+                            <span class="text-sm">🔄</span>
+                            <p class="leading-relaxed">
+                                আপনি নতুন প্ল্যানে পরিবর্তন করছেন। পেমেন্ট সম্পন্ন হলে আপনার নতুন <strong><?php echo $current_plan['name']; ?></strong> মেম্বারশিপ আজ থেকে <strong>১ বছরের</strong> জন্য সক্রিয় হবে।
+                            </p>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <!-- Member Info Row -->

@@ -19,23 +19,41 @@ if (!$user) {
 }
 
 $plan_names_bn = [
+    'Student' => 'বইয়ের আনন্দ-পাঠ',
     'General' => 'সাধারণ পাঠক',
     'BookLover' => 'নিয়মিত পাঠক',
     'Collector' => 'সাহিত্য অনুরাগী',
     'None' => 'কোনো মেম্বারশিপ নেই'
 ];
 
-$is_plan_expired = false;
-if ($user['membership_plan'] !== 'None' && !empty($user['plan_expire_date'])) {
+// Check Paid Membership Expiration
+$is_paid_plan_expired = false;
+if (in_array($user['membership_plan'], ['General', 'BookLover', 'Collector'], true) && !empty($user['plan_expire_date'])) {
     if (strtotime($user['plan_expire_date']) < time()) {
-        $is_plan_expired = true;
+        $is_paid_plan_expired = true;
         $pdo->prepare("UPDATE members SET membership_plan = 'None' WHERE id = ?")->execute([$user_id]);
         $user['membership_plan'] = 'None';
         $_SESSION['membership_plan'] = 'None';
     }
 }
-$is_plan_active = ($user['membership_plan'] !== 'None' && !empty($user['plan_expire_date']) && strtotime($user['plan_expire_date']) >= time());
-$display_plan_name = $plan_names_bn[$user['membership_plan']] ?? $user['membership_plan'];
+$has_active_paid_plan = (in_array($user['membership_plan'], ['General', 'BookLover', 'Collector'], true) && !empty($user['plan_expire_date']) && strtotime($user['plan_expire_date']) >= time());
+
+// Check Student Membership Expiration
+if (!empty($user['student_plan_expire_date'])) {
+    if (strtotime($user['student_plan_expire_date']) < time()) {
+        $pdo->prepare("UPDATE members SET student_plan_expire_date = NULL WHERE id = ?")->execute([$user_id]);
+        $user['student_plan_expire_date'] = null;
+    }
+} elseif ($user['membership_plan'] === 'Student' && !empty($user['plan_expire_date']) && strtotime($user['plan_expire_date']) < time()) {
+    $pdo->prepare("UPDATE members SET membership_plan = 'None' WHERE id = ?")->execute([$user_id]);
+    $user['membership_plan'] = 'None';
+}
+
+$has_active_student_plan = (!empty($user['student_plan_expire_date']) && strtotime($user['student_plan_expire_date']) >= time()) || ($user['membership_plan'] === 'Student' && !empty($user['plan_expire_date']) && strtotime($user['plan_expire_date']) >= time());
+$student_effective_expire = $user['student_plan_expire_date'] ?: $user['plan_expire_date'];
+
+$is_plan_active = ($has_active_paid_plan || $has_active_student_plan);
+$display_plan_name = $has_active_paid_plan ? ($plan_names_bn[$user['membership_plan']] ?? $user['membership_plan']) : ($has_active_student_plan ? 'বইয়ের আনন্দ-পাঠ' : 'কোনো মেম্বারশিপ নেই');
 
 // 2. Stats
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM borrows WHERE member_id = ? AND status IN ('Active', 'Processing')");
@@ -375,24 +393,63 @@ function getDaysRemaining($due_date)
                             প্ল্যান</span>
                     </div>
                     <div class="space-y-4">
-                        <p class="text-2xl font-anek font-bold text-brand-900 leading-tight">
-                            <?php echo htmlspecialchars($display_plan_name); ?><?php if ($user['membership_plan'] !== 'None') echo ' মেম্বার'; ?>
-                        </p>
+                        <?php if ($has_active_paid_plan && $has_active_student_plan): ?>
+                            <!-- Both Subscriptions Active -->
+                            <div>
+                                <span class="text-[10px] font-bold text-brand-gold uppercase tracking-wider block">পেইড মেম্বারশিপ</span>
+                                <p class="text-xl font-anek font-bold text-brand-900 leading-tight">
+                                    <?php echo htmlspecialchars($plan_names_bn[$user['membership_plan']] ?? $user['membership_plan']); ?> মেম্বার
+                                </p>
+                                <p class="text-[10px] text-gray-500 font-bold font-mono">
+                                    মেয়াদ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?>
+                                </p>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100">
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">স্টুডেন্ট মেম্বারশিপ</span>
+                                <p class="text-lg font-anek font-bold text-emerald-800 leading-tight">
+                                    বইয়ের আনন্দ-পাঠ
+                                </p>
+                                <p class="text-[10px] text-emerald-600 font-bold font-mono">
+                                    মেয়াদ: <?php echo date('d M, Y', strtotime($student_effective_expire)); ?>
+                                </p>
+                            </div>
+                        <?php elseif ($has_active_paid_plan): ?>
+                            <!-- Only Paid Plan Active -->
+                            <div>
+                                <p class="text-2xl font-anek font-bold text-brand-900 leading-tight">
+                                    <?php echo htmlspecialchars($plan_names_bn[$user['membership_plan']] ?? $user['membership_plan']); ?> মেম্বার
+                                </p>
+                                <p class="text-[10px] text-red-500 font-bold font-mono mt-1">
+                                    মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?>
+                                </p>
+                            </div>
+                        <?php elseif ($has_active_student_plan): ?>
+                            <!-- Only Student Plan Active -->
+                            <div>
+                                <p class="text-2xl font-anek font-bold text-emerald-800 leading-tight">
+                                    বইয়ের আনন্দ-পাঠ
+                                </p>
+                                <p class="text-[10px] text-emerald-600 font-bold font-mono mt-1">
+                                    মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($student_effective_expire)); ?>
+                                </p>
+                            </div>
+                        <?php else: ?>
+                            <!-- No Active Plan -->
+                            <p class="text-2xl font-anek font-bold text-gray-400 leading-tight">
+                                কোনো মেম্বারশিপ নেই
+                            </p>
+                        <?php endif; ?>
+
                         <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
                             <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1 leading-none">
                                 মেম্বারশিপ ID</p>
                             <p class="text-xs font-bold text-brand-900 font-anek">
                                 #<?php echo htmlspecialchars($user['membership_id']); ?></p>
                         </div>
-                        <?php if ($user['membership_plan'] != 'None' && $user['plan_expire_date']): ?>
-                            <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest leading-none">
-                                মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?>
-                            </p>
-                        <?php
-endif; ?>
+
                         <a href="../membership/"
                             class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2 hover:underline block leading-none">
-                            <?php echo ($user['membership_plan'] === 'None') ? 'মেম্বারশিপ চালু করুন →' : 'প্ল্যান রিনিউ / আপগ্রেড করুন →'; ?>
+                            <?php echo (!$has_active_paid_plan && !$has_active_student_plan) ? 'মেম্বারশিপ চালু করুন →' : 'প্ল্যান রিনিউ / মেম্বারশিপ যোগ করুন →'; ?>
                         </a>
                     </div>
                 </div>
@@ -826,13 +883,30 @@ endif; ?>
                                 <?php echo date('F Y', strtotime($user['created_at'])); ?>
                             </p>
                             <div class="flex flex-wrap items-center gap-3">
-                                <span
-                                    class="px-4 py-2 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest"><?php echo htmlspecialchars($display_plan_name); ?><?php if ($user['membership_plan'] !== 'None') echo ' মেম্বার'; ?></span>
-                                <?php if ($user['membership_plan'] != 'None' && $user['plan_expire_date']): ?>
-                                    <span class="px-4 py-2 bg-red-100 text-red-600 rounded-full text-xs font-bold">মেয়াদ
-                                        শেষ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?></span>
-                                <?php
-endif; ?>
+                                <?php if ($has_active_paid_plan): ?>
+                                    <span class="px-4 py-2 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest">
+                                        <?php echo htmlspecialchars($plan_names_bn[$user['membership_plan']] ?? $user['membership_plan']); ?> মেম্বার
+                                    </span>
+                                    <span class="px-4 py-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold">
+                                        মেয়াদ: <?php echo date('d M, Y', strtotime($user['plan_expire_date'])); ?>
+                                    </span>
+                                <?php endif; ?>
+
+                                <?php if ($has_active_student_plan): ?>
+                                    <span class="px-4 py-2 bg-emerald-600 text-white rounded-full text-xs font-bold uppercase tracking-widest">
+                                        বইয়ের আনন্দ-পাঠ
+                                    </span>
+                                    <span class="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-bold">
+                                        স্টুডেন্ট মেয়াদ: <?php echo date('d M, Y', strtotime($student_effective_expire)); ?>
+                                    </span>
+                                <?php endif; ?>
+
+                                <?php if (!$has_active_paid_plan && !$has_active_student_plan): ?>
+                                    <span class="px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-xs font-bold uppercase tracking-widest">
+                                        কোনো মেম্বারশিপ নেই
+                                    </span>
+                                <?php endif; ?>
+
                                 <span class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">ID:
                                     <?php echo htmlspecialchars($user['membership_id']); ?></span>
                             </div>

@@ -107,9 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $member = $mStmt->fetch(PDO::FETCH_ASSOC);
 
                         if ($member) {
-                            // 2. Smart Expiry Date Extension (1 Year / 365 Days)
+                            // 2. Expiration Logic: Extend if same plan, or cancel and start fresh if switching plan
                             $new_expire_sql = "NOW() + INTERVAL 1 YEAR";
-                            if (!empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
+                            if ($member['membership_plan'] === $plan_key && !empty($member['plan_expire_date']) && strtotime($member['plan_expire_date']) > time()) {
                                 $new_expire_sql = "plan_expire_date + INTERVAL 1 YEAR";
                             }
 

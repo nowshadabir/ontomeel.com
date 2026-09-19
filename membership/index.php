@@ -6,16 +6,29 @@ include '../includes/header.php';
 
 $current_user_plan = 'None';
 $plan_expire_date = null;
+$student_plan_expire_date = null;
+$has_pending_student_req = false;
+
 if (isset($_SESSION['user_id'])) {
-    $stmt = $pdo->prepare("SELECT membership_plan, plan_expire_date FROM members WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT membership_plan, plan_expire_date, student_plan_expire_date FROM members WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_data = $stmt->fetch();
     if ($user_data) {
-        $current_user_plan = $user_data['membership_plan'];
+        $current_user_plan = $user_data['membership_plan'] ?? 'None';
         $plan_expire_date = $user_data['plan_expire_date'];
+        $student_plan_expire_date = $user_data['student_plan_expire_date'];
+    }
+
+    $chk_stmt = $pdo->prepare("SELECT id FROM student_membership_requests WHERE member_id = ? AND status = 'Pending' LIMIT 1");
+    $chk_stmt->execute([$_SESSION['user_id']]);
+    if ($chk_stmt->fetch()) {
+        $has_pending_student_req = true;
     }
 }
-$is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) && strtotime($plan_expire_date) > time());
+
+$is_paid_plan_active = (in_array($current_user_plan, ['General', 'BookLover', 'Collector'], true) && !empty($plan_expire_date) && strtotime($plan_expire_date) > time());
+$is_student_plan_active = (!empty($student_plan_expire_date) && strtotime($student_plan_expire_date) > time()) || ($current_user_plan === 'Student' && !empty($plan_expire_date) && strtotime($plan_expire_date) > time());
+$student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
 ?>
 
 <!-- Membership Hero -->
@@ -39,26 +52,57 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
             </div>
         <?php endif; ?>
 
-        <?php if ($is_plan_active): ?>
-            <div class="mt-12 bg-white/10 backdrop-blur-md border border-brand-gold/30 rounded-3xl p-8 max-w-lg mx-auto shadow-2xl">
-                <span class="text-brand-gold text-xs font-bold uppercase tracking-widest mb-1 block font-anek">আপনার বর্তমান মেম্বারশিপ</span>
-                <h3 class="text-3xl font-anek font-extrabold text-white mb-2">
-                    <?php
+        <?php if ($has_pending_student_req): ?>
+            <div class="mt-6 bg-amber-500/20 border border-amber-500/40 backdrop-blur-md rounded-2xl p-6 max-w-2xl mx-auto shadow-2xl">
+                <p class="text-amber-300 font-anek font-bold text-base md:text-lg">
+                    ⏳ আপনার ‘বইয়ের আনন্দ-পাঠ’ স্টুডেন্ট মেম্বারশিপ রিকোয়েস্ট অপেক্ষমান (Pending) রয়েছে। এডমিন ভেরিফিকেশনের পর দ্রুত সক্রিয় করা হবে।
+                </p>
+                <a href="student-apply.php" class="inline-block mt-3 text-xs md:text-sm text-brand-gold font-bold underline">আবেদনের বিবরণ দেখুন →</a>
+            </div>
+        <?php endif; ?>
+
+        <!-- Active Membership Cards (Supports Both Subscriptions) -->
+        <?php if ($is_paid_plan_active || $is_student_plan_active): ?>
+            <div class="mt-12 flex flex-wrap justify-center gap-6 max-w-4xl mx-auto">
+                
+                <?php if ($is_paid_plan_active): 
                     $plan_names = [
                         'General' => 'সাধারণ পাঠক (৳৫০০)',
                         'BookLover' => 'নিয়মিত পাঠক (৳৭০০)',
                         'Collector' => 'সাহিত্য অনুরাগী (৳১০০০)'
                     ];
-                    echo $plan_names[$current_user_plan] ?? $current_user_plan;
-                    ?>
-                </h3>
-                <p class="text-xs text-brand-gold font-mono font-bold mb-3">মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($plan_expire_date)); ?></p>
-                <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-1.5 rounded-full">
-                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <p class="text-green-300 text-xs font-anek font-bold tracking-wide">মেম্বারশিপ সক্রিয় আছে</p>
-                </div>
+                ?>
+                    <div class="bg-white/10 backdrop-blur-md border border-brand-gold/30 rounded-3xl p-6 sm:p-8 flex-1 min-w-[280px] max-w-md shadow-2xl text-center">
+                        <span class="text-brand-gold text-xs font-bold uppercase tracking-widest mb-1 block font-anek">আপনার সক্রিয় মেম্বারশিপ</span>
+                        <h3 class="text-2xl sm:text-3xl font-anek font-extrabold text-white mb-2">
+                            <?php echo $plan_names[$current_user_plan] ?? $current_user_plan; ?>
+                        </h3>
+                        <p class="text-xs text-brand-gold font-mono font-bold mb-3">মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($plan_expire_date)); ?></p>
+                        <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-1.5 rounded-full">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            <p class="text-green-300 text-xs font-anek font-bold tracking-wide">পেইড মেম্বারশিপ সক্রিয়</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($is_student_plan_active): ?>
+                    <div class="bg-white/10 backdrop-blur-md border border-emerald-400/40 rounded-3xl p-6 sm:p-8 flex-1 min-w-[280px] max-w-md shadow-2xl text-center">
+                        <span class="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-1 block font-anek">স্টুডেন্ট মেম্বারশিপ</span>
+                        <h3 class="text-2xl sm:text-3xl font-anek font-extrabold text-white mb-2">
+                            বইয়ের আনন্দ-পাঠ
+                        </h3>
+                        <p class="text-xs text-emerald-300 font-mono font-bold mb-3">মেয়াদ শেষ: <?php echo date('d M, Y', strtotime($student_effective_expire)); ?></p>
+                        <div class="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 px-4 py-1.5 rounded-full">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                            <p class="text-emerald-300 text-xs font-anek font-bold tracking-wide">স্টুডেন্ট প্ল্যান সক্রিয়</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
             </div>
         <?php endif; ?>
+    </div>
+</div>
     </div>
 </div>
 
@@ -119,8 +163,104 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
 </section>
 
 <!-- Pricing Area -->
-<section class="py-24 bg-brand-light overflow-hidden">
+<section class="py-20 bg-brand-light overflow-hidden">
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        
+        <!-- Student Membership Plan Featured Section: বইয়ের আনন্দ-পাঠ -->
+        <div class="mb-16 bg-white rounded-3xl shadow-xl border border-brand-gold/30 overflow-hidden hover:shadow-2xl transition-all duration-500 reveal">
+            <div class="grid grid-cols-1 lg:grid-cols-12 items-center">
+                <!-- Cover Image Column -->
+                <div class="lg:col-span-5 h-64 lg:h-full relative min-h-[300px] overflow-hidden bg-brand-900">
+                    <img src="../assets/img/boi-er-ananda.jpeg" alt="বইয়ের আনন্দ-পাঠ" class="w-full h-full object-cover transform hover:scale-105 transition-all duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-end p-6 lg:p-8">
+                        <span class="inline-block px-3 py-1 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest font-anek mb-2 w-max">
+                            🎓 স্টুডেন্ট মেম্বারশিপ
+                        </span>
+                        <h3 class="text-2xl lg:text-3xl font-extrabold text-white font-anek leading-tight">
+                            বইয়ের ভেতর নিজের পথ
+                        </h3>
+                    </div>
+                </div>
+
+                <!-- Plan Details Column -->
+                <div class="lg:col-span-7 p-8 lg:p-12 flex flex-col justify-between h-full font-anek">
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <h2 class="text-3xl lg:text-4xl font-extrabold text-brand-900 font-anek">
+                                বইয়ের আনন্দ-পাঠ
+                            </h2>
+                            <div class="inline-flex items-baseline gap-1.5 px-4 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-800 font-bold">
+                                <span class="text-xl font-extrabold">সম্পূর্ণ ফ্রি</span>
+                                <span class="text-xs text-emerald-600">(৳০)</span>
+                            </div>
+                        </div>
+
+                        <p class="text-brand-gold font-bold text-base mb-2">
+                            বইয়ের ভেতর নিজের পথ
+                        </p>
+                        <p class="text-gray-600 text-sm lg:text-base leading-relaxed mb-6 font-light">
+                            বইয়ের সঙ্গে একান্ত ও স্বতন্ত্র সম্পর্ক গড়ে তোলার পাঠ-উদ্যোগ। ১২ থেকে ১৯ বছর বয়সী তরুণ পাঠকদের বইপড়ার আনন্দ ছড়িয়ে দিতে এবং পাঠ-অভ্যাস গড়ে তুলতে এই বিশেষ ফ্রি মেম্বারশিপ।
+                        </p>
+
+                        <!-- Key Benefits Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 text-sm text-gray-700">
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>‘বইয়ের আনন্দ’ লাইব্রেরি থেকে বই ধার সুবিধা</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>শুধুমাত্র ১২-১৯ বছর বয়সী শিক্ষার্থীদের জন্য</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>একান্ত ও স্বতন্ত্র পাঠচর্চা কার্যক্রম</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>১ বছরের জন্য সক্রিয় ডিজিটাল মেম্বারশিপ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button & Status -->
+                    <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="text-xs text-gray-500 text-center sm:text-left">
+                            * আবেদন করতে অন্ত্যমিল অ্যাকাউন্ট ও স্টুডেন্ট আইডি কার্ড থাকা আবশ্যক।
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <?php if ($is_student_plan_active): ?>
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-md">
+                                    <span>✓ মেম্বারশিপ সক্রিয় আছে</span>
+                                </a>
+                            <?php elseif ($has_pending_student_req): ?>
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-amber-500 text-brand-900 font-bold rounded-xl text-sm shadow-md animate-pulse">
+                                    <span>⏳ রিকোয়েস্ট পেন্ডিং রয়েছে</span>
+                                </a>
+                            <?php else: ?>
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-brand-900 hover:bg-brand-gold hover:text-brand-900 text-white font-bold rounded-xl transition-all text-sm shadow-lg">
+                                    <span>বিনামূল্যে আবেদন করুন →</span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-12">
+            <span class="text-brand-gold text-xs font-bold uppercase tracking-widest block mb-2 font-anek">অন্যান্য মেম্বারশিপ</span>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-brand-900 font-anek">সাধারণ ও নিয়মিত পাঠকদের জন্য প্ল্যান</h2>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
             <!-- General Reader Plan -->
             <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full">
@@ -160,8 +300,8 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                 <a href="request.php?plan=General"
                     class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
                     <?php 
-                        if ($is_plan_active && $current_user_plan === 'General') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
-                        elseif ($is_plan_active) echo 'এই প্ল্যানে পরিবর্তন';
+                        if ($is_paid_plan_active && $current_user_plan === 'General') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_paid_plan_active) echo 'এই প্ল্যানে পরিবর্তন';
                         else echo 'প্ল্যানটি বেছে নিন';
                     ?>
                 </a>
@@ -208,8 +348,8 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                 <a href="request.php?plan=BookLover"
                     class="block text-center w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-xl shadow-brand-gold/20 text-lg">
                     <?php 
-                        if ($is_plan_active && $current_user_plan === 'BookLover') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
-                        elseif ($is_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
+                        if ($is_paid_plan_active && $current_user_plan === 'BookLover') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_paid_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
                         else echo 'প্ল্যানটি বেছে নিন';
                     ?>
                 </a>
@@ -253,8 +393,8 @@ $is_plan_active = ($current_user_plan !== 'None' && !empty($plan_expire_date) &&
                 <a href="request.php?plan=Collector"
                     class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
                     <?php 
-                        if ($is_plan_active && $current_user_plan === 'Collector') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
-                        elseif ($is_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
+                        if ($is_paid_plan_active && $current_user_plan === 'Collector') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
+                        elseif ($is_paid_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
                         else echo 'প্ল্যানটি বেছে নিন';
                     ?>
                 </a>
