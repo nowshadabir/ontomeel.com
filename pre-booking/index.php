@@ -452,7 +452,7 @@ if (!function_exists('bn_num')) {
                             <!-- Hero Image Main -->
                             <div
                                 class="relative hero-glass p-2 md:p-3 rounded-[24px] shadow-xl overflow-hidden skeleton">
-                                <img src="<?php echo $path_prefix; ?>assets/img/modern_book_collage_hero_1773421328987.png"
+                                <img src="<?php echo $path_prefix; ?>assets/img/pre-booking-page-hero.png"
                                     alt="Premium Book Collection" class="w-full h-auto rounded-[18px] object-cover"
                                     fetchpriority="high" loading="eager"
                                     onload="this.parentElement.classList.remove('skeleton')">
