@@ -574,7 +574,7 @@ endif; ?>
                             class="text-xs text-gray-400 font-bold uppercase tracking-widest ml-4 bg-gray-100 px-3 py-1 rounded-full"><?php echo count($borrowed_books); ?>টি
                             বই</span>
                     </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                         <?php if (!empty($borrowed_books)): ?>
                             <?php foreach ($borrowed_books as $book): ?>
                                 <div
@@ -656,7 +656,7 @@ endif; ?>
                             class="text-xs text-gray-400 font-bold uppercase tracking-widest ml-4 bg-gray-100 px-3 py-1 rounded-full"><?php echo count($purchased_books); ?>টি
                             বই</span>
                     </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                         <?php if (!empty($purchased_books)): ?>
                             <?php foreach ($purchased_books as $book): ?>
                                 <div

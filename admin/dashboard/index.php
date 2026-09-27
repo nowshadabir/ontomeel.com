@@ -3033,7 +3033,7 @@ function format_bn_datetime($datetime_str)
                             <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">মেম্বারশিপে ধার দেওয়া যাবে?</label>
                             <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="is_borrowable" value="1" class="sr-only peer" checked>
+                                    <input type="checkbox" name="is_borrowable" value="1" class="sr-only peer">
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                                 </label>
                                 <span class="text-xs font-bold text-emerald-800 font-anek">হ্যাঁ, ধারযোগ্য (Borrowable)</span>
@@ -3045,7 +3045,7 @@ function format_bn_datetime($datetime_str)
                             <label class="text-xs font-bold text-brand-900 uppercase tracking-wide font-anek">হোমপেজে সাজেস্টেড বই?</label>
                             <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="is_suggested" value="1" class="sr-only peer">
+                                    <input type="checkbox" name="is_suggested" value="1" class="sr-only peer" checked>
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gold"></div>
                                 </label>
                                 <span class="text-xs font-bold text-brand-900 font-anek">হ্যাঁ, সাজেস্টেড তালিকায় দেখান</span>
@@ -3891,6 +3891,10 @@ function format_bn_datetime($datetime_str)
                 document.getElementById('modal-submit-btn').innerText = "ইনভেন্টরিতে সেভ করুন";
                 document.getElementById('add-book-form').reset();
                 document.getElementById('book_id').value = "";
+                const borrowableCheckbox = document.querySelector('[name="is_borrowable"]');
+                if (borrowableCheckbox) borrowableCheckbox.checked = false;
+                const suggestedCheckbox = document.querySelector('[name="is_suggested"]');
+                if (suggestedCheckbox) suggestedCheckbox.checked = true;
                 document.querySelectorAll('[id$="-preview"]').forEach(p => p.classList.add('hidden'));
                 document.getElementById('new_category_div').classList.add('hidden');
                 updateBookSlugPreview();

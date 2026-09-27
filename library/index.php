@@ -351,7 +351,7 @@ if (!function_exists('bn_num')) {
 
 <!-- Advanced Filter Panel (Collapsible) -->
 <section id="advancedFilterPanel" class="hidden bg-gray-50/90 border-b border-gray-200 transition-all duration-300 shadow-inner">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             
             <!-- Filter 1: Category -->
@@ -442,10 +442,10 @@ if (!function_exists('bn_num')) {
 </section>
 
 <!-- Active Filter Chips Bar -->
-<div id="activeChipsContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 flex flex-wrap items-center gap-2"></div>
+<div id="activeChipsContainer" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 flex flex-wrap items-center gap-2"></div>
 
 <!-- Books Collection Section -->
-<section class="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-[600px]">
+<section class="py-10 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto min-h-[600px]">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-gray-200 pb-5">
         <div>
             <span id="section-subtitle" class="text-brand-gold font-bold tracking-wider text-xs uppercase font-anek block">
@@ -480,13 +480,13 @@ if (!function_exists('bn_num')) {
     </div>
 
     <!-- Library Books Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8" id="library-book-grid">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5" id="library-book-grid">
         <!-- Initial Books rendered by PHP for SEO and Instant Load -->
         <?php foreach ($initial_books as $index => $book): 
             $img = getBookImage($book['cover_image']);
             $isOutOfStock = $book['stock_qty'] <= 0;
             $canBorrow = ($book['is_borrowable'] == 1 && !$isOutOfStock);
-            $delay = ($index % 4) * 60;
+            $delay = ($index % 5) * 40;
         ?>
             <div class="book-card group reveal active <?php echo $isOutOfStock ? 'opacity-80' : ''; ?>" style="transition-delay: <?php echo $delay; ?>ms;">
                 <div class="relative book-cover-container aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 mb-3 shadow-sm border border-gray-100">
@@ -937,7 +937,7 @@ if (!function_exists('bn_num')) {
                     const isOutOfStock = parseInt(book.stock_qty) <= 0;
                     const isLowStock = !isOutOfStock && parseInt(book.stock_qty) <= 5;
                     const canBorrow = parseInt(book.is_borrowable) === 1 && !isOutOfStock;
-                    const delay = (index % 4) * 40;
+                    const delay = (index % 5) * 40;
 
                     const cartPayload = JSON.stringify({
                         id: Number(book.id),

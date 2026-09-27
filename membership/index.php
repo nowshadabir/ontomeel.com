@@ -173,12 +173,6 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                 <div class="lg:col-span-5 h-64 lg:h-full relative min-h-[300px] overflow-hidden bg-brand-900">
                     <img src="../assets/img/boi-er-ananda.jpeg" alt="বইয়ের আনন্দ-পাঠ" class="w-full h-full object-cover transform hover:scale-105 transition-all duration-700">
                     <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/70 via-black/30 to-transparent flex flex-col justify-end p-6 lg:p-8">
-                        <span class="inline-block px-3 py-1 bg-brand-gold text-brand-900 rounded-full text-xs font-bold uppercase tracking-widest font-anek mb-2 w-max">
-                            🎓 স্টুডেন্ট মেম্বারশিপ
-                        </span>
-                        <h3 class="text-2xl lg:text-3xl font-extrabold text-white font-anek leading-tight">
-                            বইয়ের ভেতর নিজের পথ
-                        </h3>
                     </div>
                 </div>
 
@@ -199,55 +193,29 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                             বইয়ের ভেতর নিজের পথ
                         </p>
                         <p class="text-gray-600 text-sm lg:text-base leading-relaxed mb-6 font-light">
-                            বইয়ের সঙ্গে একান্ত ও স্বতন্ত্র সম্পর্ক গড়ে তোলার পাঠ-উদ্যোগ। ১২ থেকে ১৯ বছর বয়সী তরুণ পাঠকদের বইপড়ার আনন্দ ছড়িয়ে দিতে এবং পাঠ-অভ্যাস গড়ে তুলতে এই বিশেষ ফ্রি মেম্বারশিপ।
+                            বইয়ের সঙ্গে একান্ত ও স্বতন্ত্র সম্পর্ক গড়ে তোলার পাঠ-উদ্যোগ।
                         </p>
-
-                        <!-- Key Benefits Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 text-sm text-gray-700">
-                            <div class="flex items-start gap-2.5">
-                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>‘বইয়ের আনন্দ’ লাইব্রেরি থেকে বই ধার সুবিধা</span>
-                            </div>
-                            <div class="flex items-start gap-2.5">
-                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>শুধুমাত্র ১২-১৯ বছর বয়সী শিক্ষার্থীদের জন্য</span>
-                            </div>
-                            <div class="flex items-start gap-2.5">
-                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>একান্ত ও স্বতন্ত্র পাঠচর্চা কার্যক্রম</span>
-                            </div>
-                            <div class="flex items-start gap-2.5">
-                                <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>১ বছরের জন্য সক্রিয় ডিজিটাল মেম্বারশিপ</span>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Action Button & Status -->
-                    <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="text-xs text-gray-500 text-center sm:text-left">
-                            * আবেদন করতে অন্ত্যমিল অ্যাকাউন্ট ও স্টুডেন্ট আইডি কার্ড থাকা আবশ্যক।
+                    <div class="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white font-bold rounded-xl text-sm transition-all">
+                                <span>আরও জানতে দেখুন</span>
+                            </a>
                         </div>
-                        <div class="w-full sm:w-auto">
+                        <div>
                             <?php if ($is_student_plan_active): ?>
-                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-md">
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-md">
                                     <span>✓ মেম্বারশিপ সক্রিয় আছে</span>
                                 </a>
                             <?php elseif ($has_pending_student_req): ?>
-                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-amber-500 text-brand-900 font-bold rounded-xl text-sm shadow-md animate-pulse">
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 px-8 py-3 bg-amber-500 text-brand-900 font-bold rounded-xl text-sm shadow-md animate-pulse">
                                     <span>⏳ রিকোয়েস্ট পেন্ডিং রয়েছে</span>
                                 </a>
                             <?php else: ?>
-                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-brand-900 hover:bg-brand-gold hover:text-brand-900 text-white font-bold rounded-xl transition-all text-sm shadow-lg">
-                                    <span>বিনামূল্যে আবেদন করুন →</span>
+                                <a href="student-apply.php" class="inline-flex items-center justify-center gap-2 px-8 py-3 bg-brand-900 hover:bg-brand-gold hover:text-brand-900 text-white font-bold rounded-xl transition-all text-sm shadow-lg">
+                                    <span>পাঠযাত্রায় যুক্ত হন &rarr;</span>
                                 </a>
                             <?php endif; ?>
                         </div>
@@ -256,41 +224,41 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
             </div>
         </div>
 
-        <div class="text-center mb-12">
-            <span class="text-brand-gold text-xs font-bold uppercase tracking-widest block mb-2 font-anek">অন্যান্য মেম্বারশিপ</span>
-            <h2 class="text-3xl md:text-4xl font-extrabold text-brand-900 font-anek">সাধারণ ও নিয়মিত পাঠকদের জন্য প্ল্যান</h2>
+        <div class="text-center mb-10">
+            <span class="text-brand-gold text-xs font-bold uppercase tracking-widest block mb-1.5 font-anek">অন্যান্য মেম্বারশিপ</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-brand-900 font-anek">সাধারণ ও নিয়মিত পাঠকদের জন্য প্ল্যান</h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+        <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 items-stretch">
             <!-- General Reader Plan -->
-            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full">
+            <div class="bg-white p-6 sm:p-7 rounded-2xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 reveal flex flex-col justify-between h-full">
                 <div>
-                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাধারণ পাঠক</h3>
-                    <p class="text-gray-500 text-sm mb-8 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
-                    <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-brand-900 font-anek">৳৫০০</span>
+                    <h3 class="text-xl font-anek font-bold text-brand-900 mb-1">সাধারণ পাঠক</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mb-4 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
+                    <div class="flex items-baseline gap-1 mb-5">
+                        <span class="text-3xl sm:text-4xl font-bold text-brand-900 font-anek">৳৫০০</span>
                     </div>
-                    <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ul class="space-y-2.5 mb-6 text-gray-600 font-anek text-xs sm:text-sm">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>টোট ব্যাগ</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>বই ক্রয়ে সর্বোচ্চ ৫% পর্যন্ত ছাড়</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি লাইব্রেরি থেকে বই ধার সুবিধা</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
@@ -298,7 +266,7 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                     </ul>
                 </div>
                 <a href="request.php?plan=General"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
+                    class="block text-center w-full py-3 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-md text-sm sm:text-base">
                     <?php 
                         if ($is_paid_plan_active && $current_user_plan === 'General') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
                         elseif ($is_paid_plan_active) echo 'এই প্ল্যানে পরিবর্তন';
@@ -308,37 +276,37 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
             </div>
 
             <!-- Regular Reader Plan (Featured) -->
-            <div class="bg-brand-900 p-12 rounded-3xl shadow-2xl relative transform lg:scale-105 border border-brand-gold/30 hover:border-brand-gold hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full" style="transition-delay: 100ms;">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-gold text-brand-900 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest font-anek shadow-xl">
+            <div class="bg-brand-900 p-6 sm:p-7 rounded-2xl shadow-xl relative border border-brand-gold/40 hover:border-brand-gold transition-all duration-300 reveal flex flex-col justify-between h-full" style="transition-delay: 100ms;">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-gold text-brand-900 px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider font-anek shadow-md">
                     সর্বাধিক জনপ্রিয়
                 </div>
                 <div>
-                    <h3 class="text-2xl font-anek font-bold text-white mb-2">নিয়মিত পাঠক</h3>
-                    <p class="text-gray-400 text-sm mb-8 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
-                    <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-white font-anek text-gradient-gold">৳৭০০</span>
+                    <h3 class="text-xl font-anek font-bold text-white mb-1">নিয়মিত পাঠক</h3>
+                    <p class="text-gray-400 text-xs sm:text-sm mb-4 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
+                    <div class="flex items-baseline gap-1 mb-5">
+                        <span class="text-3xl sm:text-4xl font-bold text-brand-gold font-anek">৳৭০০</span>
                     </div>
-                    <ul class="space-y-4 mb-10 text-gray-300 font-anek text-base">
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ul class="space-y-2.5 mb-6 text-gray-300 font-anek text-xs sm:text-sm">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>টোট ব্যাগ ও ব্র্যান্ডেড টি-শার্ট</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>বই ক্রয়ে সর্বোচ্চ ৮% পর্যন্ত ছাড়</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি লাইব্রেরি থেকে বই ধার সুবিধা</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
@@ -346,7 +314,7 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                     </ul>
                 </div>
                 <a href="request.php?plan=BookLover"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-xl shadow-brand-gold/20 text-lg">
+                    class="block text-center w-full py-3 rounded-xl bg-brand-gold text-brand-900 font-anek font-bold hover:bg-white transition-all shadow-md text-sm sm:text-base">
                     <?php 
                         if ($is_paid_plan_active && $current_user_plan === 'BookLover') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
                         elseif ($is_paid_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
@@ -356,34 +324,34 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
             </div>
 
             <!-- Literature Enthusiast Plan -->
-            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 reveal flex flex-col justify-between h-full" style="transition-delay: 200ms;">
+            <div class="bg-white p-6 sm:p-7 rounded-2xl shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300 reveal flex flex-col justify-between h-full" style="transition-delay: 200ms;">
                 <div>
-                    <h3 class="text-2xl font-anek font-bold text-brand-900 mb-2">সাহিত্য অনুরাগী</h3>
-                    <p class="text-gray-500 text-sm mb-8 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য।</p>
-                    <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-bold text-brand-900 font-anek">৳১০০০</span>
+                    <h3 class="text-xl font-anek font-bold text-brand-900 mb-1">সাহিত্য অনুরাগী</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mb-4 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য।</p>
+                    <div class="flex items-baseline gap-1 mb-5">
+                        <span class="text-3xl sm:text-4xl font-bold text-brand-900 font-anek">৳১০০০</span>
                     </div>
-                    <ul class="space-y-4 mb-10 text-gray-600 font-anek text-base">
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ul class="space-y-2.5 mb-6 text-gray-600 font-anek text-xs sm:text-sm">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>টোট ব্যাগ, ব্র্যান্ডেড টি-শার্ট, বুকমার্ক/পোস্টকার্ড ও কীরিং</span>
+                            <span>টোট ব্যাগ, ব্র্যান্ডেড টি-শার্ট, বুকমার্ক ও কীরিং</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>বই ক্রয়ে সর্বোচ্চ ১০% পর্যন্ত ছাড়</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>‘বইয়ের আনন্দ’ কমিউনিটি  লাইব্রেরি থেকে বই ধার নেওয়ার সুযোগ</span>
+                            <span>‘বইয়ের আনন্দ’ কমিউনিটি লাইব্রেরি থেকে বই ধার সুবিধা</span>
                         </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>নেসক্যাফে এক্সপেরিয়েন্স বুথ ব্যবহার সুবিধা</span>
@@ -391,7 +359,7 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                     </ul>
                 </div>
                 <a href="request.php?plan=Collector"
-                    class="block text-center w-full py-4 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-lg shadow-brand-900/10 text-lg">
+                    class="block text-center w-full py-3 rounded-xl bg-brand-900 text-white font-anek font-bold hover:bg-brand-gold hover:text-brand-900 transition-all shadow-md text-sm sm:text-base">
                     <?php 
                         if ($is_paid_plan_active && $current_user_plan === 'Collector') echo 'রিনিউ করুন (মেয়াদ বৃদ্ধি)';
                         elseif ($is_paid_plan_active) echo 'এই প্ল্যানে আপগ্রেড করুন';
