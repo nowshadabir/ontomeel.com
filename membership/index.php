@@ -235,8 +235,9 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                 <div>
                     <h3 class="text-xl font-anek font-bold text-brand-900 mb-1">সাধারণ পাঠক</h3>
                     <p class="text-gray-500 text-xs sm:text-sm mb-4 font-anek">বই ও সাহিত্যের সান্নিধ্যে যারা থাকতে ভালোবাসেন।</p>
-                    <div class="flex items-baseline gap-1 mb-5">
+                    <div class="flex items-baseline gap-1.5 mb-5">
                         <span class="text-3xl sm:text-4xl font-bold text-brand-900 font-anek">৳৫০০</span>
+                        <span class="text-xs text-gray-500 font-anek font-semibold">/ ১ বছর মেয়াদ</span>
                     </div>
                     <ul class="space-y-2.5 mb-6 text-gray-600 font-anek text-xs sm:text-sm">
                         <li class="flex items-start gap-2.5">
@@ -283,8 +284,9 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                 <div>
                     <h3 class="text-xl font-anek font-bold text-white mb-1">নিয়মিত পাঠক</h3>
                     <p class="text-gray-400 text-xs sm:text-sm mb-4 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
-                    <div class="flex items-baseline gap-1 mb-5">
+                    <div class="flex items-baseline gap-1.5 mb-5">
                         <span class="text-3xl sm:text-4xl font-bold text-brand-gold font-anek">৳৭৫০</span>
+                        <span class="text-xs text-gray-300 font-anek font-semibold">/ ১ বছর মেয়াদ</span>
                     </div>
                     <ul class="space-y-2.5 mb-6 text-gray-300 font-anek text-xs sm:text-sm">
                         <li class="flex items-start gap-2.5">
@@ -328,8 +330,9 @@ $student_effective_expire = $student_plan_expire_date ?: $plan_expire_date;
                 <div>
                     <h3 class="text-xl font-anek font-bold text-brand-900 mb-1">সাহিত্য অনুরাগী</h3>
                     <p class="text-gray-500 text-xs sm:text-sm mb-4 font-anek">প্রকৃত সাহিত্যপ্রেমী ও সংগ্রাহকদের জন্য।</p>
-                    <div class="flex items-baseline gap-1 mb-5">
+                    <div class="flex items-baseline gap-1.5 mb-5">
                         <span class="text-3xl sm:text-4xl font-bold text-brand-900 font-anek">৳১০০০</span>
+                        <span class="text-xs text-gray-500 font-anek font-semibold">/ ১ বছর মেয়াদ</span>
                     </div>
                     <ul class="space-y-2.5 mb-6 text-gray-600 font-anek text-xs sm:text-sm">
                         <li class="flex items-start gap-2.5">
