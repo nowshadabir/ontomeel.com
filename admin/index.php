@@ -1,10 +1,9 @@
 <?php
-require_once '../includes/db_connect.php';
+require_once __DIR__ . '/../includes/db_connect.php';
 
 if (isset($_SESSION['admin_id'])) {
-    header("Location: dashboard/index.php");
+    header("Location: /admin/overview");
 } else {
-    header("Location: login/index.php");
+    header("Location: /admin/login/");
 }
 exit();
-?>

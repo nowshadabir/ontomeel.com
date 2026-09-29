@@ -332,7 +332,7 @@ $all_books_db = [];
                     <h3 class="text-xl font-anek font-bold text-white mb-1">নিয়মিত পাঠক</h3>
                     <p class="text-gray-400 text-xs sm:text-sm mb-4 font-anek">যাদের নিত্যদিনের সঙ্গী প্রিয় বই।</p>
                     <div class="flex items-baseline gap-1 mb-5">
-                        <span class="text-3xl sm:text-4xl font-bold text-brand-gold font-anek">৳৭০০</span>
+                        <span class="text-3xl sm:text-4xl font-bold text-brand-gold font-anek">৳৭৫০</span>
                     </div>
                     <ul class="space-y-2.5 mb-6 text-gray-300 font-anek text-xs sm:text-sm">
                         <li class="flex items-start gap-2.5">

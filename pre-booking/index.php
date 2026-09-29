@@ -531,23 +531,29 @@ if (!function_exists('bn_num')) {
                     </div>
 
                     <div class="lg:col-span-5 relative flex justify-center lg:justify-end" style="min-height: 360px;">
-                        <?php if (!empty($hot_deal['second_cover_image'])): ?>
+                        <?php if (!empty($hot_deal['second_cover_image'])): 
+                            $cover1 = strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['cover_image']);
+                            $cover2 = strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']);
+                            $fallback_cover = $path_prefix . 'assets/img/og-image-for-prebooking.jpg';
+                        ?>
                             <!-- Dual Book Display with Animation -->
                             <div class="dual-book-container w-full h-[340px]">
                                 <div class="book-wrapper book-1 w-[160px] sm:w-[190px] md:w-[210px] skeleton rounded-r-xl">
-                                    <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                        class="lazy-image rounded-r-xl shadow-xl" alt="<?php echo $hot_deal['title']; ?>">
+                                    <img src="<?php echo htmlspecialchars($cover1); ?>"
+                                        onerror="this.src='<?php echo $fallback_cover; ?>'; this.closest('.skeleton')?.classList.remove('skeleton');"
+                                        onload="this.closest('.skeleton')?.classList.remove('skeleton');"
+                                        class="rounded-r-xl shadow-xl w-full h-full object-cover" alt="<?php echo htmlspecialchars($hot_deal['title']); ?>">
                                     <div class="status-label label-preorder">
                                         <span class="inline-block w-1.5 h-1.5 bg-white rounded-full mr-1.5 animate-pulse"></span>
                                         প্রি-অর্ডার চলছে
                                     </div>
                                 </div>
                                 <div class="book-wrapper book-2 w-[160px] sm:w-[190px] md:w-[210px] skeleton rounded-r-xl">
-                                    <img data-src="<?php echo strpos($hot_deal['second_cover_image'], 'http') === 0 ? $hot_deal['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['second_cover_image']); ?>"
-                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                        class="lazy-image rounded-r-xl shadow-xl"
-                                        alt="<?php echo $hot_deal['title']; ?> - Second Cover">
+                                    <img src="<?php echo htmlspecialchars($cover2); ?>"
+                                        onerror="this.src='<?php echo $fallback_cover; ?>'; this.closest('.skeleton')?.classList.remove('skeleton');"
+                                        onload="this.closest('.skeleton')?.classList.remove('skeleton');"
+                                        class="rounded-r-xl shadow-xl w-full h-full object-cover"
+                                        alt="<?php echo htmlspecialchars($hot_deal['title']); ?> - Second Cover">
                                     <div class="status-label label-released">
                                         <span class="inline-block w-1.5 h-1.5 bg-white rounded-full mr-1.5"></span>
                                         সদ্য প্রকাশিত
@@ -555,12 +561,16 @@ if (!function_exists('bn_num')) {
                                 </div>
                             </div>
                             <?php
-                        else: ?>
+                        else: 
+                            $cover1 = strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($hot_deal['cover_image']);
+                            $fallback_cover = $path_prefix . 'assets/img/og-image-for-prebooking.jpg';
+                        ?>
                             <!-- Single Book Display -->
                             <div class="book-3d-hot w-[200px] sm:w-[240px] md:w-[260px] skeleton rounded-r-xl">
-                                <img data-src="<?php echo strpos($hot_deal['cover_image'], 'http') === 0 ? $hot_deal['cover_image'] : $path_prefix . 'assets/img/preorders/' . $hot_deal['cover_image']; ?>"
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                    class="lazy-image rounded-r-xl shadow-xl" alt="<?php echo $hot_deal['title']; ?>">
+                                <img src="<?php echo htmlspecialchars($cover1); ?>"
+                                    onerror="this.src='<?php echo $fallback_cover; ?>'; this.closest('.skeleton')?.classList.remove('skeleton');"
+                                    onload="this.closest('.skeleton')?.classList.remove('skeleton');"
+                                    class="rounded-r-xl shadow-xl w-full h-full object-cover" alt="<?php echo htmlspecialchars($hot_deal['title']); ?>">
                             </div>
                             <?php
                         endif; ?>
@@ -580,17 +590,21 @@ if (!function_exists('bn_num')) {
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
                 <?php foreach ($preorders as $index => $book):
                     $isOpen = $book['status'] == 'Open';
+                    $book_cover = strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']);
+                    $fallback_cover = $path_prefix . 'assets/img/og-image-for-prebooking.jpg';
                     ?>
                     <div onclick="window.location.href='<?php echo !empty($book['slug']) ? $path_prefix . 'pre-booking/book/' . $book['slug'] : 'book-details.php?id=' . $book['id']; ?>'"
-                        class="mockup-card reveal group flex flex-col justify-between">
+                        class="mockup-card reveal group flex flex-col justify-between cursor-pointer">
 
                         <div>
-                            <div class="mockup-img-wrapper mb-4 skeleton rounded-xl">
+                            <div class="mockup-img-wrapper mb-4 skeleton rounded-xl overflow-hidden relative">
                                 <span class="mockup-badge"><?php echo $isOpen ? 'ওপেন' : 'আসন্ন'; ?></span>
-                                <img data-src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image']); ?>"
-                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 3'%3E%3C/svg%3E"
-                                    alt="<?php echo $book['title']; ?>"
-                                    class="lazy-image w-full h-full object-cover transform scale-105 group-hover:scale-108 transition-transform duration-500">
+                                <img src="<?php echo htmlspecialchars($book_cover); ?>"
+                                    onerror="this.src='<?php echo $fallback_cover; ?>'; this.closest('.skeleton')?.classList.remove('skeleton');"
+                                    onload="this.closest('.skeleton')?.classList.remove('skeleton');"
+                                    alt="<?php echo htmlspecialchars($book['title']); ?>"
+                                    class="w-full h-full object-cover transform scale-105 group-hover:scale-108 transition-transform duration-500"
+                                    loading="lazy">
 
                                 <!-- Detailed Preview Overlay (Subtle) -->
                                 <div

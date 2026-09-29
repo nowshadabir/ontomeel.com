@@ -23,7 +23,7 @@ $plans = [
     ],
     'BookLover' => [
         'name' => 'নিয়মিত পাঠক',
-        'price' => 700,
+        'price' => 750,
         'days' => 365
     ],
     'Collector' => [

@@ -273,12 +273,14 @@ include '../includes/header.php';
                         <div class="book-wrapper">
                             <div class="coming-soon-tag">Coming Soon</div>
                             <div class="award-seal">ইন্টারন্যাশনাল বুকার প্রাইজ ২০২৫ প্রাপ্ত</div>
-                            <img src="<?php echo strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['cover_image']; ?>" 
+                            <img src="<?php echo htmlspecialchars(strpos($book['cover_image'], 'http') === 0 ? $book['cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['cover_image'])); ?>" 
+                                 onerror="this.src='<?php echo $path_prefix; ?>assets/img/og-image-for-prebooking.jpg'"
                                  class="prime-cover" alt="Main Book">
                         </div>
                         
                         <?php if (!empty($book['second_cover_image'])): ?>
-                            <img src="<?php echo strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . $book['second_cover_image']; ?>" 
+                            <img src="<?php echo htmlspecialchars(strpos($book['second_cover_image'], 'http') === 0 ? $book['second_cover_image'] : $path_prefix . 'assets/img/preorders/' . trim($book['second_cover_image'])); ?>" 
+                                 onerror="this.src='<?php echo $path_prefix; ?>assets/img/og-image-for-prebooking.jpg'"
                                  class="second-cover" alt="Combo Book">
                         <?php endif; ?>
                     </div>

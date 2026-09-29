@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../includes/security_helper.php';
 
 // Determine context-safe redirect locations
 $is_in_login_dir = (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/login') !== false);
-$login_page = $is_in_login_dir ? 'index.php' : 'login/index.php';
-$dashboard_page = $is_in_login_dir ? '../dashboard/index.php' : 'dashboard/index.php';
+$login_page = $is_in_login_dir ? 'index.php' : '/admin/login/';
+$dashboard_page = '/admin/overview';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Rate limiting check: 10 attempts per 5 minutes

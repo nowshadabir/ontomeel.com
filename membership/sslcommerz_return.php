@@ -15,7 +15,7 @@ $plans = [
     ],
     'BookLover' => [
         'name' => 'নিয়মিত পাঠক',
-        'price' => 700,
+        'price' => 750,
         'discount' => '৮%',
         'color' => 'from-brand-900 via-brand-800 to-brand-gold/30'
     ],

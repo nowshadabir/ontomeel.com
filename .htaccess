@@ -20,6 +20,40 @@ Options -Indexes
 
     # 5. Book details slug rewrite rule: /books/{slug}
     RewriteRule ^books/([^/]+)/?$ book-details.php?slug=$1 [L,QSA]
+
+    # 6. Admin Section Routes
+    RewriteRule ^admin/overview/?$ admin/dashboard/index.php [L,QSA]
+    RewriteRule ^admin/dashboard/overview/?$ admin/dashboard/index.php [L,QSA]
+
+    RewriteRule ^admin/orders/?$ admin/dashboard/orders.php [L,QSA]
+    RewriteRule ^admin/dashboard/orders/?$ admin/dashboard/orders.php [L,QSA]
+
+    RewriteRule ^admin/inventory/?$ admin/dashboard/inventory.php [L,QSA]
+    RewriteRule ^admin/dashboard/inventory/?$ admin/dashboard/inventory.php [L,QSA]
+
+    RewriteRule ^admin/members/?$ admin/dashboard/members.php [L,QSA]
+    RewriteRule ^admin/dashboard/members/?$ admin/dashboard/members.php [L,QSA]
+
+    RewriteRule ^admin/suggested/?$ admin/dashboard/suggested.php [L,QSA]
+    RewriteRule ^admin/dashboard/suggested/?$ admin/dashboard/suggested.php [L,QSA]
+
+    RewriteRule ^admin/borrows/?$ admin/dashboard/borrows.php [L,QSA]
+    RewriteRule ^admin/dashboard/borrows/?$ admin/dashboard/borrows.php [L,QSA]
+
+    RewriteRule ^admin/preorders/?$ admin/dashboard/preorders.php [L,QSA]
+    RewriteRule ^admin/dashboard/preorders/?$ admin/dashboard/preorders.php [L,QSA]
+
+    RewriteRule ^admin/payments/?$ admin/dashboard/payments.php [L,QSA]
+    RewriteRule ^admin/dashboard/payments/?$ admin/dashboard/payments.php [L,QSA]
+
+    RewriteRule ^admin/student-memberships/?$ admin/dashboard/student_memberships.php [L,QSA]
+    RewriteRule ^admin/dashboard/student-memberships/?$ admin/dashboard/student_memberships.php [L,QSA]
+
+    RewriteRule ^admin/membership/?$ admin/dashboard/membership.php [L,QSA]
+    RewriteRule ^admin/dashboard/membership/?$ admin/dashboard/membership.php [L,QSA]
+
+    RewriteRule ^admin/profile/?$ admin/dashboard/profile.php [L,QSA]
+    RewriteRule ^admin/dashboard/profile/?$ admin/dashboard/profile.php [L,QSA]
 </IfModule>
 
 # Fallback protection via FilesMatch (for Apache 2.2 & 2.4)
