@@ -698,10 +698,23 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
             if (!finalElem) return;
 
+            // Input visual state reset
+            if (discInput) {
+                discInput.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
+            }
+            if (sellInput) {
+                sellInput.classList.remove('border-rose-400');
+            }
+
             if (sell <= 0) {
                 finalElem.textContent = '৳০';
                 strikeElem.classList.add('hidden');
-                badgeElem.classList.add('hidden');
+                badgeElem.textContent = '⚠️ গায়ের দাম দিন';
+                badgeElem.classList.remove('hidden');
+                badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-stone-100 text-stone-600';
+                if (sellInput && sellInput.value !== '') {
+                    sellInput.classList.add('border-rose-400');
+                }
                 if (profitElem) profitElem.innerHTML = '';
                 if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-stone-300';
                 return;
@@ -724,10 +737,18 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                 customerPrice = sell;
                 finalElem.textContent = '৳' + sell;
                 strikeElem.classList.add('hidden');
-                badgeElem.textContent = '⚠️ অফার মূল্য গায়ের দামের চেয়ে কম হতে হবে';
+                badgeElem.textContent = '⚠️ ভুল ইনপুট: অফার মূল্য গায়ের দামের (৳' + sell + ') চেয়ে কম হতে হবে!';
+                badgeElem.classList.remove('hidden');
+                badgeElem.className = 'font-mono text-xs font-semibold px-2.5 py-1 rounded bg-rose-100 text-rose-700 border border-rose-300 animate-pulse';
+                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-rose-500';
+                if (discInput) {
+                    discInput.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                }
+            } else if (disc < 0) {
+                badgeElem.textContent = '⚠️ মূল্য ঋণাত্মক হতে পারবে না';
                 badgeElem.classList.remove('hidden');
                 badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-700';
-                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-rose-500';
+                if (discInput) discInput.classList.add('border-rose-500', 'bg-rose-50');
             } else {
                 finalElem.textContent = '৳' + sell;
                 strikeElem.classList.add('hidden');
@@ -740,10 +761,12 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             if (profitElem) {
                 if (buy > 0) {
                     const profit = customerPrice - buy;
-                    if (profit >= 0) {
+                    if (profit > 0) {
                         profitElem.innerHTML = `বই প্রতি লাভ: <span class="text-emerald-700 font-bold">৳${profit}</span> (কেনা: ৳${buy})`;
+                    } else if (profit === 0) {
+                        profitElem.innerHTML = `বই প্রতি লাভ: <span class="text-stone-600 font-bold">৳০ (কেনা দামে বিক্রয়)</span>`;
                     } else {
-                        profitElem.innerHTML = `সতর্কতা: <span class="text-rose-600 font-bold">৳${Math.abs(profit)} ক্ষতি</span> (কেনা: ৳${buy})`;
+                        profitElem.innerHTML = `⚠️ <span class="text-rose-600 font-bold">৳${Math.abs(profit)} ক্ষতিতে বিক্রয়!</span> (কেনা: ৳${buy})`;
                     }
                 } else {
                     profitElem.innerHTML = '';
@@ -800,6 +823,44 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
         function handleBookSubmit(e) {
             e.preventDefault();
             const form = e.target;
+
+            // Amount & Entry Validation
+            const sellInput = document.getElementById('form_sell_price');
+            const discInput = document.getElementById('form_discount_price');
+            const buyInput = document.getElementById('form_purchase_price');
+            const stockInput = form.stock_qty;
+
+            const sell = parseFloat(sellInput ? sellInput.value : 0) || 0;
+            const disc = parseFloat(discInput ? discInput.value : 0) || 0;
+            const buy = parseFloat(buyInput ? buyInput.value : 0) || 0;
+            const stock = parseInt(stockInput ? stockInput.value : 0);
+
+            if (sell <= 0) {
+                alert('⚠️ অনুগ্রহ করে বইয়ের সঠিক মুদ্রিত গায়ের দাম (MRP) দিন। এটি অবশ্যই ০ এর চেয়ে বেশি হতে হবে।');
+                if (sellInput) sellInput.focus();
+                return;
+            }
+
+            if (disc > 0 && disc >= sell) {
+                alert(`⚠️ ভুল অফার মূল্য!\n\nছাড়ের পর বিক্রয় মূল্য (৳${disc}) অবশ্যই বইয়ের মুদ্রিত গায়ের দামের (৳${sell}) চেয়ে কম হতে হবে।\n\nকোনো ছাড় না থাকলে অফার মূল্যের ঘরটি সম্পূর্ণ খালি রাখুন।`);
+                if (discInput) {
+                    discInput.focus();
+                    discInput.select();
+                }
+                return;
+            }
+
+            if (disc < 0 || buy < 0 || sell < 0) {
+                alert('⚠️ কোনো মূল্যের মান ঋণাত্মক (নেগেটিভ) হতে পারবে না।');
+                return;
+            }
+
+            if (stock < 0) {
+                alert('⚠️ স্টক পরিমাণ ঋণাত্মক হতে পারবে না।');
+                if (stockInput) stockInput.focus();
+                return;
+            }
+
             const formData = new FormData(form);
             const btn = document.getElementById('modal-submit-btn');
 

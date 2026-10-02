@@ -149,8 +149,20 @@ try {
     $supplier_name = !empty(trim($_POST['supplier_name'] ?? '')) ? trim($_POST['supplier_name']) : null;
     $supplier_contact = !empty(trim($_POST['supplier_contact'] ?? '')) ? trim($_POST['supplier_contact']) : null;
 
-    if (empty($title) || empty($title_en) || empty($author) || empty($author_en) || empty($sell_price)) {
-        throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, ইংরেজি নাম, লেখক, ইংরেজি লেখক, দাম) পূরণ করুন');
+    if (empty($title) || empty($title_en) || empty($author) || empty($author_en) || $sell_price <= 0) {
+        throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, ইংরেজি নাম, লেখক, ইংরেজি লেখক, সঠিক বিক্রয়মূল্য) পূরণ করুন।');
+    }
+
+    if ($sell_price <= 0) {
+        throw new Exception('বইয়ের মুদ্রিত গায়ের দাম (MRP) অবশ্যই ০ এর চেয়ে বেশি হতে হবে।');
+    }
+
+    if ($discount_price < 0 || $purchase_price < 0) {
+        throw new Exception('কোনো মূল্যের মান ঋণাত্মক (নেগেটিভ) হতে পারবে না।');
+    }
+
+    if ($discount_price > 0 && $discount_price >= $sell_price) {
+        throw new Exception('ছাড়ের পর বিক্রয় মূল্য (Offer Price: ৳' . $discount_price . ') অবশ্যই মুদ্রিত গায়ের দামের (MRP: ৳' . $sell_price . ') চেয়ে কম হতে হবে। ছাড় না দিতে চাইলে ফিল্ডটি খালি রাখুন।');
     }
 
     // Check duplicate ISBN
