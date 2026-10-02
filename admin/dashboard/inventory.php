@@ -379,34 +379,86 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
                 <!-- 3. Pricing, Stock & Supplier -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
-                        ৩. মূল্য, স্টক ও সাপ্লায়ার তথ্য
-                    </h4>
+                    <div class="pb-2 border-b border-[#f0ece3] flex items-center justify-between">
+                        <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider">
+                            ৩. মূল্য, স্টক ও সাপ্লায়ার তথ্য
+                        </h4>
+                        <span class="text-[11px] text-stone-400 font-mono">মুদ্রিত মূল্য ও অফার মূল্য আলাদা রাখুন</span>
+                    </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বিক্রয় মূল্য (BDT) *</label>
-                            <input type="number" step="any" name="sell_price" required placeholder="0"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+                    <!-- Pricing 3-Box Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 1. Sell Price (Regular / MRP) -->
+                        <div class="p-3.5 bg-[#faf8f5] border border-[#e7e3da] rounded-xl space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-stone-900 font-mono font-bold text-xs">
+                                    মুদ্রিত মূল্য / গায়ের দাম (MRP) *
+                                </label>
+                                <span class="text-[10px] bg-stone-200 text-stone-700 px-1.5 py-0.5 rounded font-mono">মূল দাম</span>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold">৳</span>
+                                <input type="number" step="any" min="0" name="sell_price" id="form_sell_price" required placeholder="যেমন: 500"
+                                    oninput="updatePricePreview()"
+                                    class="w-full bg-white border border-[#d8d3c7] rounded-lg pl-7 pr-3 py-2 text-stone-900 font-mono text-sm font-bold focus:outline-none focus:border-stone-800">
+                            </div>
+                            <p class="text-[10.5px] text-stone-500 leading-tight">বইটির স্বাভাবিক বিক্রয় মূল্য। কোনো ছাড় না থাকলে গ্রাহক এই মূল্যে কিনবেন।</p>
                         </div>
-                        <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ছাড় মূল্য (Discount)</label>
-                            <input type="number" step="any" name="discount_price" placeholder="0"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+
+                        <!-- 2. Discount / Offer Price -->
+                        <div class="p-3.5 bg-amber-50/40 border border-amber-200/80 rounded-xl space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-amber-950 font-mono font-bold text-xs">
+                                    ছাড়ের পর বিক্রয় মূল্য (Offer)
+                                </label>
+                                <span class="text-[10px] bg-amber-200/80 text-amber-800 px-1.5 py-0.5 rounded font-mono">ঐচ্ছিক</span>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold">৳</span>
+                                <input type="number" step="any" min="0" name="discount_price" id="form_discount_price" placeholder="যেমন: 420"
+                                    oninput="updatePricePreview()"
+                                    class="w-full bg-white border border-amber-300 rounded-lg pl-7 pr-3 py-2 text-stone-900 font-mono text-sm font-bold focus:outline-none focus:border-amber-600">
+                            </div>
+                            <p class="text-[10.5px] text-stone-500 leading-tight">ছাড় দিতে চাইলে ছাড়ের পরের চূড়ান্ত দাম লিখুন। কোনো ছাড় না থাকলে <strong class="text-stone-700">খালি রাখুন</strong>।</p>
                         </div>
-                        <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">কেনা মূল্য (Buy)</label>
-                            <input type="number" step="any" name="purchase_price" placeholder="0"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
-                        </div>
-                        <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">স্টক পরিমাণ *</label>
-                            <input type="number" name="stock_qty" required placeholder="10" value="1"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+
+                        <!-- 3. Purchase / Cost Price -->
+                        <div class="p-3.5 bg-stone-100/50 border border-stone-200 rounded-xl space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-stone-800 font-mono font-bold text-xs">
+                                    কেনা খরচ / ক্রয়মূল্য (Cost)
+                                </label>
+                                <span class="text-[10px] bg-stone-200 text-stone-600 px-1.5 py-0.5 rounded font-mono">অ্যাডমিন অনলি</span>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold">৳</span>
+                                <input type="number" step="any" min="0" name="purchase_price" id="form_purchase_price" placeholder="যেমন: 300"
+                                    oninput="updatePricePreview()"
+                                    class="w-full bg-white border border-[#d8d3c7] rounded-lg pl-7 pr-3 py-2 text-stone-900 font-mono text-sm font-bold focus:outline-none focus:border-stone-800">
+                            </div>
+                            <p class="text-[10.5px] text-stone-500 leading-tight">বইটি আপনার কিনতে কত খরচ হয়েছে (গ্রাহক দেখতে পাবে না, শুধুমাত্র হিসাবের জন্য)।</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Dynamic Live Price Calculation Preview Box -->
+                    <div id="price-summary-box" class="p-3 bg-white border border-[#e7e3da] rounded-xl text-xs flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-stone-400" id="price-status-dot"></span>
+                            <span class="font-mono text-stone-600" id="price-preview-label">গ্রাহক পরিশোধ করবেন:</span>
+                            <span class="font-mono font-bold text-stone-900 text-sm" id="price-preview-final">৳০</span>
+                            <span class="font-mono text-stone-400 line-through text-xs hidden" id="price-preview-strike"></span>
+                            <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 hidden" id="price-preview-badge"></span>
+                        </div>
+                        <div class="font-mono text-xs text-stone-500" id="price-profit-text"></div>
+                    </div>
+
+                    <!-- Stock & Supplier Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">স্টক পরিমাণ (Qty) *</label>
+                            <input type="number" name="stock_qty" required placeholder="10" value="1" min="0"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+                        </div>
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">লো-স্টক অ্যালার্ট সীমা</label>
                             <input type="number" name="min_stock_level" min="0" value="2" placeholder="2"
@@ -414,7 +466,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                         </div>
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">সাপ্লায়ারের নাম</label>
-                            <input type="text" name="supplier_name" placeholder="সাপ্লায়ার বা ভেন্ডরের নাম"
+                            <input type="text" name="supplier_name" placeholder="সাপ্লায়ার বা ভেন্ডর"
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
                         </div>
                         <div>
@@ -424,12 +476,13 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                         </div>
                     </div>
 
+                    <!-- Toggles -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                         <label class="flex items-center gap-3 p-3 bg-[#faf8f5] border border-[#e7e3da] rounded-xl cursor-pointer hover:bg-[#f4f1ea] transition-colors">
                             <input type="checkbox" name="is_borrowable" value="1" class="w-4 h-4 text-stone-900 rounded border-stone-300 focus:ring-stone-800">
                             <div>
                                 <span class="font-mono font-semibold text-stone-900 block text-xs">মেম্বারশিপে ধারযোগ্য (Borrowable)</span>
-                                <span class="text-[11px] text-stone-500 block">সদস্যরা বইটি ধার নেওয়ার জন্য রিকোয়েস্ট করতে পারবে।</span>
+                                <span class="text-[11px] text-stone-500 block">সদস্যরা বইটি পড়ার জন্য ধার নেওয়ার রিকোয়েস্ট করতে পারবে (ডিফল্ট: বন্ধ)।</span>
                             </div>
                         </label>
                         <label class="flex items-center gap-3 p-3 bg-[#faf8f5] border border-[#e7e3da] rounded-xl cursor-pointer hover:bg-[#f4f1ea] transition-colors">
@@ -616,8 +669,9 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             form.book_condition.value = "New";
             form.stock_qty.value = "1";
             form.min_stock_level.value = "2";
-            form.is_borrowable.checked = true;
+            form.is_borrowable.checked = false;
             form.is_suggested.checked = true;
+            updatePricePreview();
             document.getElementById('add-book-modal').classList.remove('hidden');
             document.getElementById('add-book-modal').classList.add('flex');
         }
@@ -625,6 +679,76 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
         function closeAddBookModal() {
             document.getElementById('add-book-modal').classList.add('hidden');
             document.getElementById('add-book-modal').classList.remove('flex');
+        }
+
+        function updatePricePreview() {
+            const sellInput = document.getElementById('form_sell_price');
+            const discInput = document.getElementById('form_discount_price');
+            const buyInput = document.getElementById('form_purchase_price');
+            
+            const sell = parseFloat(sellInput ? sellInput.value : 0) || 0;
+            const disc = parseFloat(discInput ? discInput.value : 0) || 0;
+            const buy = parseFloat(buyInput ? buyInput.value : 0) || 0;
+            
+            const finalElem = document.getElementById('price-preview-final');
+            const strikeElem = document.getElementById('price-preview-strike');
+            const badgeElem = document.getElementById('price-preview-badge');
+            const profitElem = document.getElementById('price-profit-text');
+            const dotElem = document.getElementById('price-status-dot');
+
+            if (!finalElem) return;
+
+            if (sell <= 0) {
+                finalElem.textContent = '৳০';
+                strikeElem.classList.add('hidden');
+                badgeElem.classList.add('hidden');
+                if (profitElem) profitElem.innerHTML = '';
+                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-stone-300';
+                return;
+            }
+
+            let customerPrice = sell;
+            if (disc > 0 && disc < sell) {
+                customerPrice = disc;
+                finalElem.textContent = '৳' + disc;
+                strikeElem.textContent = '৳' + sell;
+                strikeElem.classList.remove('hidden');
+                
+                const savings = sell - disc;
+                const percent = Math.round((savings / sell) * 100);
+                badgeElem.textContent = `${percent}% ছাড় (৳${savings} সাশ্রয়)`;
+                badgeElem.classList.remove('hidden');
+                badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800';
+                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+            } else if (disc >= sell && disc > 0) {
+                customerPrice = sell;
+                finalElem.textContent = '৳' + sell;
+                strikeElem.classList.add('hidden');
+                badgeElem.textContent = '⚠️ অফার মূল্য গায়ের দামের চেয়ে কম হতে হবে';
+                badgeElem.classList.remove('hidden');
+                badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-700';
+                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-rose-500';
+            } else {
+                finalElem.textContent = '৳' + sell;
+                strikeElem.classList.add('hidden');
+                badgeElem.textContent = 'রেগুলার মূল্য (কোনো ছাড় নেই)';
+                badgeElem.classList.remove('hidden');
+                badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-stone-100 text-stone-700';
+                if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-emerald-500';
+            }
+
+            if (profitElem) {
+                if (buy > 0) {
+                    const profit = customerPrice - buy;
+                    if (profit >= 0) {
+                        profitElem.innerHTML = `বই প্রতি লাভ: <span class="text-emerald-700 font-bold">৳${profit}</span> (কেনা: ৳${buy})`;
+                    } else {
+                        profitElem.innerHTML = `সতর্কতা: <span class="text-rose-600 font-bold">৳${Math.abs(profit)} ক্ষতি</span> (কেনা: ৳${buy})`;
+                    }
+                } else {
+                    profitElem.innerHTML = '';
+                }
+            }
         }
 
         function editBook(book) {
@@ -661,6 +785,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             form.description.value = book.description || '';
             form.is_borrowable.checked = parseInt(book.is_borrowable) === 1;
             form.is_suggested.checked = parseInt(book.is_suggested) === 1;
+            updatePricePreview();
         }
 
         function checkNewCategory(select) {
