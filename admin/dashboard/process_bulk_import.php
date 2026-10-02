@@ -310,6 +310,18 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     $photo_2_url = $getVal('photo_2_url', $getVal('photo_2', ''));
     $photo_3_url = $getVal('photo_3_url', $getVal('photo_3', ''));
 
+    // Check duplicate ISBN in database
+    if (!empty($isbn)) {
+        $isbn_check_stmt = $pdo->prepare("SELECT id, title FROM books WHERE isbn = ? AND is_active = 1 LIMIT 1");
+        $isbn_check_stmt->execute([$isbn]);
+        $existing_isbn_book = $isbn_check_stmt->fetch();
+        if ($existing_isbn_book) {
+            $errors[] = "সারি #{$row_number} ('{$title}'): এই ISBN ({$isbn}) নম্বরের বইটি ইতোমধ্যে ডেটাবেজে রয়েছে ('{$existing_isbn_book['title']}')। বাদ দেওয়া হয়েছে।";
+            $skipped_count++;
+            continue;
+        }
+    }
+
     $cover_image = !empty($cover_url) ? downloadAndOptimizeImage($cover_url, $target_dir, 'cover') : null;
     $photo_2 = !empty($photo_2_url) ? downloadAndOptimizeImage($photo_2_url, $target_dir, 'p2') : null;
     $photo_3 = !empty($photo_3_url) ? downloadAndOptimizeImage($photo_3_url, $target_dir, 'p3') : null;

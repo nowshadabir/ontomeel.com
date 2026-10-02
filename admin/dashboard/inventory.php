@@ -220,7 +220,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             <div class="p-6 border-b border-[#e7e3da] flex justify-between items-center bg-[#faf8f5] shrink-0">
                 <div>
                     <h3 id="modal-title" class="text-base font-bold text-stone-900">নতুন বই যুক্ত করুন</h3>
-                    <p class="text-xs text-stone-500 mt-0.5">বইয়ের বিবরণ, ক্যাটাগরি, মূল্য এবং স্টক তথ্য পূরণ করুন।</p>
+                    <p class="text-xs text-stone-500 mt-0.5">বইয়ের বিবরণ, ক্যাটাগরি, প্রকাশনা, মূল্য, স্টক এবং ছবি আপলোড করুন।</p>
                 </div>
                 <button onclick="closeAddBookModal()" class="text-stone-400 hover:text-stone-800 p-1.5 rounded-lg hover:bg-[#eae5db]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -228,25 +228,51 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             </div>
 
             <!-- Modal Form (Scrollable) -->
-            <form id="book-form" onsubmit="handleBookSubmit(event)" class="flex-1 overflow-y-auto p-6 space-y-6">
+            <form id="book-form" onsubmit="handleBookSubmit(event)" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-6 space-y-6">
                 <input type="hidden" name="book_id" id="form-book-id">
 
-                <!-- 1. Primary Info -->
+                <!-- 1. Primary & Categorization Info -->
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
-                        ১. বইয়ের সাধারণ তথ্য
+                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3] flex items-center justify-between">
+                        <span>১. বইয়ের প্রাথমিক ও পরিচিতি তথ্য</span>
+                        <span class="text-[10px] text-stone-400 font-normal lowercase">* চিহ্নিত ফিল্ড আবশ্যক</span>
                     </h4>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বইয়ের নাম (বাংলা) *</label>
-                            <input type="text" name="title" required placeholder="বইয়ের নাম"
+                            <input type="text" name="title" required placeholder="যেমন: পথের পাঁচালী"
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
                         </div>
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বইয়ের নাম (English) *</label>
-                            <input type="text" name="title_en" required placeholder="Book Title in English"
+                            <input type="text" name="title_en" required placeholder="e.g. Pather Panchali"
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">উপশিরোনাম (Subtitle)</label>
+                            <input type="text" name="subtitle" placeholder="ঐচ্ছিক উপশিরোনাম"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ক্যাটাগরি *</label>
+                            <div class="space-y-2">
+                                <select name="category_id" id="modal-category-select" required onchange="checkNewCategory(this)"
+                                    class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-stone-800">
+                                    <option value="">নির্বাচন করুন</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="new">+ নতুন ক্যাটাগরি তৈরি করুন</option>
+                                </select>
+                                <div id="new-category-input-wrapper" class="hidden">
+                                    <input type="text" name="new_category_name" placeholder="নতুন ক্যাটাগরির নাম দিন"
+                                        class="w-full bg-white border border-amber-300 rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-amber-600 text-xs">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -265,33 +291,96 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ক্যাটাগরি *</label>
-                            <select name="category_id" id="modal-category-select" required onchange="checkNewCategory(this)"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-stone-800">
-                                <option value="">নির্বাচন করুন</option>
-                                <?php foreach ($categories as $cat): ?>
-                                    <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
-                                <?php endforeach; ?>
-                                <option value="new">+ নতুন ক্যাটাগরি তৈরি করুন</option>
-                            </select>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">সহ-লেখক / অনুবাদক</label>
+                            <input type="text" name="co_author" placeholder="অনুবাদক / সহ-লেখক"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
                         </div>
-                        <div id="new-category-input-wrapper" class="hidden">
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">নতুন ক্যাটাগরির নাম *</label>
-                            <input type="text" name="new_category_name" placeholder="ক্যাটাগরির নাম"
-                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-stone-800">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বইয়ের ধরন / Genre</label>
+                            <input type="text" name="genre" placeholder="যেমন: ক্লাসিক, থ্রিলার, জীবনী"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
                         </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ভাষা (Language)</label>
+                            <input type="text" name="language" value="Bengali" placeholder="যেমন: Bengali, English"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Publication & Library Logistics -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
+                        ২. প্রকাশনা ও লাইব্রেরি বিবরণ
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">প্রকাশনী (Publisher)</label>
+                            <input type="text" name="publisher" placeholder="প্রকাশনীর নাম"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">প্রকাশনার বছর</label>
+                            <input type="text" name="publish_year" placeholder="যেমন: 2024" maxlength="4"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">সংস্করণ (Edition)</label>
+                            <input type="text" name="edition" placeholder="যেমন: ১ম সংস্করণ"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">আইএসবিএন (ISBN)</label>
                             <input type="text" name="isbn" placeholder="যেমন: 978-984-..."
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
                         </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ফরম্যাট (Format)</label>
+                            <select name="format"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-stone-800">
+                                <option value="Paperback">Paperback (পেপারব্যাক)</option>
+                                <option value="Hardcover">Hardcover (হার্ডকভার)</option>
+                                <option value="E-book">E-book (ডিজিটাল বই)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">পৃষ্ঠা সংখ্যা (Pages)</label>
+                            <input type="number" name="page_count" min="0" placeholder="যেমন: ২৫০"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বইয়ের অবস্থা (Condition)</label>
+                            <select name="book_condition"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 focus:outline-none focus:border-stone-800">
+                                <option value="New">New (একদম নতুন)</option>
+                                <option value="Used">Used (ব্যবহৃত / সেকেন্ড হ্যান্ড)</option>
+                                <option value="Damaged">Damaged (সামান্য ক্ষতিগ্রস্ত)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">শেল্ফ লোকেশন (Shelf)</label>
+                            <input type="text" name="shelf_location" placeholder="যেমন: Shelf-A1"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">র‍্যাক নম্বর (Rack)</label>
+                            <input type="text" name="rack_number" placeholder="যেমন: Rack-03"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
                     </div>
                 </div>
 
-                <!-- 2. Pricing & Stock -->
+                <!-- 3. Pricing, Stock & Supplier -->
                 <div class="space-y-4">
                     <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
-                        ২. মূল্য ও স্টক তথ্য
+                        ৩. মূল্য, স্টক ও সাপ্লায়ার তথ্য
                     </h4>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -312,25 +401,80 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                         </div>
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">স্টক পরিমাণ *</label>
-                            <input type="number" name="stock_qty" required placeholder="10"
+                            <input type="number" name="stock_qty" required placeholder="10" value="1"
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">লো-স্টক অ্যালার্ট সীমা</label>
+                            <input type="number" name="min_stock_level" min="0" value="2" placeholder="2"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">সাপ্লায়ারের নাম</label>
+                            <input type="text" name="supplier_name" placeholder="সাপ্লায়ার বা ভেন্ডরের নাম"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">সাপ্লায়ারের যোগাযোগ</label>
+                            <input type="text" name="supplier_contact" placeholder="ফোন বা ঠিকানা"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <label class="flex items-center gap-3 p-3 bg-[#faf8f5] border border-[#e7e3da] rounded-xl cursor-pointer hover:bg-[#f4f1ea] transition-colors">
+                            <input type="checkbox" name="is_borrowable" value="1" class="w-4 h-4 text-stone-900 rounded border-stone-300 focus:ring-stone-800">
+                            <div>
+                                <span class="font-mono font-semibold text-stone-900 block text-xs">মেম্বারশিপে ধারযোগ্য (Borrowable)</span>
+                                <span class="text-[11px] text-stone-500 block">সদস্যরা বইটি ধার নেওয়ার জন্য রিকোয়েস্ট করতে পারবে।</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-[#faf8f5] border border-[#e7e3da] rounded-xl cursor-pointer hover:bg-[#f4f1ea] transition-colors">
+                            <input type="checkbox" name="is_suggested" value="1" class="w-4 h-4 text-stone-900 rounded border-stone-300 focus:ring-stone-800" checked>
+                            <div>
+                                <span class="font-mono font-semibold text-stone-900 block text-xs">হোমপেজে সাজেস্টেড বই</span>
+                                <span class="text-[11px] text-stone-500 block">হোমপেজ ও লাইব্রেরির সাজেস্টেড সেকশনে প্রদর্শিত হবে।</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 4. Description & Images -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
+                        ৪. বইয়ের বিবরণ ও কভার ছবি
+                    </h4>
+
+                    <div>
+                        <label class="block text-stone-600 mb-1.5 font-mono font-semibold">বইয়ের বিবরণ / পরিচিতি</label>
+                        <textarea name="description" rows="4" placeholder="বইটির সংক্ষিপ্ত বিবরণ, প্লট বা ভূমিকা লিখুন..."
+                            class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-800"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">মূল কভার ছবি (Cover)</label>
+                            <input type="file" name="cover_image" accept="image/*"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-xs text-stone-800 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-[#f4f1ea] file:text-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ভিতরের পাতা / ছবি ২</label>
+                            <input type="file" name="photo_2" accept="image/*"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-xs text-stone-800 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-[#f4f1ea] file:text-stone-800">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">অতিরিক্ত ছবি ৩</label>
+                            <input type="file" name="photo_3" accept="image/*"
+                                class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-xs text-stone-800 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-[#f4f1ea] file:text-stone-800">
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. Cover Image -->
-                <div class="space-y-4">
-                    <h4 class="text-xs font-bold font-mono text-stone-700 uppercase tracking-wider pb-2 border-b border-[#f0ece3]">
-                        ৩. কভার ছবি
-                    </h4>
-                    <div>
-                        <input type="file" name="cover_image" accept="image/*"
-                            class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-xs text-stone-800 file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-[#f4f1ea] file:text-stone-800">
-                    </div>
-                </div>
-
                 <!-- Footer -->
-                <div class="pt-4 border-t border-[#e7e3da] flex justify-end gap-3">
+                <div class="pt-4 border-t border-[#e7e3da] flex justify-end gap-3 sticky bottom-0 bg-white py-2">
                     <button type="button" onclick="closeAddBookModal()"
                         class="px-4 py-2 bg-[#f4f1ea] hover:bg-[#eae5db] text-stone-800 font-medium rounded-lg transition-colors">
                         বাতিল
@@ -398,11 +542,12 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             limit: 20
         };
 
-        function showToast(message) {
+        function showToast(message, isError = false) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `bg-stone-900 text-white px-4 py-3 rounded-lg shadow-2xl text-xs font-mono flex items-center gap-3 transform transition-all duration-300 translate-y-2 opacity-0`;
-            toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>${message}</span>`;
+            const dotClass = isError ? 'bg-rose-400' : 'bg-emerald-400';
+            toast.innerHTML = `<span class="w-2 h-2 rounded-full ${dotClass} animate-pulse"></span><span>${message}</span>`;
             container.appendChild(toast);
             
             setTimeout(() => {
@@ -412,7 +557,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
 
         let debounceTimer;
@@ -462,9 +607,17 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
         function openAddBookModal() {
             document.getElementById('modal-title').innerText = "নতুন বই যুক্ত করুন";
-            document.getElementById('book-form').reset();
+            const form = document.getElementById('book-form');
+            form.reset();
             document.getElementById('form-book-id').value = "";
             document.getElementById('new-category-input-wrapper').classList.add('hidden');
+            form.language.value = "Bengali";
+            form.format.value = "Paperback";
+            form.book_condition.value = "New";
+            form.stock_qty.value = "1";
+            form.min_stock_level.value = "2";
+            form.is_borrowable.checked = true;
+            form.is_suggested.checked = true;
             document.getElementById('add-book-modal').classList.remove('hidden');
             document.getElementById('add-book-modal').classList.add('flex');
         }
@@ -482,14 +635,32 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             const form = document.getElementById('book-form');
             form.title.value = book.title || '';
             form.title_en.value = book.title_en || '';
+            form.subtitle.value = book.subtitle || '';
             form.author.value = book.author || '';
             form.author_en.value = book.author_en || '';
+            form.co_author.value = book.co_author || '';
             form.category_id.value = book.category_id || '';
+            form.genre.value = book.genre || '';
+            form.language.value = book.language || 'Bengali';
+            form.publisher.value = book.publisher || '';
+            form.publish_year.value = book.publish_year || '';
+            form.edition.value = book.edition || '';
             form.isbn.value = book.isbn || '';
+            form.format.value = book.format || 'Paperback';
+            form.page_count.value = book.page_count || '';
+            form.book_condition.value = book.book_condition || 'New';
+            form.shelf_location.value = book.shelf_location || '';
+            form.rack_number.value = book.rack_number || '';
             form.sell_price.value = book.sell_price || '';
-            form.discount_price.value = book.discount_price || '';
-            form.purchase_price.value = book.purchase_price || '';
-            form.stock_qty.value = book.stock_qty || 0;
+            form.discount_price.value = (parseFloat(book.discount_price) > 0) ? book.discount_price : '';
+            form.purchase_price.value = (parseFloat(book.purchase_price) > 0) ? book.purchase_price : '';
+            form.stock_qty.value = book.stock_qty !== undefined ? book.stock_qty : 0;
+            form.min_stock_level.value = book.min_stock_level !== undefined ? book.min_stock_level : 2;
+            form.supplier_name.value = book.supplier_name || '';
+            form.supplier_contact.value = book.supplier_contact || '';
+            form.description.value = book.description || '';
+            form.is_borrowable.checked = parseInt(book.is_borrowable) === 1;
+            form.is_suggested.checked = parseInt(book.is_suggested) === 1;
         }
 
         function checkNewCategory(select) {

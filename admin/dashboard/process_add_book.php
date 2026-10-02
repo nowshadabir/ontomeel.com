@@ -121,36 +121,52 @@ try {
     $photo_3 = uploadImage('photo_3', $target_dir);
 
     // 3. Prepare Data
-    $title = $_POST['title'] ?? '';
-    $title_en = $_POST['title_en'] ?? '';
-    $subtitle = $_POST['subtitle'] ?? null;
-    $description = $_POST['description'] ?? null;
-    $genre = $_POST['genre'] ?? null;
-    $language = $_POST['language'] ?? null;
-    $author = $_POST['author'] ?? '';
-    $author_en = $_POST['author_en'] ?? '';
-    $co_author = $_POST['co_author'] ?? null;
-    $publisher = $_POST['publisher'] ?? null;
-    $publish_year = $_POST['publish_year'] ?? null;
-    $edition = $_POST['edition'] ?? null;
-    $isbn = $_POST['isbn'] ?? null;
+    $title = trim($_POST['title'] ?? '');
+    $title_en = trim($_POST['title_en'] ?? '');
+    $subtitle = !empty(trim($_POST['subtitle'] ?? '')) ? trim($_POST['subtitle']) : null;
+    $description = !empty(trim($_POST['description'] ?? '')) ? trim($_POST['description']) : null;
+    $genre = !empty(trim($_POST['genre'] ?? '')) ? trim($_POST['genre']) : null;
+    $language = !empty(trim($_POST['language'] ?? '')) ? trim($_POST['language']) : 'Bengali';
+    $author = trim($_POST['author'] ?? '');
+    $author_en = trim($_POST['author_en'] ?? '');
+    $co_author = !empty(trim($_POST['co_author'] ?? '')) ? trim($_POST['co_author']) : null;
+    $publisher = !empty(trim($_POST['publisher'] ?? '')) ? trim($_POST['publisher']) : null;
+    $publish_year = !empty(trim($_POST['publish_year'] ?? '')) ? trim($_POST['publish_year']) : null;
+    $edition = !empty(trim($_POST['edition'] ?? '')) ? trim($_POST['edition']) : null;
+    $isbn = !empty(trim($_POST['isbn'] ?? '')) ? trim($_POST['isbn']) : null;
     $format = $_POST['format'] ?? 'Paperback';
-    $page_count = $_POST['page_count'] ?: 0;
+    $page_count = !empty($_POST['page_count']) ? (int)$_POST['page_count'] : 0;
     $book_condition = $_POST['book_condition'] ?? 'New';
-    $shelf_location = $_POST['shelf_location'] ?? null;
-    $rack_number = $_POST['rack_number'] ?? null;
-    $stock_qty = $_POST['stock_qty'] ?: 0;
-    $min_stock_level = $_POST['min_stock_level'] ?: 0;
+    $shelf_location = !empty(trim($_POST['shelf_location'] ?? '')) ? trim($_POST['shelf_location']) : null;
+    $rack_number = !empty(trim($_POST['rack_number'] ?? '')) ? trim($_POST['rack_number']) : null;
+    $stock_qty = isset($_POST['stock_qty']) && $_POST['stock_qty'] !== '' ? (int)$_POST['stock_qty'] : 0;
+    $min_stock_level = isset($_POST['min_stock_level']) && $_POST['min_stock_level'] !== '' ? (int)$_POST['min_stock_level'] : 2;
     $is_borrowable = isset($_POST['is_borrowable']) ? 1 : 0;
     $is_suggested = isset($_POST['is_suggested']) ? 1 : 0;
-    $purchase_price = $_POST['purchase_price'] ?: 0;
-    $sell_price = $_POST['sell_price'] ?: 0;
-    $discount_price = $_POST['discount_price'] ?: 0;
-    $supplier_name = $_POST['supplier_name'] ?? null;
-    $supplier_contact = $_POST['supplier_contact'] ?? null;
+    $purchase_price = !empty($_POST['purchase_price']) ? (float)$_POST['purchase_price'] : 0;
+    $sell_price = !empty($_POST['sell_price']) ? (float)$_POST['sell_price'] : 0;
+    $discount_price = !empty($_POST['discount_price']) ? (float)$_POST['discount_price'] : 0;
+    $supplier_name = !empty(trim($_POST['supplier_name'] ?? '')) ? trim($_POST['supplier_name']) : null;
+    $supplier_contact = !empty(trim($_POST['supplier_contact'] ?? '')) ? trim($_POST['supplier_contact']) : null;
 
     if (empty($title) || empty($title_en) || empty($author) || empty($author_en) || empty($sell_price)) {
         throw new Exception('আবশ্যকীয় তথ্যগুলো (বইয়ের নাম, ইংরেজি নাম, লেখক, ইংরেজি লেখক, দাম) পূরণ করুন');
+    }
+
+    // Check duplicate ISBN
+    if (!empty($isbn)) {
+        $book_id = !empty($_POST['book_id']) ? (int)$_POST['book_id'] : 0;
+        if ($book_id > 0) {
+            $isbn_check_stmt = $pdo->prepare("SELECT id, title FROM books WHERE isbn = ? AND id != ? AND is_active = 1 LIMIT 1");
+            $isbn_check_stmt->execute([$isbn, $book_id]);
+        } else {
+            $isbn_check_stmt = $pdo->prepare("SELECT id, title FROM books WHERE isbn = ? AND is_active = 1 LIMIT 1");
+            $isbn_check_stmt->execute([$isbn]);
+        }
+        $existing_isbn_book = $isbn_check_stmt->fetch();
+        if ($existing_isbn_book) {
+            throw new Exception("এই ISBN নম্বরের ({$isbn}) বইটি ইতোমধ্যে সিস্টেমে রয়েছে ('{$existing_isbn_book['title']}')। একই ISBN-এ ডুপ্লিকেট বই যোগ করা যাবে না।");
+        }
     }
 
     require_once '../../includes/helpers.php';
