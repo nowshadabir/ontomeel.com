@@ -419,7 +419,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                                     oninput="updatePricePreview()"
                                     class="w-full bg-white border border-amber-300 rounded-lg pl-7 pr-3 py-2 text-stone-900 font-mono text-sm font-bold focus:outline-none focus:border-amber-600">
                             </div>
-                            <p class="text-[10.5px] text-stone-500 leading-tight">ছাড় দিতে চাইলে ছাড়ের পরের চূড়ান্ত দাম লিখুন। কোনো ছাড় না থাকলে <strong class="text-stone-700">খালি রাখুন</strong>।</p>
+                            <p class="text-[10.5px] text-stone-500 leading-tight">ছাড় দিতে চাইলে ছাড়ের পরের চূড়ান্ত দাম লিখুন। কোনো ছাড় না থাকলে <strong class="text-stone-700">খালি রাখুন (বা গায়ের দাম লিখুন)</strong>।</p>
                         </div>
 
                         <!-- 3. Purchase / Cost Price -->
@@ -733,11 +733,11 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                 badgeElem.classList.remove('hidden');
                 badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800';
                 if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
-            } else if (disc >= sell && disc > 0) {
+            } else if (disc > sell) {
                 customerPrice = sell;
                 finalElem.textContent = '৳' + sell;
                 strikeElem.classList.add('hidden');
-                badgeElem.textContent = '⚠️ ভুল ইনপুট: অফার মূল্য গায়ের দামের (৳' + sell + ') চেয়ে কম হতে হবে!';
+                badgeElem.textContent = '⚠️ ভুল ইনপুট: অফার মূল্য গায়ের দামের (৳' + sell + ') চেয়ে বেশি হতে পারবে না!';
                 badgeElem.classList.remove('hidden');
                 badgeElem.className = 'font-mono text-xs font-semibold px-2.5 py-1 rounded bg-rose-100 text-rose-700 border border-rose-300 animate-pulse';
                 if (dotElem) dotElem.className = 'w-2 h-2 rounded-full bg-rose-500';
@@ -750,6 +750,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                 badgeElem.className = 'font-mono text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-700';
                 if (discInput) discInput.classList.add('border-rose-500', 'bg-rose-50');
             } else {
+                // disc === 0, empty, or disc === sell (treated as regular price)
                 finalElem.textContent = '৳' + sell;
                 strikeElem.classList.add('hidden');
                 badgeElem.textContent = 'রেগুলার মূল্য (কোনো ছাড় নেই)';
@@ -841,12 +842,23 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                 return;
             }
 
-            if (disc > 0 && disc >= sell) {
-                alert(`⚠️ ভুল অফার মূল্য!\n\nছাড়ের পর বিক্রয় মূল্য (৳${disc}) অবশ্যই বইয়ের মুদ্রিত গায়ের দামের (৳${sell}) চেয়ে কম হতে হবে।\n\nকোনো ছাড় না থাকলে অফার মূল্যের ঘরটি সম্পূর্ণ খালি রাখুন।`);
+            if (disc > sell) {
+                alert(`⚠️ ভুল অফার মূল্য!\n\nছাড়ের পর বিক্রয় মূল্য (৳${disc}) গায়ের দামের (৳${sell}) চেয়ে বেশি হতে পারবে না।\n\nকোনো ছাড় না থাকলে অফার মূল্যের ঘরটি খালি রাখুন (অথবা গায়ের দাম লিখুন)।`);
                 if (discInput) {
                     discInput.focus();
                     discInput.select();
                 }
+                return;
+            }
+
+            if (disc < 0 || buy < 0 || sell < 0) {
+                alert('⚠️ কোনো মূল্যের মান ঋণাত্মক (নেগেটিভ) হতে পারবে না।');
+                return;
+            }
+
+            if (stock < 0) {
+                alert('⚠️ স্টক পরিমাণ ঋণাত্মক হতে পারবে না।');
+                if (stockInput) stockInput.focus();
                 return;
             }
 

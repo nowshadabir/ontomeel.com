@@ -161,8 +161,11 @@ try {
         throw new Exception('কোনো মূল্যের মান ঋণাত্মক (নেগেটিভ) হতে পারবে না।');
     }
 
-    if ($discount_price > 0 && $discount_price >= $sell_price) {
-        throw new Exception('ছাড়ের পর বিক্রয় মূল্য (Offer Price: ৳' . $discount_price . ') অবশ্যই মুদ্রিত গায়ের দামের (MRP: ৳' . $sell_price . ') চেয়ে কম হতে হবে। ছাড় না দিতে চাইলে ফিল্ডটি খালি রাখুন।');
+    // If discount price equals regular price, treat as no discount (0)
+    if ($discount_price == $sell_price) {
+        $discount_price = 0;
+    } elseif ($discount_price > $sell_price) {
+        throw new Exception('ছাড়ের পর বিক্রয় মূল্য (Offer Price: ৳' . $discount_price . ') মুদ্রিত গায়ের দামের (MRP: ৳' . $sell_price . ') চেয়ে বেশি হতে পারবে না। ছাড় না দিতে চাইলে ঘরটি খালি রাখুন।');
     }
 
     // Check duplicate ISBN
