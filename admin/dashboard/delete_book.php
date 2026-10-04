@@ -15,7 +15,7 @@ try {
         throw new Exception('Invalid request method');
     }
 
-    $book_id = $_POST['book_id'] ?? null;
+    $book_id = $_POST['book_id'] ?? $_POST['id'] ?? null;
     if (empty($book_id)) {
         throw new Exception('বইয়ের আইডি পাওয়া যায়নি');
     }

@@ -1,8 +1,8 @@
 <?php
 /**
  * Ontomeel Bookshop - CSV Bulk Import Processor
- * Imports books in bulk from a CSV file, with automatic image downloading,
- * Bengali number normalization, and smart category mapping.
+ * Imports books in bulk from a CSV file, with duplicate prevention (ISBN & Title/Author),
+ * automatic WebP image compression, Bengali number normalization, and smart category mapping.
  */
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/../../includes/db_connect.php';
@@ -39,7 +39,7 @@ if ($ext !== 'csv' && $ext !== 'txt') {
 
 $target_dir = __DIR__ . '/../assets/book-images/';
 if (!is_dir($target_dir)) {
-    @mkdir($target_dir, 0755, true);
+    @mkdir($target_dir, 0777, true);
 }
 
 // 2. Fetch all existing categories for smart matching
@@ -67,7 +67,7 @@ function convertBnToEnNum($str) {
     return trim(str_replace(['৳', '$', ',', ' '], '', $converted));
 }
 
-function downloadAndOptimizeImage($url_or_name, $target_dir, $prefix = 'cover') {
+function downloadAndOptimizeImage($url_or_name, $target_dir, $prefix = 'cover', $max_width = 1600, $max_height = 1600, $quality = 82) {
     $url_or_name = trim($url_or_name);
     if (empty($url_or_name)) return null;
 
@@ -79,12 +79,12 @@ function downloadAndOptimizeImage($url_or_name, $target_dir, $prefix = 'cover') 
         return null;
     }
 
-    // It's a remote URL: Download via cURL
+    // Remote URL: Download via cURL
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url_or_name);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     $data = curl_exec($ch);
@@ -93,25 +93,47 @@ function downloadAndOptimizeImage($url_or_name, $target_dir, $prefix = 'cover') 
     curl_close($ch);
 
     if (!$data || $http_code < 200 || $http_code >= 300) {
-        // Fallback: Return raw external URL if download fails so image is not lost
-        return $url_or_name;
+        // Return null or external url
+        return null;
     }
 
-    // Attempt GD conversion to webp
-    $img = @imagecreatefromstring($data);
-    $unique_suffix = time() . '_' . mt_rand(100, 999) . '_' . $prefix;
-    
-    if ($img && function_exists('imagewebp')) {
-        $filename = $unique_suffix . '.webp';
-        $dest = $target_dir . $filename;
-        imagepalettetotruecolor($img);
-        imagealphablending($img, true);
-        imagesavealpha($img, true);
-        if (imagewebp($img, $dest, 82)) {
+    $unique_suffix = time() . '_' . $prefix . '_' . bin2hex(random_bytes(6));
+
+    // Convert & compress to WebP
+    if (function_exists('imagewebp')) {
+        $img = @imagecreatefromstring($data);
+        if ($img) {
+            $curr_w = imagesx($img);
+            $curr_h = imagesy($img);
+            $new_w = $curr_w;
+            $new_h = $curr_h;
+
+            if ($curr_w > $max_width || $curr_h > $max_height) {
+                $ratio = min($max_width / $curr_w, $max_height / $curr_h);
+                $new_w = max(1, (int)round($curr_w * $ratio));
+                $new_h = max(1, (int)round($curr_h * $ratio));
+            }
+
+            $dst_img = imagecreatetruecolor($new_w, $new_h);
+            imagealphablending($dst_img, false);
+            imagesavealpha($dst_img, true);
+            $transparent = imagecolorallocatealpha($dst_img, 255, 255, 255, 127);
+            imagefilledrectangle($dst_img, 0, 0, $new_w, $new_h, $transparent);
+
+            imagecopyresampled($dst_img, $img, 0, 0, 0, 0, $new_w, $new_h, $curr_w, $curr_h);
+
+            $filename = $unique_suffix . '.webp';
+            $dest = $target_dir . $filename;
+
+            if (imagewebp($dst_img, $dest, $quality)) {
+                imagedestroy($img);
+                imagedestroy($dst_img);
+                return $filename;
+            }
+
             imagedestroy($img);
-            return $filename;
+            imagedestroy($dst_img);
         }
-        imagedestroy($img);
     }
 
     // Fallback: Save original image directly
@@ -125,7 +147,7 @@ function downloadAndOptimizeImage($url_or_name, $target_dir, $prefix = 'cover') 
         return $filename;
     }
 
-    return $url_or_name;
+    return null;
 }
 
 // 4. Open and Parse CSV File
@@ -174,6 +196,10 @@ $row_number = 1;
 $errors = [];
 $imported_titles = [];
 
+// Track duplicates inside the current CSV file
+$seen_isbns = [];
+$seen_books = [];
+
 $insert_sql = "INSERT INTO books (
     title, title_en, slug, subtitle, description, category_id, genre, language,
     author, author_en, co_author, publisher, publish_year, edition,
@@ -192,6 +218,10 @@ $insert_sql = "INSERT INTO books (
     1, NOW(), 'Book'
 )";
 $insert_stmt = $pdo->prepare($insert_sql);
+
+// Prepared statements for duplicate checks
+$isbn_check_stmt = $pdo->prepare("SELECT id, title, author FROM books WHERE (isbn = ? OR REPLACE(REPLACE(REPLACE(isbn, '-', ''), ' ', ''), '_', '') = ?) AND is_active = 1 LIMIT 1");
+$title_check_stmt = $pdo->prepare("SELECT id, title, author, isbn FROM books WHERE title = ? AND author = ? AND is_active = 1 LIMIT 1");
 
 while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     $row_number++;
@@ -220,6 +250,54 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
         $skipped_count++;
         continue;
     }
+
+    $isbn_raw = $getVal('isbn', $getVal('isbn_no', $getVal('isbn_number', $getVal('issbn', ''))));
+    $isbn = convertBnToEnNum($isbn_raw);
+
+    if (empty($isbn)) {
+        $errors[] = "সারি #{$row_number} ('{$title}'): আইএসবিএন (ISBN) নম্বর অনুপস্থিত থাকায় বাদ দেওয়া হয়েছে।";
+        $skipped_count++;
+        continue;
+    }
+
+    $clean_isbn = preg_replace('/[^A-Za-z0-9]/', '', $isbn);
+
+    // Duplicate Check 1: In-file duplicate ISBN check
+    if (isset($seen_isbns[$clean_isbn])) {
+        $errors[] = "সারি #{$row_number} ('{$title}'): এই ISBN ({$isbn}) একই CSV ফাইলের পূর্ববর্তী সারিতে (#{$$seen_isbns[$clean_isbn]}) রয়েছে। ডুপ্লিকেট এন্ট্রি বাদ দেওয়া হয়েছে।";
+        $skipped_count++;
+        continue;
+    }
+
+    // Duplicate Check 2: Database duplicate ISBN check
+    $isbn_check_stmt->execute([$isbn, $clean_isbn]);
+    $existing_isbn_book = $isbn_check_stmt->fetch();
+    if ($existing_isbn_book) {
+        $errors[] = "সারি #{$row_number} ('{$title}'): এই ISBN ({$isbn}) নম্বরের বইটি ইতোমধ্যে ডেটাবেজে রয়েছে ('{$existing_isbn_book['title']}' - #{$existing_isbn_book['id']})। বাদ দেওয়া হয়েছে।";
+        $skipped_count++;
+        continue;
+    }
+
+    // Duplicate Check 3: Title + Author duplicate check in-file
+    $book_key = mb_strtolower(trim($title)) . '||' . mb_strtolower(trim($author));
+    if (isset($seen_books[$book_key])) {
+        $errors[] = "সারি #{$row_number} ('{$title}'): এই বই ও লেখক একই ফাইলে ডুপ্লিকেট রয়েছে (পূর্ববর্তী সারি #{$$seen_books[$book_key]})। বাদ দেওয়া হয়েছে।";
+        $skipped_count++;
+        continue;
+    }
+
+    // Duplicate Check 4: Title + Author duplicate check in Database
+    $title_check_stmt->execute([$title, $author]);
+    $existing_title_book = $title_check_stmt->fetch();
+    if ($existing_title_book) {
+        $errors[] = "সারি #{$row_number} ('{$title}'): এই বইটি ইতোমধ্যে ডেটাবেজে বিদ্যমান রয়েছে (#{$existing_title_book['id']})। বাদ দেওয়া হয়েছে।";
+        $skipped_count++;
+        continue;
+    }
+
+    // Mark as seen in this file batch
+    $seen_isbns[$clean_isbn] = $row_number;
+    $seen_books[$book_key] = $row_number;
 
     $price_a_raw = convertBnToEnNum($getVal('sell_price', $getVal('price', '')));
     if ($price_a_raw === '' || !is_numeric($price_a_raw)) {
@@ -295,7 +373,6 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     $publisher = $getVal('publisher', '');
     $edition = $getVal('edition', '');
     $language = $getVal('language', 'Bengali');
-    $isbn = convertBnToEnNum($getVal('isbn', ''));
     $shelf_location = $getVal('shelf_location', '');
     $rack_number = $getVal('rack_number', '');
     $supplier_name = $getVal('supplier_name', '');
@@ -305,22 +382,10 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
     // Generate unique slug for the imported book
     $slug = get_unique_book_slug($pdo, $title_en, $title);
 
-    // Image URL Resolution & Download
+    // Image URL Resolution & Optimization to WebP (Executed ONLY after passing duplicate checks)
     $cover_url = $getVal('cover_image_url', $getVal('cover_image', ''));
     $photo_2_url = $getVal('photo_2_url', $getVal('photo_2', ''));
     $photo_3_url = $getVal('photo_3_url', $getVal('photo_3', ''));
-
-    // Check duplicate ISBN in database
-    if (!empty($isbn)) {
-        $isbn_check_stmt = $pdo->prepare("SELECT id, title FROM books WHERE isbn = ? AND is_active = 1 LIMIT 1");
-        $isbn_check_stmt->execute([$isbn]);
-        $existing_isbn_book = $isbn_check_stmt->fetch();
-        if ($existing_isbn_book) {
-            $errors[] = "সারি #{$row_number} ('{$title}'): এই ISBN ({$isbn}) নম্বরের বইটি ইতোমধ্যে ডেটাবেজে রয়েছে ('{$existing_isbn_book['title']}')। বাদ দেওয়া হয়েছে।";
-            $skipped_count++;
-            continue;
-        }
-    }
 
     $cover_image = !empty($cover_url) ? downloadAndOptimizeImage($cover_url, $target_dir, 'cover') : null;
     $photo_2 = !empty($photo_2_url) ? downloadAndOptimizeImage($photo_2_url, $target_dir, 'p2') : null;
@@ -342,7 +407,7 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
             $publisher ?: null,
             $publish_year ?: null,
             $edition ?: null,
-            $isbn ?: null,
+            $isbn,
             $format_input,
             $page_count,
             $condition_input,
@@ -379,6 +444,7 @@ echo json_encode([
     'skipped_count' => $skipped_count,
     'errors' => $errors,
     'imported_titles' => array_slice($imported_titles, 0, 10),
-    'message' => "{$imported_count} টি বই সফলভাবে ইম্পোর্ট করা হয়েছে!" . ($skipped_count > 0 ? " ({$skipped_count} টি সারি বাদ পড়েছে)" : "")
+    'message' => "{$imported_count} টি বই সফলভাবে ইম্পোর্ট করা হয়েছে!" . ($skipped_count > 0 ? " ({$skipped_count} টি সারি ডুপ্লিকেট/ত্রুটির কারণে বাদ পড়েছে)" : "")
 ]);
 exit();
+

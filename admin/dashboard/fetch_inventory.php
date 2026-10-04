@@ -116,6 +116,7 @@ if (empty($inventory_books)) {
                             <svg class="w-3.5 h-3.5 text-stone-400 hover:text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </a>
                         <p class="text-xs text-stone-500 mt-0.5">'.$author.'</p>
+                        '.(!empty($book['isbn']) ? '<p class="text-[10px] text-stone-500 font-mono mt-0.5">ISBN: '.htmlspecialchars((string)$book['isbn'], ENT_QUOTES, 'UTF-8').'</p>' : '').'
                     </div>
                 </div>
             </td>

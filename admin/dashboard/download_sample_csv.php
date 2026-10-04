@@ -40,7 +40,7 @@ $headers = [
     'language',           // ভাষা (ডিফল্ট: Bengali)
     'format',             // ফরম্যাট (Paperback / Hardcover / E-book)
     'book_condition',     // অবস্থা (New / Used / Damaged)
-    'isbn',               // ISBN নম্বর (যেমন: 9789849128456)
+    'isbn',               // [REQUIRED] আইএসবিএন / বারকোড নম্বর (যেমন: 9789849128456 বা 1234) - ডুপ্লিকেট রোধে অনন্য নম্বর
     'page_count',         // পৃষ্ঠা সংখ্যা (যেমন: 184)
     'sell_price',         // [REQUIRED] বিক্রয় মূল্য (যেমন: 450)
     'original_price',     // মুদ্রিত গায়ের মূল্য (যেমন: 480)

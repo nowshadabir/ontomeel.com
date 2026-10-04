@@ -334,9 +334,10 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">আইএসবিএন (ISBN)</label>
-                            <input type="text" name="isbn" placeholder="যেমন: 978-984-..."
+                            <label class="block text-stone-600 mb-1.5 font-mono font-semibold">আইএসবিএন (ISBN) *</label>
+                            <input type="text" name="isbn" required placeholder="যেমন: 9789849128456 বা 1234"
                                 class="w-full bg-white border border-[#d8d3c7] rounded-lg px-3 py-2 text-stone-900 font-mono placeholder:text-stone-400 focus:outline-none focus:border-stone-800">
+                            <p class="text-[10px] text-stone-400 font-mono mt-1">ডুপ্লিকেট এন্ট্রি প্রতিরোধে আবশ্যক ও অনন্য নম্বর</p>
                         </div>
                         <div>
                             <label class="block text-stone-600 mb-1.5 font-mono font-semibold">ফরম্যাট (Format)</label>
@@ -563,6 +564,13 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                     <a href="download_sample_csv.php" class="px-3.5 py-1.5 bg-white hover:bg-[#eae5db] text-stone-800 border border-[#d8d3c7] rounded-lg font-mono text-xs transition-colors shadow-xs">
                         ডাউনলোড
                     </a>
+                </div>
+
+                <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 font-mono flex items-start gap-2">
+                    <span class="text-base leading-none">💡</span>
+                    <div>
+                        <span class="font-bold">ডুপ্লিকেট প্রতিরোধ সতর্কতা:</span> প্রতিটি বইয়ের সঠিক ও অনন্য <strong>ISBN</strong> নম্বর দিন। ইতোমধ্যে বিদ্যমান ISBN বা বইয়ের নাম ও লেখক ডুপ্লিকেট হিসেবে চিহ্নিত হলে তা স্বয়ংক্রিয়ভাবে স্কিপ হবে।
+                    </div>
                 </div>
 
                 <form id="bulk-import-form" onsubmit="handleBulkImport(event)" class="space-y-4">
@@ -825,6 +833,14 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             e.preventDefault();
             const form = e.target;
 
+            // ISBN Validation
+            const isbnInput = form.isbn;
+            if (!isbnInput || !isbnInput.value.trim()) {
+                alert('⚠️ অনুগ্রহ করে বইয়ের আইএসবিএন (ISBN) নম্বরটি লিখুন। এটি ডুপ্লিকেট বই প্রতিরোধে বাধ্যতামূলক।');
+                if (isbnInput) isbnInput.focus();
+                return;
+            }
+
             // Amount & Entry Validation
             const sellInput = document.getElementById('form_sell_price');
             const discInput = document.getElementById('form_discount_price');
@@ -848,17 +864,6 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
                     discInput.focus();
                     discInput.select();
                 }
-                return;
-            }
-
-            if (disc < 0 || buy < 0 || sell < 0) {
-                alert('⚠️ কোনো মূল্যের মান ঋণাত্মক (নেগেটিভ) হতে পারবে না।');
-                return;
-            }
-
-            if (stock < 0) {
-                alert('⚠️ স্টক পরিমাণ ঋণাত্মক হতে পারবে না।');
-                if (stockInput) stockInput.focus();
                 return;
             }
 
@@ -905,6 +910,7 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
 
             const formData = new FormData();
             formData.append('id', bookId);
+            formData.append('book_id', bookId);
 
             fetch('/admin/dashboard/delete_book.php', {
                 method: 'POST',
@@ -955,16 +961,25 @@ $total_inventory_books = (int)$count_stmt->fetchColumn();
             .then(data => {
                 resultsDiv.classList.remove('hidden');
                 if (data.success) {
-                    resultsDiv.innerHTML = `<div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg font-mono">✅ ${data.message}</div>`;
-                    showToast('বাল্ক ইম্পোর্ট সফল!');
+                    let resultHtml = `<div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg font-mono text-xs mb-2">✅ ${data.message}</div>`;
+                    if (data.errors && data.errors.length > 0) {
+                        resultHtml += `<div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-mono max-h-40 overflow-y-auto space-y-1">
+                            <p class="font-bold text-amber-900 mb-1">বাদ পড়া সারিগুলোর বিবরণ (${data.skipped_count}টি):</p>`;
+                        data.errors.forEach(err => {
+                            resultHtml += `<p class="text-amber-800 text-[11px]">• ${err}</p>`;
+                        });
+                        resultHtml += `</div>`;
+                    }
+                    resultsDiv.innerHTML = resultHtml;
+                    showToast('বাল্ক ইম্পোর্ট সম্পন্ন!');
                     loadInventory(1);
                 } else {
-                    resultsDiv.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-mono">❌ ${data.message}</div>`;
+                    resultsDiv.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-mono text-xs">❌ ${data.message}</div>`;
                 }
             })
             .catch(() => {
                 resultsDiv.classList.remove('hidden');
-                resultsDiv.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-mono">❌ সার্ভার সমস্যা হয়েছে।</div>`;
+                resultsDiv.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg font-mono text-xs">❌ সার্ভার সমস্যা হয়েছে।</div>`;
             })
             .finally(() => {
                 btn.disabled = false;
