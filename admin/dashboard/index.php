@@ -8,10 +8,11 @@ $page_title = 'ড্যাশবোর্ড ওভারভিউ';
 $total_revenue = (float)$pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE payment_status = 'Paid'")->fetchColumn();
 $today_revenue = (float)$pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE payment_status = 'Paid' AND DATE(order_date) = CURDATE()")->fetchColumn();
 
-// 2. Orders summary
-$total_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
-$pending_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Pending'")->fetchColumn();
-$processing_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'Processing'")->fetchColumn();
+// 2. Website Orders summary (excluding POS and Pre-orders)
+$website_order_filter = "o.invoice_no NOT LIKE 'OTM-%' AND o.invoice_no NOT LIKE 'PRE-%' AND (o.notes IS NULL OR o.notes NOT LIKE '%Pre-order%') AND (o.staff_name IS NULL OR o.staff_name = '') AND (o.staff_id IS NULL) AND o.id NOT IN (SELECT DISTINCT order_id FROM order_items WHERE preorder_id IS NOT NULL)";
+$total_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders o WHERE {$website_order_filter}")->fetchColumn();
+$pending_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders o WHERE o.order_status = 'Pending' AND {$website_order_filter}")->fetchColumn();
+$processing_orders = (int)$pdo->query("SELECT COUNT(*) FROM orders o WHERE o.order_status = 'Processing' AND {$website_order_filter}")->fetchColumn();
 
 // 3. Books & Inventory
 $total_books = (int)$pdo->query("SELECT COUNT(*) FROM books")->fetchColumn();
@@ -26,7 +27,7 @@ $pending_membership_requests = (int)$pdo->query("SELECT COUNT(*) FROM membership
 $active_borrows_count = (int)$pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Active'")->fetchColumn();
 $overdue_borrows_count = (int)$pdo->query("SELECT COUNT(*) FROM borrows WHERE status = 'Overdue'")->fetchColumn();
 
-// 6. Recent 8 Orders
+// 6. Recent 8 Website Orders
 $recent_orders_stmt = $pdo->query("
     SELECT o.id, o.invoice_no, 
            COALESCE(m.full_name, o.guest_name, 'গ্রাহক') as customer_name,
@@ -34,6 +35,7 @@ $recent_orders_stmt = $pdo->query("
            o.total_amount, o.payment_status, o.payment_method, o.order_status, o.order_date 
     FROM orders o 
     LEFT JOIN members m ON o.member_id = m.id 
+    WHERE {$website_order_filter}
     ORDER BY o.order_date DESC 
     LIMIT 8
 ");

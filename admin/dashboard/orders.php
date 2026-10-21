@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/admin_helpers.php';
 $current_page = 'orders';
 $page_title = 'অর্ডারসমূহ';
 
-// Fetch all orders with member details if available
+// Fetch website orders only with member details (excluding POS orders and Pre-orders)
 $orders_stmt = $pdo->query("SELECT o.*, 
                                    COALESCE(o.invoice_no, CONCAT('ORD-', o.id)) as order_code,
                                    COALESCE(m.full_name, o.guest_name, 'গ্রাহক') as customer_name, 
@@ -16,6 +16,12 @@ $orders_stmt = $pdo->query("SELECT o.*,
                                    m.membership_id
                             FROM orders o 
                             LEFT JOIN members m ON o.member_id = m.id 
+                            WHERE o.invoice_no NOT LIKE 'OTM-%'
+                              AND o.invoice_no NOT LIKE 'PRE-%'
+                              AND (o.notes IS NULL OR o.notes NOT LIKE '%Pre-order%')
+                              AND (o.staff_name IS NULL OR o.staff_name = '')
+                              AND (o.staff_id IS NULL)
+                              AND o.id NOT IN (SELECT DISTINCT order_id FROM order_items WHERE preorder_id IS NOT NULL)
                             ORDER BY o.order_date DESC");
 $admin_orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -90,7 +96,7 @@ function getOrderItems($order_id, $order_items_by_order) {
                             মোট <?php echo bn_num($order_stats['total_count']); ?> টি অর্ডার
                         </span>
                     </div>
-                    <p class="text-xs text-stone-500 font-normal mt-1">সকল অর্ডারের স্ট্যাটাস, পেমেন্ট ও ইনভয়েস বিবরণ পরিচালনা করুন।</p>
+                    <p class="text-xs text-stone-500 font-normal mt-1">ওয়েবসাইট থেকে আসা সকল অর্ডারের স্ট্যাটাস, পেমেন্ট ও ইনভয়েস বিবরণ পরিচালনা করুন।</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="window.location.reload()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-[#f3f0e8] text-stone-700 border border-[#d8d3c7] hover:border-stone-400 rounded-lg text-xs font-semibold transition-all shadow-xs">
@@ -544,6 +550,17 @@ function getOrderItems($order_id, $order_items_by_order) {
                     </select>
                 </div>
 
+                <div class="p-3 bg-[#faf8f5] border border-[#e7e3da] rounded-xl text-[11px] text-stone-600 space-y-1.5 font-sans">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <span>গ্রাহকের ইমেইল থাকলে স্বয়ংক্রিয় আপডেট ইমেইল পাঠানো হবে।</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-stone-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <span>গ্রাহকের মোবাইল নম্বর থাকলে স্বয়ংক্রিয় স্ট্যাটাস এসএমএস পাঠানো হবে।</span>
+                    </div>
+                </div>
+
                 <div class="pt-4 border-t border-[#e7e3da] flex justify-end gap-3">
                     <button type="button" onclick="closeStatusChangeModal()" class="px-4 py-2 bg-[#f4f1ea] hover:bg-[#eae5db] text-stone-800 border border-[#d8d3c7] rounded-lg text-xs font-semibold">
                         বাতিল
@@ -689,16 +706,27 @@ function getOrderItems($order_id, $order_items_by_order) {
             btn.disabled = true;
             btn.textContent = 'সংরক্ষণ হচ্ছে...';
 
-            fetch('/admin/dashboard/update_order_status.php', {
+            const updateUrl = window.location.pathname.includes('/dashboard/') 
+                ? 'update_order_status.php' 
+                : '/admin/dashboard/update_order_status.php';
+
+            fetch(updateUrl, {
                 method: 'POST',
                 body: formData
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showToast('অর্ডার স্ট্যাটাস সফলভাবে আপডেট হয়েছে!');
+                    let msg = 'অর্ডার স্ট্যাটাস সফলভাবে আপডেট হয়েছে!';
+                    let details = [];
+                    if (data.email_sent) details.push('মেইল পাঠানো হয়েছে');
+                    if (data.sms_sent) details.push('এসএমএস পাঠানো হয়েছে');
+                    if (details.length > 0) {
+                        msg += ' (' + details.join(', ') + ')';
+                    }
+                    showToast(msg);
                     closeStatusChangeModal();
-                    setTimeout(() => location.reload(), 800);
+                    setTimeout(() => location.reload(), 900);
                 } else {
                     alert('ত্রুটি: ' + (data.message || 'আপডেট করা সম্ভব হয়নি।'));
                 }

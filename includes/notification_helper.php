@@ -91,17 +91,58 @@ function send_notification_instantly($to, $type, $data)
                 'Confirmed' => 'Confirmed',
                 'Shipped' => 'Shipped',
                 'Delivered' => 'Delivered',
-                'Processing' => 'Processing'
+                'Processing' => 'Processing',
+                'On Hold' => 'On Hold',
+                'Cancelled' => 'Cancelled'
             ];
-            $display_status = $status_labels[$data['status']] ?? $data['status'];
+            $current_st = $data['status'] ?? 'Processing';
+            $display_status = $status_labels[$current_st] ?? $current_st;
             $subject = "Order Update - #" . $data['invoice_no'];
-            $title = "Your Order Status Has Been Updated";
+            $title = "Order Status: " . $display_status;
             $color = "#2563eb";
 
+            $status_desc = "";
+            if ($current_st === 'Delivered') {
+                $color = "#16a34a";
+                $title = "Your Order Has Been Delivered!";
+                $subject = "Order Delivered - #" . $data['invoice_no'];
+                $status_desc = "<p style='color: #16a34a; font-weight: bold;'>Your order has been successfully delivered to your shipping address.</p><p>We hope you enjoy your books! Thank you for being with Ontomeel.</p>";
+            } elseif ($current_st === 'Shipped') {
+                $color = "#7c3aed";
+                $title = "Your Order is on the Way!";
+                $subject = "Order Shipped - #" . $data['invoice_no'];
+                $status_desc = "<p style='color: #7c3aed; font-weight: bold;'>Your parcel has been dispatched with our delivery partner.</p><p>It will reach your address shortly. Please keep your contact phone active for the delivery rider.</p>";
+            } elseif ($current_st === 'Confirmed') {
+                $color = "#2563eb";
+                $title = "Your Order Has Been Confirmed";
+                $subject = "Order Confirmed - #" . $data['invoice_no'];
+                $status_desc = "<p style='color: #2563eb; font-weight: bold;'>Your order has been verified and confirmed.</p><p>We are currently packing your books carefully for dispatch.</p>";
+            } elseif ($current_st === 'On Hold') {
+                $color = "#d97706";
+                $title = "Order On Hold";
+                $subject = "Order On Hold - #" . $data['invoice_no'];
+                $status_desc = "<p style='color: #d97706; font-weight: bold;'>Your order has been placed on temporary hold.</p><p>Our support team will contact you if any further details are required.</p>";
+            } elseif ($current_st === 'Cancelled') {
+                $color = "#dc2626";
+                $title = "Order Cancelled";
+                $subject = "Order Cancelled - #" . $data['invoice_no'];
+                $status_desc = "<p style='color: #dc2626; font-weight: bold;'>Your order has been cancelled.</p><p>If you have any questions or made an online payment, please reply to this email or contact support.</p>";
+            } else {
+                $status_desc = "<p>Your order status has been updated to <strong>" . htmlspecialchars($display_status) . "</strong>.</p>";
+            }
+
+            $order_info_html = "
+                <div style=\"background: #faf8f5; border: 1px solid #e8dfd0; border-radius: 8px; padding: 15px; margin: 15px 0;\">
+                    <p style=\"margin: 4px 0;\"><strong>Invoice No:</strong> #" . htmlspecialchars($data['invoice_no']) . "</p>
+                    <p style=\"margin: 4px 0;\"><strong>Current Status:</strong> <span style=\"font-weight: bold; color: {$color};\">" . htmlspecialchars($display_status) . "</span></p>
+                    " . (!empty($data['amount']) ? "<p style=\"margin: 4px 0;\"><strong>Total Amount:</strong> BDT " . number_format((float)$data['amount'], 2) . "</p>" : "") . "
+                    " . (!empty($data['address']) ? "<p style=\"margin: 4px 0;\"><strong>Delivery Address:</strong> " . htmlspecialchars($data['address']) . "</p>" : "") . "
+                </div>";
+
             $content = "
-                <p>Hello " . htmlspecialchars($data['name']) . ",</p>
-                <p>The status of your order <strong>#" . $data['invoice_no'] . "</strong> has changed.</p>
-                <p><strong>New Status:</strong> " . $display_status . "</p>
+                <p>Hello <strong>" . htmlspecialchars($data['name']) . "</strong>,</p>
+                " . $status_desc . "
+                " . $order_info_html . "
             ";
             break;
 
@@ -349,6 +390,106 @@ function send_notification($to, $type, $data)
     // Send immediately instead of queuing for reliable delivery
     return send_notification_instantly($to, $type, $data);
 }
+
+/**
+ * Send SMS instantly using BulkSMS BD gateway
+ * Supports configuration via getenv, $_ENV, and database settings table (bulksms_api_key / bulksms_sender_id)
+ */
+function send_sms_instantly($number, $message)
+{
+    if (empty($number)) {
+        return ['success' => false, 'message' => 'No phone number provided'];
+    }
+
+    // Normalize Bangladeshi phone number
+    $clean = preg_replace('/[^0-9]/', '', $number);
+    if (strlen($clean) === 11 && strpos($clean, '01') === 0) {
+        $clean = '88' . $clean;
+    } elseif (strlen($clean) === 10 && strpos($clean, '1') === 0) {
+        $clean = '880' . $clean;
+    }
+
+    // 1. Check environment variables
+    $api_key = getenv('BULKSMS_API_KEY') ?: ($_ENV['BULKSMS_API_KEY'] ?? '');
+    $senderid = getenv('BULKSMS_SENDER_ID') ?: ($_ENV['BULKSMS_SENDER_ID'] ?? '');
+
+    // 2. Fallback to database settings table if not in environment
+    if (empty($api_key)) {
+        global $pdo;
+        if (isset($pdo)) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'bulksms_api_key' LIMIT 1");
+                $stmt->execute();
+                $db_key = $stmt->fetchColumn();
+                if (!empty($db_key)) {
+                    $api_key = trim($db_key);
+                }
+
+                $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'bulksms_sender_id' LIMIT 1");
+                $stmt->execute();
+                $db_sender = $stmt->fetchColumn();
+                if (!empty($db_sender)) {
+                    $senderid = trim($db_sender);
+                }
+            } catch (Throwable $e) {}
+        }
+    }
+
+    if (empty($api_key)) {
+        $log_entry = "[" . date('Y-m-d H:i:s') . "] SMS_SKIPPED: Number: {$clean} | Reason: BulkSMS API Key not configured in .env or settings\n";
+        file_put_contents(__DIR__ . '/../mail_debug.log', $log_entry, FILE_APPEND);
+        return [
+            'success' => false,
+            'message' => 'BulkSMS API Key not configured'
+        ];
+    }
+
+    $url = "http://bulksmsbd.net/api/smsapi";
+    $post_data = [
+        "api_key"  => $api_key,
+        "senderid" => $senderid,
+        "number"   => $clean,
+        "message"  => $message,
+        "type"     => "text"
+    ];
+
+    try {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+        $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            $log_entry = "[" . date('Y-m-d H:i:s') . "] SMS_CURL_ERROR: Number: {$clean} | Error: {$curlError}\n";
+            file_put_contents(__DIR__ . '/../mail_debug.log', $log_entry, FILE_APPEND);
+            return ['success' => false, 'message' => $curlError];
+        }
+
+        $res = json_decode($response, true);
+        $is_ok = ($res && isset($res['response_code']) && ($res['response_code'] == 202 || $res['response_code'] == 1000));
+
+        $log_entry = "[" . date('Y-m-d H:i:s') . "] SMS_GATEWAY_RESPONSE: Number: {$clean} | Status: " . ($is_ok ? 'SUCCESS' : 'FAILED') . " | Response: " . substr($response, 0, 160) . "\n";
+        file_put_contents(__DIR__ . '/../mail_debug.log', $log_entry, FILE_APPEND);
+
+        return [
+            'success'  => $is_ok,
+            'response' => $res ?: $response,
+            'message'  => $is_ok ? 'SMS sent successfully' : ($res['error_message'] ?? 'Gateway rejected SMS')
+        ];
+    } catch (Throwable $e) {
+        $log_entry = "[" . date('Y-m-d H:i:s') . "] SMS_EXCEPTION: Number: {$clean} | Error: " . $e->getMessage() . "\n";
+        file_put_contents(__DIR__ . '/../mail_debug.log', $log_entry, FILE_APPEND);
+        return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
+
 
 function trigger_worker()
 {
