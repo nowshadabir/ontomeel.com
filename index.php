@@ -33,7 +33,7 @@ $all_books_db = [];
         <!-- Badge -->
         <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-xs font-anek font-semibold mb-4 shadow-sm animate-slide-up">
             <span class="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse"></span>
-            <span>প্রিমিয়াম বুকস্টোর ও লাইব্রেরি</span>
+            <span>বুকস্টোর ও লাইব্রেরি</span>
         </div>
 
         <h1 class="text-3xl sm:text-5xl md:text-6xl font-anek font-extrabold text-white mb-4 leading-tight tracking-tight animate-slide-up"
@@ -43,14 +43,14 @@ $all_books_db = [];
 
         <p class="text-gray-300 text-xs sm:text-sm md:text-base font-light mb-7 max-w-xl mx-auto leading-relaxed animate-slide-up"
             style="animation-delay: 0.25s;">
-            অন্ত্যমিল—একটি আধুনিক বুকস্টোর ও রিডিং লাইব্রেরির মেলবন্ধন। আমাদের সমৃদ্ধ সংগ্রহশালা থেকে পছন্দের বই কিনুন অথবা মেম্বারশিপে ধার নিন।
+            অন্ত্যমিল—একটি কিউরেটেড বুকস্টোর কমিউনিটি লাইব্রেরি। আমাদের সমৃদ্ধ সংগ্রহশালা থেকে পছন্দের বই কিনুন অথবা ধার নিন।
         </p>
 
         <div class="flex flex-wrap items-center justify-center gap-3 animate-slide-up"
             style="animation-delay: 0.35s;">
             <a href="#discover"
                 class="px-6 sm:px-7 py-3 bg-brand-gold text-brand-900 font-anek font-bold text-sm sm:text-base rounded-xl hover:bg-white hover:shadow-lg transition-all duration-200 shadow-md shadow-brand-gold/20 flex items-center gap-2">
-                <span>বই কালেকশন দেখুন</span>
+                <span>কালেকশন দেখুন</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
             </a>
             <a href="membership/"

@@ -144,10 +144,10 @@ else: ?>
 
                     <!-- Desktop Menu -->
                     <div class="hidden md:flex items-center space-x-8">
-                        <a href="<?php echo $path_prefix ?? ''; ?>category/index.php"
-                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">ক্যাটাগরি</a>
+                        <!-- <a href="<?php echo $path_prefix ?? ''; ?>category/index.php"
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">ক্যাটাগরি</a> -->
                         <a href="<?php echo $path_prefix ?? ''; ?>library/index.php"
-                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">লাইব্রেরি</a>
+                            class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">কিউরেশন</a>
                         <a href="<?php echo $path_prefix ?? ''; ?>membership/index.php"
                             class="text-[15px] font-medium <?php echo($nav_class ?? '') == 'glass-dark' ? 'text-gray-300' : 'text-brand-800'; ?> hover:text-brand-gold transition-colors">মেম্বারশিপ</a>
                         <a href="<?php echo $path_prefix ?? ''; ?>pre-booking/index.php"
