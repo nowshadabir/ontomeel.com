@@ -60,8 +60,8 @@ include '../includes/header.php';
                 class="absolute inset-0 bg-gradient-to-t from-brand-900 via-brand-900/20 to-transparent opacity-90 transition-opacity duration-500">
             </div>
             <div class="absolute bottom-0 left-0 p-10 z-20">
-                <span class="text-brand-gold font-bold text-xs uppercase tracking-[0.2em] mb-3 block">
-                    <?php echo $cat['book_count']; ?>টি বই</span>
+                <!-- <span class="text-brand-gold font-bold text-xs uppercase tracking-[0.2em] mb-3 block">
+                    <?php echo $cat['book_count']; ?>টি বই</span> -->
                 <h3 class="text-4xl font-anek font-bold text-white mb-4"><?php echo $cat['name']; ?></h3>
                 <p class="text-gray-300 text-sm font-light line-clamp-2 mb-6">
                     <?php echo $cat['description'] ?: 'আপনার প্রিয় বিষয়ের বইগুলো খুঁজে নিন এখানে।'; ?>

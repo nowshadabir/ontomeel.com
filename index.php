@@ -43,7 +43,7 @@ $all_books_db = [];
 
         <p class="text-gray-300 text-xs sm:text-sm md:text-base font-light mb-7 max-w-xl mx-auto leading-relaxed animate-slide-up"
             style="animation-delay: 0.25s;">
-            অন্ত্যমিল—একটি কিউরেটেড বুকস্টোর কমিউনিটি লাইব্রেরি। আমাদের সমৃদ্ধ সংগ্রহশালা থেকে পছন্দের বই কিনুন অথবা ধার নিন।
+            অন্ত্যমিল—একটি কিউরেটেড বুকস্টোর ও কমিউনিটি লাইব্রেরি। আমাদের সমৃদ্ধ সংগ্রহশালা থেকে পছন্দের বই কিনুন অথবা ধার নিন।
         </p>
 
         <div class="flex flex-wrap items-center justify-center gap-3 animate-slide-up"

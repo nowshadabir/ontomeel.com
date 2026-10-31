@@ -275,7 +275,7 @@ else: ?>
                     <span class="font-anek font-semibold">হোম পেজ</span>
                 </a>
 
-                <a href="<?php echo $path_prefix ?? ''; ?>category/index.php" onclick="toggleMobileMenu()"
+                <!-- <a href="<?php echo $path_prefix ?? ''; ?>category/index.php" onclick="toggleMobileMenu()"
                     class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-brand-900 hover:bg-brand-gold/10 hover:text-brand-gold transition-all group">
                     <span
                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-brand-gold/20 transition-colors">
@@ -285,7 +285,7 @@ else: ?>
                         </svg>
                     </span>
                     <span class="font-anek font-semibold">ক্যাটাগরি</span>
-                </a>
+                </a> -->
 
                 <a href="<?php echo $path_prefix ?? ''; ?>library/index.php" onclick="toggleMobileMenu()"
                     class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-brand-900 hover:bg-brand-gold/10 hover:text-brand-gold transition-all group">
@@ -297,7 +297,7 @@ else: ?>
                             </path>
                         </svg>
                     </span>
-                    <span class="font-anek font-semibold">লাইব্রেরি</span>
+                    <span class="font-anek font-semibold">কিউরেশন</span>
                 </a>
 
                 <a href="<?php echo $path_prefix ?? ''; ?>membership/index.php" onclick="toggleMobileMenu()"
