@@ -21,10 +21,9 @@
             <div>
                 <h4 class="font-serif text-xl font-bold mb-6 text-brand-gold_light">এক্সপ্লোর</h4>
                 <ul class="space-y-3 text-sm text-gray-400 font-anek">
-                    <li><a href="<?php echo $path_prefix ?? ''; ?>category/index.php"
-                            class="hover:text-brand-gold transition-colors">ক্যাটাগরি</a></li>
+                   
                     <li><a href="<?php echo $path_prefix ?? ''; ?>library/index.php"
-                            class="hover:text-brand-gold transition-colors">লাইব্রেরি</a></li>
+                            class="hover:text-brand-gold transition-colors">কিউরেশন</a></li>
                     <li><a href="<?php echo $path_prefix ?? ''; ?>membership/index.php"
                             class="hover:text-brand-gold transition-colors">মেম্বারশিপ</a></li>
                     <li><a href="<?php echo $path_prefix ?? ''; ?>pre-booking/index.php"
@@ -43,7 +42,7 @@
                 </ul>
             </div>
 
-            <div>
+            <!-- <div>
                 <h4 class="font-serif text-xl font-bold mb-6 text-brand-gold_light">নিউজলেটার</h4>
                 <p class="text-gray-400 text-sm mb-4">নতুন বই ও বিশেষ অফারের খবর পেতে সাবস্ক্রাইব করুন।</p>
                 <div class="flex">
@@ -57,7 +56,7 @@
                         </svg>
                     </button>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         <!-- Footer Banner -->

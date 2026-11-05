@@ -351,7 +351,31 @@ function clearLibrarySearch() {
 
 
 // --- 5. Cart Logic & Slider ---
-let cart = JSON.parse(localStorage.getItem('antyam_cart') || '[]');
+function getSanitizedCart() {
+    try {
+        let raw = JSON.parse(localStorage.getItem('antyam_cart') || '[]');
+        if (!Array.isArray(raw)) return [];
+        const map = new Map();
+        raw.forEach(item => {
+            if (!item || !item.id) return;
+            const key = String(item.id);
+            const qty = Math.max(1, parseInt(item.quantity) || 1);
+            if (map.has(key)) {
+                const existing = map.get(key);
+                existing.quantity = (parseInt(existing.quantity) || 1) + qty;
+            } else {
+                map.set(key, { ...item, quantity: qty });
+            }
+        });
+        const sanitized = Array.from(map.values());
+        localStorage.setItem('antyam_cart', JSON.stringify(sanitized));
+        return sanitized;
+    } catch (e) {
+        return [];
+    }
+}
+
+let cart = getSanitizedCart();
 function saveCart() { localStorage.setItem('antyam_cart', JSON.stringify(cart)); }
 const cartCountEl = document.getElementById('cart-count');
 const toast = document.getElementById('toast');
@@ -432,8 +456,18 @@ function updateCartUI() {
     // If not on a page with cart UI, skip updating
     if (!cartCountEl || !cartItemsContainer) return;
 
-    // Update badge
-    cartCountEl.innerText = convertToBengaliNumber(cart.length);
+    let total = 0;
+    let totalItemsCount = 0;
+
+    cart.forEach(item => {
+        const qty = Math.max(1, parseInt(item.quantity) || 1);
+        item.quantity = qty;
+        total += (parseFloat(item.price) || 0) * qty;
+        totalItemsCount += qty;
+    });
+
+    // Update badge with total quantity
+    cartCountEl.innerText = convertToBengaliNumber(totalItemsCount);
 
     if (cart.length === 0) {
         cartEmptyState.style.display = 'flex';
@@ -452,28 +486,68 @@ function updateCartUI() {
         if (child.id !== 'cart-empty') child.remove();
     });
 
-    let total = 0;
-
     cart.forEach((item, index) => {
-        total += item.price;
+        const qty = Math.max(1, parseInt(item.quantity) || 1);
+        const unitPrice = parseFloat(item.price) || 0;
+        const itemTotal = unitPrice * qty;
+
         const itemEl = document.createElement('div');
-        itemEl.className = 'flex gap-4 items-center bg-gray-50 p-3 rounded-lg border border-gray-100';
+        itemEl.className = 'flex gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 hover:border-brand-gold/30 transition-all';
         itemEl.innerHTML = `
-                    <img src="${getCorrectImagePath(item.img)}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded shadow-sm">
-                    <div class="flex-1">
-                        <h4 class="font-serif font-bold text-brand-900 text-[15px]">${item.title}</h4>
-                        <p class="text-xs text-gray-500 mb-2">${item.author}</p>
-                        <p class="font-bold text-brand-gold text-sm">৳${convertToBengaliNumber(item.price)}</p>
+            <img src="${getCorrectImagePath(item.img)}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" alt="${item.title}" loading="lazy" class="w-16 h-24 object-cover rounded-lg shadow-sm flex-shrink-0">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-serif font-bold text-brand-900 text-[14px] leading-snug line-clamp-1" title="${item.title}">${item.title}</h4>
+                <p class="text-xs text-gray-500 mb-2 truncate">${item.author || ''}</p>
+                
+                <div class="flex items-center justify-between gap-2 mt-1">
+                    <!-- Quantity Controller -->
+                    <div class="inline-flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden shadow-xs">
+                        <button type="button" onclick="updateCartQty(${index}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-brand-900 font-bold text-sm transition-colors select-none" title="পরিমাণ কমান">−</button>
+                        <input type="number" min="1" max="99" value="${qty}" onchange="setCartQty(${index}, this.value)" class="w-8 h-7 text-center text-xs font-bold text-brand-900 border-x border-gray-200 focus:outline-none focus:bg-amber-50/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                        <button type="button" onclick="updateCartQty(${index}, 1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-brand-900 font-bold text-sm transition-colors select-none" title="পরিমাণ বাড়ান">+</button>
                     </div>
-                    <button onclick="removeFromCart(${index})" class="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                `;
+
+                    <div class="text-right">
+                        <p class="font-bold text-brand-gold text-sm leading-tight">৳${convertToBengaliNumber(itemTotal)}</p>
+                        ${qty > 1 ? `<p class="text-[10px] text-gray-400 font-mono">৳${convertToBengaliNumber(unitPrice)} × ${convertToBengaliNumber(qty)}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+            <button onclick="removeFromCart(${index})" class="p-2 text-gray-400 hover:text-red-500 transition-colors self-start" title="মুছে ফেলুন">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        `;
         cartItemsContainer.appendChild(itemEl);
     });
 
     cartTotalEl.innerText = `৳${convertToBengaliNumber(total)}`;
     saveCart();
+}
+
+function updateCartQty(index, delta) {
+    if (!cart[index]) return;
+    const currentQty = parseInt(cart[index].quantity) || 1;
+    const newQty = currentQty + delta;
+    if (newQty <= 0) {
+        removeFromCart(index);
+    } else {
+        cart[index].quantity = Math.min(newQty, 99);
+        updateCartUI();
+        if (typeof loadCheckout === 'function') loadCheckout();
+    }
+}
+
+function setCartQty(index, value) {
+    if (!cart[index]) return;
+    let qty = parseInt(value);
+    if (isNaN(qty) || qty < 1) {
+        qty = 1;
+    } else if (qty > 99) {
+        qty = 99;
+    }
+    cart[index].quantity = qty;
+    updateCartUI();
+    if (typeof loadCheckout === 'function') loadCheckout();
 }
 
 function goToCheckout() {
@@ -491,7 +565,7 @@ function goToCheckout() {
     window.location.href = baseUrl;
 }
 
-function addToCart(bookId) {
+function addToCart(bookId, addQty = 1) {
     let book = allBooks.find(b => b.id === bookId);
 
     // Support for objects directly (if bookId is an object)
@@ -500,17 +574,25 @@ function addToCart(bookId) {
     }
 
     if (book) {
-        cart.push(book);
+        const qtyToAdd = Math.max(1, parseInt(addQty) || 1);
+        const existingIndex = cart.findIndex(item => String(item.id) === String(book.id));
+        if (existingIndex > -1) {
+            cart[existingIndex].quantity = (parseInt(cart[existingIndex].quantity) || 1) + qtyToAdd;
+        } else {
+            cart.push({ ...book, quantity: qtyToAdd });
+        }
         updateCartUI();
 
         // Pop animation on badge
-        cartCountEl.classList.add('scale-150');
-        setTimeout(() => cartCountEl.classList.remove('scale-150'), 200);
+        if (cartCountEl) {
+            cartCountEl.classList.add('scale-150');
+            setTimeout(() => cartCountEl.classList.remove('scale-150'), 200);
+        }
 
         showToast(`"${book.title}" কার্টে যোগ করা হয়েছে`);
 
         // Automatically open drawer on first add
-        if (cart.length === 1 && cartDrawer.classList.contains('translate-x-full')) {
+        if (cart.length === 1 && cartDrawer && cartDrawer.classList.contains('translate-x-full')) {
             toggleCartDrawer();
         }
     }
@@ -519,7 +601,10 @@ function addToCart(bookId) {
 function removeFromCart(index) {
     const removed = cart.splice(index, 1)[0];
     updateCartUI();
-    showToast(`"${removed.title}" কার্ট থেকে সরানো হয়েছে`);
+    if (typeof loadCheckout === 'function') loadCheckout();
+    if (removed) {
+        showToast(`"${removed.title}" কার্ট থেকে সরানো হয়েছে`);
+    }
 }
 
 function updateBorrowCartUI() {

@@ -78,7 +78,7 @@ include 'includes/header.php';
         <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
             <h2 class="text-3xl font-serif text-brand-900 mb-6">Management Details</h2>
             <ul class="space-y-4 text-gray-700 font-light">
-                <li><strong class="font-medium">Founder/Managing Director:</strong> Muhammad Firoz Hayat Khan</li>
+                <li><strong class="font-medium">Founder/Managing Director:</strong> Muhammad Feroz Hayat Khan</li>
                 <li><strong class="font-medium">Operations Manager:</strong> Misbahur Rahman</li>
                 <li><strong class="font-medium">Customer Support Lead:</strong> Raul Nun Par Bom</li>
             </ul>

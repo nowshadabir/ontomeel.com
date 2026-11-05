@@ -255,7 +255,7 @@ include __DIR__ . '/includes/header.php';
 
                     <!-- Additional Help -->
                     <p class="text-center text-xs text-gray-400 mt-6">
-                        যেকোনো সমস্যায় কল করুন: <span class="text-brand-gold font-bold">+৮৮০ ১৭১২-৩৪৫৬৭৮</span>
+                        যোগাযোগ: <span class="text-brand-gold font-bold">০১৩৩০৯৭৫৭৮৭ (হোয়াটসঅ‍্যাপ)</span>
                     </p>
                 </div>
             </div>

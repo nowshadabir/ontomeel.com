@@ -426,7 +426,34 @@ endif; ?>
 <script>
     let isOrderSubmitting = false;
     const checkoutType = "<?php echo $checkout_type; ?>";
-    const cartItems = JSON.parse(localStorage.getItem(checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart') || '[]');
+
+    function getSanitizedCheckoutItems() {
+        try {
+            const key = checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart';
+            let raw = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!Array.isArray(raw)) return [];
+            if (checkoutType === 'borrow') return raw;
+            const map = new Map();
+            raw.forEach(item => {
+                if (!item || !item.id) return;
+                const itemKey = String(item.id);
+                const qty = Math.max(1, parseInt(item.quantity) || 1);
+                if (map.has(itemKey)) {
+                    const existing = map.get(itemKey);
+                    existing.quantity = (parseInt(existing.quantity) || 1) + qty;
+                } else {
+                    map.set(itemKey, { ...item, quantity: qty });
+                }
+            });
+            const consolidated = Array.from(map.values());
+            localStorage.setItem(key, JSON.stringify(consolidated));
+            return consolidated;
+        } catch (e) {
+            return [];
+        }
+    }
+
+    let cartItems = getSanitizedCheckoutItems();
     let selectedPayMethod = checkoutType === 'borrow' ? 'borrow' : 'cod';
     const memberDiscountPercent = <?php echo (int)$discount_percent; ?>;
     const isPlanActive = <?php echo $is_plan_active ? 'true' : 'false'; ?>;
@@ -668,26 +695,45 @@ endif; ?>
         let anyOutOfStock = false;
         container.innerHTML = '';
 
-        cartItems.forEach(item => {
-            const displayPrice = (checkoutType === 'borrow') ? 0 : item.price;
+        cartItems.forEach((item, index) => {
+            const qty = Math.max(1, parseInt(item.quantity) || 1);
+            item.quantity = qty;
+            const displayPrice = (checkoutType === 'borrow') ? 0 : (parseFloat(item.price) || 0);
             const isItemOutOfStock = item.isOutOfStock || false;
             if (isItemOutOfStock) anyOutOfStock = true;
             
-            total += (isItemOutOfStock ? 0 : displayPrice);
+            const itemTotal = isItemOutOfStock ? 0 : (displayPrice * qty);
+            total += itemTotal;
             
             container.innerHTML += `
                     <div class="flex gap-4 items-center ${isItemOutOfStock ? 'opacity-60 grayscale' : ''}">
-                        <div class="w-12 h-16 bg-gray-50 rounded shadow-sm overflow-hidden flex-shrink-0 relative">
+                        <div class="w-12 h-16 bg-gray-50 rounded-lg shadow-sm overflow-hidden flex-shrink-0 relative border border-gray-100">
                             <img src="${typeof getCorrectImagePath === 'function' ? getCorrectImagePath(item.img) : (item.img || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400')}" 
                                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400';" 
                                  class="w-full h-full object-cover">
                             ${isItemOutOfStock ? '<div class="absolute inset-0 bg-red-600/40 flex items-center justify-center"><p class="text-[8px] text-white font-bold">X</p></div>' : ''}
                         </div>
-                        <div class="flex-1">
-                            <h4 class="font-bold text-brand-900 font-anek text-sm truncate w-40">${item.title}</h4>
-                            ${isItemOutOfStock ? '<p class="text-[9px] text-red-600 font-bold uppercase tracking-wider">সদ্য স্টক শেষ!</p>' : '<p class="text-[10px] text-gray-400 font-anek">পরিমাণ: ১টি</p>'}
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-brand-900 font-anek text-sm truncate" title="${item.title}">${item.title}</h4>
+                            ${isItemOutOfStock ? '<p class="text-[9px] text-red-600 font-bold uppercase tracking-wider">সদ্য স্টক শেষ!</p>' : `
+                                ${checkoutType === 'borrow' ? '<p class="text-[10px] text-gray-400 font-anek">পরিমাণ: ১টি</p>' : `
+                                    <div class="flex items-center gap-2 mt-1.5">
+                                        <div class="inline-flex items-center border border-gray-200 rounded-md bg-white overflow-hidden shadow-xs">
+                                            <button type="button" onclick="updateCheckoutQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-brand-900 text-xs font-bold transition-colors select-none" title="পরিমাণ কমান">−</button>
+                                            <input type="number" min="1" max="99" value="${qty}" onchange="setCheckoutQty(${index}, this.value)" class="w-8 h-6 text-center text-xs font-bold text-brand-900 border-x border-gray-200 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                            <button type="button" onclick="updateCheckoutQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-brand-900 text-xs font-bold transition-colors select-none" title="পরিমাণ বাড়ান">+</button>
+                                        </div>
+                                        <button type="button" onclick="removeCheckoutItem(${index})" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="মুছে ফেলুন">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                `}
+                            `}
                         </div>
-                        <p class="font-bold text-brand-900 font-anek">৳${isItemOutOfStock ? '০' : convertToBengaliNumber(displayPrice)}</p>
+                        <div class="text-right">
+                            <p class="font-bold text-brand-900 font-anek text-sm">৳${isItemOutOfStock ? '০' : convertToBengaliNumber(itemTotal)}</p>
+                            ${qty > 1 && !isItemOutOfStock && checkoutType !== 'borrow' ? `<p class="text-[10px] text-gray-400 font-anek font-mono">৳${convertToBengaliNumber(displayPrice)} × ${convertToBengaliNumber(qty)}</p>` : ''}
+                        </div>
                     </div>
                 `;
         });
@@ -731,6 +777,53 @@ endif; ?>
                             d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>`;
             }
+        }
+    }
+
+    function updateCheckoutQty(index, delta) {
+        if (!cartItems[index]) return;
+        const currentQty = parseInt(cartItems[index].quantity) || 1;
+        const newQty = currentQty + delta;
+        if (newQty <= 0) {
+            removeCheckoutItem(index);
+        } else {
+            cartItems[index].quantity = Math.min(newQty, 99);
+            saveCheckoutCart();
+            loadCheckout();
+            if (typeof updateCartUI === 'function') updateCartUI();
+        }
+    }
+
+    function setCheckoutQty(index, value) {
+        if (!cartItems[index]) return;
+        let qty = parseInt(value);
+        if (isNaN(qty) || qty < 1) {
+            qty = 1;
+        } else if (qty > 99) {
+            qty = 99;
+        }
+        cartItems[index].quantity = qty;
+        saveCheckoutCart();
+        loadCheckout();
+        if (typeof updateCartUI === 'function') updateCartUI();
+    }
+
+    function removeCheckoutItem(index) {
+        if (!cartItems[index]) return;
+        const removed = cartItems.splice(index, 1)[0];
+        saveCheckoutCart();
+        if (removed) {
+            showToast(`"${removed.title}" কার্ট থেকে সরানো হয়েছে`);
+        }
+        if (typeof updateCartUI === 'function') updateCartUI();
+        loadCheckout();
+    }
+
+    function saveCheckoutCart() {
+        const key = checkoutType === 'borrow' ? 'antyam_borrow_cart' : 'antyam_cart';
+        localStorage.setItem(key, JSON.stringify(cartItems));
+        if (typeof cart !== 'undefined' && checkoutType !== 'borrow') {
+            cart = [...cartItems];
         }
     }
 
@@ -812,10 +905,18 @@ endif; ?>
             return;
         }
         
-        // Calculate total amount
+        // Calculate total amount with quantities & member discount
         let total = 0;
-        cartItems.forEach(item => total += (checkoutType === 'borrow' ? 0 : item.price));
-        const finalAmount = total + (checkoutType === 'borrow' ? 0 : currentDeliveryCharge);
+        cartItems.forEach(item => {
+            const qty = Math.max(1, parseInt(item.quantity) || 1);
+            total += (checkoutType === 'borrow' ? 0 : ((parseFloat(item.price) || 0) * qty));
+        });
+        let discount = 0;
+        if (checkoutType === 'buy' && memberDiscountPercent > 0) {
+            discount = Math.round((total * memberDiscountPercent) / 100);
+        }
+        const payableSubtotal = Math.max(0, total - discount);
+        const finalAmount = (checkoutType === 'borrow') ? 0 : (payableSubtotal + currentDeliveryCharge);
 
         const divisionText = divSelect.options[divSelect.selectedIndex].textContent;
         const districtText = distSelect.options[distSelect.selectedIndex].textContent;

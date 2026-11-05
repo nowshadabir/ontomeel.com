@@ -120,6 +120,7 @@ try {
     // 1. Stock Check
     foreach ($cart as $item) {
         $itemId = $item['id'];
+        $qty = isset($item['quantity']) ? max(1, (int)$item['quantity']) : 1;
         $isPreorder = (strpos($itemId, 'pre_') === 0);
 
         if ($isPreorder) {
@@ -138,10 +139,15 @@ try {
             $stockStmt->execute([$itemId]);
             $book = $stockStmt->fetch();
 
-            if (!$book || $book['stock_qty'] < 1) {
+            if (!$book || $book['stock_qty'] < $qty) {
                 $pdo->rollBack();
                 $title = $book['title'] ?? 'বইটি';
-                sendResponse(false, "$title স্টকে নেই।");
+                $available = (int)($book['stock_qty'] ?? 0);
+                if ($available > 0) {
+                    sendResponse(false, "$title স্টকে মাত্র $available টি কপি বাকি আছে।");
+                } else {
+                    sendResponse(false, "$title স্টকে নেই।");
+                }
             }
         }
     }
@@ -178,7 +184,8 @@ try {
     $raw_subtotal = 0;
     if ($checkout_type === 'buy') {
         foreach ($cart as $cItem) {
-            $raw_subtotal += (float)($cItem['price'] ?? 0);
+            $qty = isset($cItem['quantity']) ? max(1, (int)$cItem['quantity']) : 1;
+            $raw_subtotal += ((float)($cItem['price'] ?? 0) * $qty);
         }
     }
 
@@ -248,19 +255,21 @@ try {
     // 4. Items & Inventory
     foreach ($cart as $item) {
         $itemId = $item['id'];
+        $qty = isset($item['quantity']) ? max(1, (int)$item['quantity']) : 1;
         $isPreorder = (strpos($itemId, 'pre_') === 0);
         $unit_price = ($checkout_type === 'borrow') ? 0 : (float) ($item['price'] ?? 0);
+        $item_total = $unit_price * $qty;
 
         if ($isPreorder) {
             $realPoId = substr($itemId, 4);
-            $pdo->prepare("INSERT INTO order_items (order_id, preorder_id, quantity, unit_price, total_price) VALUES (?, ?, 1, ?, ?)")
-                ->execute([$order_id, $realPoId, $unit_price, $unit_price]);
+            $pdo->prepare("INSERT INTO order_items (order_id, preorder_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)")
+                ->execute([$order_id, $realPoId, $qty, $unit_price, $item_total]);
         } else {
-            $pdo->prepare("INSERT INTO order_items (order_id, book_id, quantity, unit_price, total_price) VALUES (?, ?, 1, ?, ?)")
-                ->execute([$order_id, $itemId, $unit_price, $unit_price]);
+            $pdo->prepare("INSERT INTO order_items (order_id, book_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)")
+                ->execute([$order_id, $itemId, $qty, $unit_price, $item_total]);
 
-            $pdo->prepare("UPDATE books SET stock_qty = GREATEST(stock_qty - 1, 0) WHERE id = ?")
-                ->execute([$itemId]);
+            $pdo->prepare("UPDATE books SET stock_qty = GREATEST(stock_qty - ?, 0) WHERE id = ?")
+                ->execute([$qty, $itemId]);
 
             if ($checkout_type === 'borrow') {
                 $due_date = date('Y-m-d', strtotime('+30 days'));
